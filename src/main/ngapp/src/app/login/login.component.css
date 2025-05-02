@@ -1,0 +1,10 @@
+/*
+  This file can often be empty when using Tailwind CSS extensively.
+  Add custom styles here only if they cannot be achieved with Tailwind utilities
+  or require more complex selectors/features.
+
+  Example (if needed):
+  .custom-complex-gradient {
+    background-image: linear-gradient(to right, var(--tw-gradient-stops));
+  }
+*/
