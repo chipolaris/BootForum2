@@ -2,7 +2,6 @@ package com.github.chipolaris.bootforum2;
 
 import com.github.chipolaris.bootforum2.security.JwtAuthenticationFilter;
 import jakarta.annotation.Resource;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -27,9 +26,7 @@ import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.resource.PathResourceResolver;
 
-import javax.sql.DataSource;
 import java.io.IOException;
-import java.sql.Connection;
 import java.util.Arrays;
 import java.util.List;
 
@@ -158,22 +155,5 @@ public class SpringBootAngularApplication {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-    /* Debug, remove this method
-
-     */
-    @Bean
-    CommandLineRunner validateSchema(DataSource dataSource) {
-        return args -> {
-            try (Connection conn = dataSource.getConnection()) {
-                var rs = conn.getMetaData().getTables(null, null, "%", new String[]{"TABLE"});
-                System.out.println("Tables visible to Spring Boot:");
-                while (rs.next()) {
-                    System.out.println(" - " + rs.getString("TABLE_NAME"));
-                }
-            }
-        };
-    }
-
 
 }

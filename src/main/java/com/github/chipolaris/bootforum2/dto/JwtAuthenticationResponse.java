@@ -1,4 +1,4 @@
-package com.github.chipolaris.bootforum2.rest.dto;
+package com.github.chipolaris.bootforum2.dto;
 
 public class JwtAuthenticationResponse {
     private String accessToken;

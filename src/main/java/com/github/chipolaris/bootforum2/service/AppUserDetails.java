@@ -1,7 +1,7 @@
 package com.github.chipolaris.bootforum2.service;
 
 import com.github.chipolaris.bootforum2.domain.User;
-import com.github.chipolaris.bootforum2.domain.User.AccountStatus;
+import com.github.chipolaris.bootforum2.enumeration.AccountStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -46,7 +46,7 @@ public class AppUserDetails implements UserDetails {
 			@Override
 			public String getAuthority() {
 				return AppUserDetails.ROLE_PREFIX + 
-					AppUserDetails.this.appUser.getRole().toString();
+					AppUserDetails.this.appUser.getUserRole().toString();
 			}
 		});
 		

@@ -1,34 +1,92 @@
 package com.github.chipolaris.bootforum2.domain;
 
-import jakarta.persistence.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.OrderBy;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import jakarta.persistence.TableGenerator;
+import jakarta.persistence.UniqueConstraint;
+
+import com.github.chipolaris.bootforum2.enumeration.AccountStatus;
+import com.github.chipolaris.bootforum2.enumeration.UserRole;
 
 @Entity
-@Table(name="USER_T")
-@TableGenerator(name="UserIdGenerator", table="ENTITY_ID_T", pkColumnName="GEN_KEY", 
-pkColumnValue="USER_ID", valueColumnName="GEN_VALUE", initialValue = 1000, allocationSize=10)
+@Table(name="USER_T",
+		uniqueConstraints= {@UniqueConstraint(columnNames="USER_NAME", name="UNIQ_USER_USER_NAME")})
+@TableGenerator(name="UserIdGenerator", table="ENTITY_ID_T", pkColumnName="GEN_KEY",
+		pkColumnValue="USER_ID", valueColumnName="GEN_VALUE", initialValue = 1000, allocationSize=10)
 public class User extends BaseEntity {
 
-	@Column(name="USER_NAME", unique=true, nullable=false)
+	@PrePersist
+	public void prePersist() {
+		Date now = Calendar.getInstance().getTime();
+		this.setCreateDate(now);
+	}
+
+	@PreUpdate
+	public void preUpdate() {
+		Date now = Calendar.getInstance().getTime();
+		this.setUpdateDate(now);
+	}
+
+	@Id
+	@GeneratedValue(strategy=GenerationType.TABLE, generator="UserIdGenerator")
+	private Long id;
+
+	@Column(name="USER_NAME", length=50, nullable=false)
 	private String username;
-	
-	@Column(name="PASSWORD", nullable=false)
+
+	@Column(name="PASSWORD", length=200, nullable=false)
 	private String password;
-	
-	/*
-	 * Note since ROLE is a keyword in SQL Server, use USER_ROLE to make
-	 * sure it work there
-	 */
+
 	@Enumerated(EnumType.STRING)
 	@Column(name = "USER_ROLE", length=50, nullable = false)
-	private Role role;
-	
+	private UserRole userRole;
+
+	@OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+	@JoinColumn(name="PERSON_ID", foreignKey = @ForeignKey(name="FK_USER_PERS"))
+	private Person person;
+
+	@OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+	@JoinColumn(name="PREFERENCE_ID", foreignKey = @ForeignKey(name="FK_USER_PREF"))
+	private Preferences preferences;
+
 	@Enumerated(EnumType.STRING)
 	@Column(name="ACCOUNT_STATUS", length=50)
 	private AccountStatus accountStatus;
-	
+
+	@OneToMany(mappedBy="user", cascade=CascadeType.ALL)
+	@OrderBy("id ASC")
+	private List<SecurityChallenge> securityChallenges;
+
 	@OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
-	@JoinColumn(name="PERSON_ID")
-	private Person person;
+	@JoinColumn(name="USER_STAT_ID", foreignKey = @ForeignKey(name="FK_USER_USER_STAT"))
+	private UserStat stat;
+
+	@Override
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
 
 	public String getUsername() {
 		return username;
@@ -36,19 +94,33 @@ public class User extends BaseEntity {
 	public void setUsername(String username) {
 		this.username = username;
 	}
-	
+
 	public String getPassword() {
 		return password;
 	}
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	
-	public Role getRole() {
-		return role;
+
+	public UserRole getUserRole() {
+		return userRole;
 	}
-	public void setRole(Role role) {
-		this.role = role;
+	public void setUserRole(UserRole userRole) {
+		this.userRole = userRole;
+	}
+
+	public Person getPerson() {
+		return person;
+	}
+	public void setPerson(Person person) {
+		this.person = person;
+	}
+
+	public Preferences getPreferences() {
+		return preferences;
+	}
+	public void setPreferences(Preferences preferences) {
+		this.preferences = preferences;
 	}
 
 	public AccountStatus getAccountStatus() {
@@ -57,59 +129,18 @@ public class User extends BaseEntity {
 	public void setAccountStatus(AccountStatus accountStatus) {
 		this.accountStatus = accountStatus;
 	}
-	
-	public Person getPerson() {
-		return person;
-	}
-	public void setPerson(Person person) {
-		this.person = person;
-	}
-	
-	@Id
-	@GeneratedValue(strategy=GenerationType.TABLE, generator="UserIdGenerator")
-	private Long id;
-	
-	@Override
-	public Long getId() {
-		return id;
-	}
-	public void setId(Long id) {
-		this.id = id;
-	}
-	
-	/*
-	 * enums
-	 */
-	public enum Role {
-		
-		ADMIN 			("Administrator"),
-		USER 			("Public User");
-		
-		private String label;
-		
-		Role(String label) {
-			this.label = label;
-		}
-		
-		public String getLabel() {
-	    	return label;
-	    }
-	}
-	
-	public enum AccountStatus {
 
-		ACTIVE 			("Active"),
-		LOCKED			("Locked"),
-		INACTIVE		("Inactive");
-		
-		private String label;
-		
-		AccountStatus(String label) {
-			this.label = label;
-		}
-		
-	    public String getLabel() {
-	    	return label;
-	    }
+	public List<SecurityChallenge> getSecurityChallenges() {
+		return securityChallenges;
+	}
+	public void setSecurityChallenges(List<SecurityChallenge> securityChallenges) {
+		this.securityChallenges = securityChallenges;
+	}
+
+	public UserStat getStat() {
+		return stat;
+	}
+	public void setStat(UserStat stat) {
+		this.stat = stat;
 	}
 }

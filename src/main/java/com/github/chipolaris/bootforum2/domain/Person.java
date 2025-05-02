@@ -1,5 +1,6 @@
 package com.github.chipolaris.bootforum2.domain;
 
+
 import jakarta.persistence.*;
 
 @Entity
