@@ -1,17 +1,17 @@
 package com.github.chipolaris.bootforum2.service;
 
+import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.domain.Person;
 import com.github.chipolaris.bootforum2.domain.User;
-import com.github.chipolaris.bootforum2.dto.SignUpRequest;
-import com.github.chipolaris.bootforum2.enumeration.AccountStatus;
-import com.github.chipolaris.bootforum2.enumeration.UserRole;
-import com.github.chipolaris.bootforum2.repository.PersonRepository;
-import com.github.chipolaris.bootforum2.repository.UserRepository;
+import com.github.chipolaris.bootforum2.domain.Registration;
+import com.github.chipolaris.bootforum2.dto.RegistrationRequest;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 public class RegistrationService {
@@ -19,53 +19,72 @@ public class RegistrationService {
     private static final Logger logger = LoggerFactory.getLogger(RegistrationService.class);
 
     @Resource
-    private UserRepository userRepository;
-
-    @Resource
-    private PersonRepository personRepository;
+    private GenericDAO genericDAO;
 
     @Resource
     private PasswordEncoder passwordEncoder;
 
     /**
      * Registers a new user.
-     * @param signUpRequest DTO containing registration data.
+     * @param registrationRequest DTO containing registration data.
      * @return The newly created User object.
      * @throws RuntimeException if username or email already exists.
      */
-    public User registerNewUser(SignUpRequest signUpRequest) {
-        logger.info("Attempting to register new user: {}", signUpRequest.username());
+    public ServiceResponse<Registration> processRegistrationRequest(RegistrationRequest registrationRequest) {
+        logger.info("Attempting to register new user: {}", registrationRequest.username());
+
+        ServiceResponse<Registration> response = new ServiceResponse<>();
 
         // Check if username exists
-        if (userRepository.existsByUsername(signUpRequest.username())) {
-            logger.warn("Registration failed: Username '{}' already exists.", signUpRequest.username());
-            throw new RuntimeException("Error: Username is already taken!"); // Or a custom exception
+        if (genericDAO.entityExists(User.class, "username", registrationRequest.username())
+                || genericDAO.entityExists(Registration.class, "username", registrationRequest.firstName())) {
+            logger.warn("Registration failed: Username '{}' already exists.", registrationRequest.username());
+            response.setAckCode(ServiceResponse.AckCodeType.FAILURE);
+            response.addMessage("Error: Username is already taken!");
         }
 
         // Check if email exists (assuming Person holds the email)
-        if (personRepository.existsByEmail(signUpRequest.email())) {
-            logger.warn("Registration failed: Email '{}' already exists.", signUpRequest.email());
-            throw new RuntimeException("Error: Email is already in use!"); // Or a custom exception
+        if (genericDAO.entityExists(Person.class, "email", registrationRequest.email())) {
+            logger.warn("Registration failed: Email '{}' already exists.", registrationRequest.email());
+            response.setAckCode(ServiceResponse.AckCodeType.FAILURE);
+            response.addMessage("Error: Email is already in use!");
         }
 
+        /*
         // Create new Person
         Person person = new Person();
-        person.setFirstName(signUpRequest.firstName());
-        person.setLastName(signUpRequest.lastName());
-        person.setEmail(signUpRequest.email());
+        person.setFirstName(registrationRequest.firstName());
+        person.setLastName(registrationRequest.lastName());
+        person.setEmail(registrationRequest.email());
         // Set other Person fields as needed (e.g., registration date)
-        personRepository.save(person); // Save Person first to get ID if User depends on it
+        genericDAO.persist(person); // Save Person first to get ID if User depends on it
 
         // Create new User
         User user = new User();
-        user.setUsername(signUpRequest.username());
-        user.setPassword(passwordEncoder.encode(signUpRequest.password()));
+        user.setUsername(registrationRequest.username());
+        user.setPassword(passwordEncoder.encode(registrationRequest.password()));
         user.setPerson(person); // Link User to Person
         user.setAccountStatus(AccountStatus.ACTIVE); // Enable user by default, or implement activation logic
         user.setUserRole(UserRole.USER); // Assign default roles if necessary (e.g., ROLE_USER)
 
-        User savedUser = userRepository.save(user);
-        logger.info("Successfully registered user: {}", savedUser.getUsername());
-        return savedUser;
+        genericDAO.persist(user);
+        logger.info("Successfully registered user: {}", user.getUsername());
+
+        response.setDataObject(user);
+        */
+
+        if(response.getAckCode() != ServiceResponse.AckCodeType.FAILURE) {
+            // Create new Registration
+            Registration registration = new Registration();
+            registration.setUsername(registrationRequest.username());
+            registration.setPassword(passwordEncoder.encode(registrationRequest.password()));
+            registration.setEmail(registrationRequest.email());
+            registration.setRegistrationKey(UUID.randomUUID().toString());
+
+            genericDAO.persist(registration);
+            response.setDataObject(registration);
+        }
+
+        return response;
     }
 }

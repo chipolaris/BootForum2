@@ -182,7 +182,6 @@ public class GenericDAO {
     }
 		
 	/**
-	 * 
 	 * @param <E>
 	 * @param entityClass
 	 * @param text
@@ -456,4 +455,47 @@ public class GenericDAO {
 		
 		return root.<E>get(pathExpression);
 	}
+
+	/**
+	 * New methods go here
+	 */
+
+	/**
+	 * Determine if an instance of the given entity class exists with the given [attributeName=attributeValue]
+	 * @param entityClass
+	 * @param attributeName
+	 * @param attributeValue
+	 * @return
+	 * @param <T>
+	 */
+	public <T> boolean entityExists(Class<T> entityClass, String attributeName, Object attributeValue) {
+		return entityExists(entityClass, Map.of(attributeName, attributeValue));
+	}
+
+	/**
+	 * Determine if an instance of the given entity class exists with the given filters
+	 * Where filters looks like [attribute1=attributeValue1, attribute2=attributeValue2, ...]
+	 * @param entityClass
+	 * @param filters
+	 * @return
+	 * @param <T>
+	 */
+	public <T> boolean entityExists(Class<T> entityClass, Map<String, Object> filters) {
+		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+		CriteriaQuery<Integer> criteriaQuery = builder.createQuery(Integer.class);
+		Root<T> root = criteriaQuery.from(entityClass);
+
+		Predicate[] predicates = buildPredicates(builder, root, filters);
+
+		criteriaQuery.select(builder.literal(1)).where(predicates);
+
+		TypedQuery<Integer> typedQuery = entityManager.createQuery(criteriaQuery);
+		typedQuery.setMaxResults(1); // LIMIT 1 for performance reasons
+
+		return !typedQuery.getResultList().isEmpty();
+	}
+
+	/**
+	 *
+	 */
 }

@@ -1,0 +1,152 @@
+<p-toast></p-toast> <!-- For PrimeNG Messages -->
+<div class="flex flex-col justify-center items-center h-full">
+  <!-- Card: White background, shadow, padding, rounded corners -->
+  <div class="bg-white shadow-md rounded-lg p-8 mx-auto w-64 sm:w-64 md:w-80 lg:w-96 xl:w-[500px]">
+
+    <div>
+      <h2 class="mt-6 text-center text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-gray-900 flex items-center justify-center gap-2">
+        <!-- Heroicon name: clipboard-document-list -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-[1em] h-[1em] text-current inline-block" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
+        </svg>
+        Create your account
+      </h2>
+    </div>
+
+    <!-- General Error Message -->
+    <div *ngIf="generalError" class="rounded-md bg-red-50 p-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <!-- Heroicon name: solid/x-circle -->
+          <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">Registration Error</h3>
+          <div class="mt-2 text-sm text-red-700">
+            <p>{{ generalError }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <form class="mt-8 space-y-6" [formGroup]="registrationForm" (ngSubmit)="onSubmit()" novalidate>
+      <input type="hidden" name="remember" value="true">
+      <div class="space-y-4 rounded-md">
+        <!-- Username -->
+        <div>
+          <label for="username" class="sr-only">Username</label>
+          <input id="username" name="username" type="text" formControlName="username" required
+                 class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                 [ngClass]="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': submitted && f['username'].invalid }"
+                 placeholder="Username">
+          <div *ngIf="submitted && f['username'].errors" class="mt-1 px-1 text-xs text-red-600">
+            <span *ngIf="f['username'].errors['required']">Username is required.</span>
+            <span *ngIf="f['username'].errors['minlength']">Username must be at least 3 characters.</span>
+            <span *ngIf="f['username'].errors['maxlength']">Username cannot exceed 20 characters.</span>
+          </div>
+        </div>
+
+        <!-- First Name -->
+        <div>
+          <label for="firstName" class="sr-only">First Name</label>
+          <input id="firstName" name="firstName" type="text" formControlName="firstName" required
+                 class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                 [ngClass]="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': submitted && f['firstName'].invalid }"
+                 placeholder="First Name">
+          <div *ngIf="submitted && f['firstName'].errors" class="mt-1 px-1 text-xs text-red-600">
+            <span *ngIf="f['firstName'].errors['required']">First name is required.</span>
+            <span *ngIf="f['firstName'].errors['maxlength']">First name cannot exceed 50 characters.</span>
+          </div>
+        </div>
+
+        <!-- Last Name -->
+        <div>
+          <label for="lastName" class="sr-only">Last Name</label>
+          <input id="lastName" name="lastName" type="text" formControlName="lastName" required
+                 class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                 [ngClass]="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': submitted && f['lastName'].invalid }"
+                 placeholder="Last Name">
+          <div *ngIf="submitted && f['lastName'].errors" class="mt-1 px-1 text-xs text-red-600">
+            <span *ngIf="f['lastName'].errors['required']">Last name is required.</span>
+            <span *ngIf="f['lastName'].errors['maxlength']">Last name cannot exceed 50 characters.</span>
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label for="email" class="sr-only">Email address</label>
+          <input id="email" name="email" type="email" formControlName="email" required
+                 class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                 [ngClass]="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': submitted && f['email'].invalid }"
+                 placeholder="Email address">
+          <div *ngIf="submitted && f['email'].errors" class="mt-1 px-1 text-xs text-red-600">
+            <span *ngIf="f['email'].errors['required']">Email is required.</span>
+            <span *ngIf="f['email'].errors['email']">Please enter a valid email address.</span>
+            <span *ngIf="f['email'].errors['maxlength']">Email cannot exceed 50 characters.</span>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label for="password" class="sr-only">Password</label>
+          <input id="password" name="password" type="password" formControlName="password" required
+                 class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                 [ngClass]="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': submitted && (f['password'].invalid || formErrors?.['passwordMismatch']) }"
+                 placeholder="Password">
+          <div *ngIf="submitted && f['password'].errors" class="mt-1 px-1 text-xs text-red-600">
+            <span *ngIf="f['password'].errors['required']">Password is required.</span>
+            <span *ngIf="f['password'].errors['minlength']">Password must be at least 6 characters.</span>
+            <span *ngIf="f['password'].errors['maxlength']">Password cannot exceed 40 characters.</span>
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div>
+          <label for="confirmPassword" class="sr-only">Confirm Password</label>
+          <input id="confirmPassword" name="confirmPassword" type="password" formControlName="confirmPassword" required
+                 class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                 [ngClass]="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': submitted && (f['confirmPassword'].invalid || formErrors?.['passwordMismatch']) }"
+                 placeholder="Confirm Password">
+          <div *ngIf="submitted && f['confirmPassword'].errors?.['required']" class="mt-1 px-1 text-xs text-red-600">
+            Please confirm your password.
+          </div>
+          <!-- Password Mismatch Error (shown below confirm password) -->
+          <div *ngIf="submitted && !f['confirmPassword'].errors?.['required'] && formErrors?.['passwordMismatch']" class="mt-1 px-1 text-xs text-red-600">
+            Passwords do not match.
+          </div>
+        </div>
+      </div>
+
+      <div>
+
+        <button type="submit" [disabled]="registrationForm.invalid || isLoading"
+                class="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+
+            <!-- Heroicon name: arrow-up-on-square-stack -->
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 7.5h-.75A2.25 2.25 0 0 0 4.5 9.75v7.5a2.25 2.25 0 0 0 2.25 2.25h7.5a2.25 2.25 0 0 0 2.25-2.25v-7.5a2.25 2.25 0 0 0-2.25-2.25h-.75m0-3-3-3m0 0-3 3m3-3v11.25m6-2.25h.75a2.25 2.25 0 0 1 2.25 2.25v7.5a2.25 2.25 0 0 1-2.25 2.25h-7.5a2.25 2.25 0 0 1-2.25-2.25v-.75" />
+            </svg>
+
+            <!-- Loading Spinner -->
+             <svg *ngIf="isLoading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+          </span>
+          {{ isLoading ? 'Registering...' : 'Sign up' }}
+        </button>
+      </div>
+
+      <div class="text-sm text-center">
+        <span class="text-gray-600">Already have an account?</span>
+        <a routerLink="/app/login" class="font-medium text-indigo-600 hover:text-indigo-500">
+          Sign in
+        </a>
+      </div>
+    </form>
+  </div>
+</div>

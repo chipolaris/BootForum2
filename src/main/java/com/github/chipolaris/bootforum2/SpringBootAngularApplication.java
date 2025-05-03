@@ -1,11 +1,18 @@
 package com.github.chipolaris.bootforum2;
 
+import com.github.chipolaris.bootforum2.dao.GenericDAO;
+import com.github.chipolaris.bootforum2.domain.Person;
+import com.github.chipolaris.bootforum2.domain.User;
+import com.github.chipolaris.bootforum2.repository.PersonRepository;
+import com.github.chipolaris.bootforum2.repository.UserRepository;
 import com.github.chipolaris.bootforum2.security.JwtAuthenticationFilter;
 import jakarta.annotation.Resource;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,9 +33,13 @@ import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.resource.PathResourceResolver;
 
+import javax.sql.DataSource;
 import java.io.IOException;
+import java.sql.Connection;
+import java.time.Period;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @SpringBootApplication
 public class SpringBootAngularApplication {
@@ -154,6 +165,55 @@ public class SpringBootAngularApplication {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean @Order(1)
+    CommandLineRunner validateSchema(DataSource dataSource) {
+        return args -> {
+            try (Connection conn = dataSource.getConnection()) {
+                var rs = conn.getMetaData().getTables(null, null, "%", new String[]{"TABLE"});
+                System.out.println("Tables visible to Spring Boot:");
+                while (rs.next()) {
+                    System.out.println(" - " + rs.getString("TABLE_NAME"));
+                }
+            }
+        };
+    }
+
+    @Bean @Order(2)
+    CommandLineRunner validateData(GenericDAO genericDAO) {
+        return args -> {
+            System.out.println("Validating data...");
+
+            if(genericDAO.entityExists(User.class,"username","admin")) {
+                System.out.println("User 'admin' exists (as expected)");
+            }
+            else {
+                System.out.println("User 'admin' does not exist (something wrong)");
+            }
+
+            if(!genericDAO.entityExists(User.class,"username","admin2")) {
+                System.out.println("User 'admin2' does not exist (as expected)");
+            }
+            else {
+                System.out.println("User 'admin2' exists (something wrong)");
+            }
+
+            if(genericDAO.entityExists(Person.class, Map.of("firstName", "Admin", "lastName", "User"))) {
+                System.out.println("Person 'Admin User' exists (as expected)");
+            }
+            else {
+                System.out.println("Person 'Admin User' does not exist (something wrong)");
+            }
+
+            if(!genericDAO.entityExists(Person.class, Map.of("firstName", "Admin2", "lastName", "User"))) {
+                System.out.println("Person 'Admin2 User' does not exist (as expected)");
+
+            }
+            else {
+                System.out.println("Person 'Admin2 User' exists (something wrong)");
+            }
+        };
     }
 
 }
