@@ -1,6 +1,7 @@
 package com.github.chipolaris.bootforum2.rest;
 
 import com.github.chipolaris.bootforum2.domain.Registration;
+import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.dto.ApiResponse;
 import com.github.chipolaris.bootforum2.dto.MessageResponse;
 import com.github.chipolaris.bootforum2.dto.RegistrationRequest;
@@ -11,10 +12,9 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -36,6 +36,23 @@ public class RegistrationController {
             return ApiResponse.success(serviceResponse.getDataObject().getRegistrationKey(), "User registered successfully");
         } catch (Exception e) {
             logger.error("Unexpected registration error", e);
+            return ApiResponse.error(String.format("An unexpected error occurred during registration.", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/public/confirm-registration-email")
+    public ApiResponse<?> confirmRegistrationEmail(@RequestParam String registrationKey) {
+        try {
+            ServiceResponse<User> serviceResponse = registrationService.processEmailConfirmation(registrationKey);
+            if(serviceResponse.getAckCode() == ServiceResponse.AckCodeType.FAILURE) {
+                return ApiResponse.error(serviceResponse.getMessages(), "Registration email confirmation failed");
+            }
+            // Success! Return a map of {"username": username, "email": email}
+            return ApiResponse.success(Map.of("username", serviceResponse.getDataObject().getUsername(),
+                    "email", serviceResponse.getDataObject().getPerson().getEmail()),
+                    "Registration email confirmed successfully");
+        } catch (Exception e) {
+            logger.error("Unexpected registration email confirmation error", e);
             return ApiResponse.error(String.format("An unexpected error occurred during registration.", e.getMessage()));
         }
     }

@@ -1,9 +1,6 @@
 package com.github.chipolaris.bootforum2.dao;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
-import jakarta.persistence.TypedQuery;
+import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import org.springframework.stereotype.Repository;
 
@@ -78,7 +75,8 @@ public class GenericDAO {
     }
 	
 	/**
-	 * 
+	 * Find one entity of the given entity type with the given filters
+	 * Note: there might be more than one entity that match the filters
 	 * @param <E>
 	 * @param entityClass
 	 * @param filters
@@ -180,6 +178,36 @@ public class GenericDAO {
 		criteriaQuery.select(criteriaBuilder.count(criteriaQuery.from(entityClass)));
 		return entityManager.createQuery(criteriaQuery).getSingleResult();
     }
+
+	/**
+	 * Similar to the {@link #findOne(Class, Map)}}
+	 * This one expects there is only one entity that match the given filters
+	 * @param entityClass
+	 * @param filters
+	 * @return
+	 * @param <E>
+	 */
+	public <E> E getEntity(Class<E> entityClass, Map<String, Object> filters) {
+
+		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+		CriteriaQuery<E> query = builder.createQuery(entityClass);
+
+		Root<E> root = query.from(entityClass);
+		query.select(root);
+
+		Predicate[] predicates = buildPredicates(builder, root, filters);
+		query.where(predicates);
+
+		TypedQuery<E> typedQuery = entityManager.createQuery(query);
+
+		// For single result, handle NoResultException
+		try {
+			return typedQuery.getSingleResult();
+		}
+		catch (NoResultException e) {
+			return null;
+		}
+	}
 		
 	/**
 	 * @param <E>
