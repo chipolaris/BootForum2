@@ -1,9 +1,9 @@
     // src/app/_services/authentication.service.ts
     import { Injectable } from '@angular/core';
-    import { HttpClient, HttpHeaders } from '@angular/common/http'; // Remove HttpParams if not needed elsewhere
+    import { HttpClient, HttpHeaders } from '@angular/common/http';
     import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
     import { map, catchError, tap, shareReplay, switchMap } from 'rxjs/operators';
-    import { User } from '../_models/user'; // Adjust path
+    import { User } from '../_data/models';
 
     // Define the expected response structure from /api/authenticate
     interface AuthResponse {

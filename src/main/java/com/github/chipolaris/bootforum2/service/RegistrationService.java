@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -30,6 +31,7 @@ public class RegistrationService {
      * @return The newly created User object.
      * @throws RuntimeException if username or email already exists.
      */
+    @Transactional(readOnly=false)
     public ServiceResponse<Registration> processRegistrationRequest(RegistrationRequest registrationRequest) {
         logger.info("Attempting to register new user: {}", registrationRequest.username());
 

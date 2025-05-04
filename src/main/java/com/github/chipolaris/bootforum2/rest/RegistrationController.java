@@ -1,6 +1,7 @@
 package com.github.chipolaris.bootforum2.rest;
 
 import com.github.chipolaris.bootforum2.domain.Registration;
+import com.github.chipolaris.bootforum2.dto.ApiResponse;
 import com.github.chipolaris.bootforum2.dto.MessageResponse;
 import com.github.chipolaris.bootforum2.dto.RegistrationRequest;
 import com.github.chipolaris.bootforum2.service.RegistrationService;
@@ -25,18 +26,17 @@ public class RegistrationController {
     private RegistrationService registrationService;
 
     @PostMapping("/public/register") // Place under /public as it doesn't require auth
-    public ResponseEntity<?> registerUser(@Valid @RequestBody RegistrationRequest registrationRequest) {
+    public ApiResponse<?> registerUser(@Valid @RequestBody RegistrationRequest registrationRequest) {
         try {
             ServiceResponse<Registration> serviceResponse = registrationService.processRegistrationRequest(registrationRequest);
 
             if(serviceResponse.getAckCode() == ServiceResponse.AckCodeType.FAILURE) {
-                return ResponseEntity.badRequest().body(serviceResponse.getMessages());
+                return ApiResponse.error(serviceResponse.getMessages(), "Registration failed");
             }
-            return ResponseEntity.ok(new MessageResponse(String.format("User registered successfully! Registration key: %s",
-                    serviceResponse.getDataObject().getRegistrationKey())));
+            return ApiResponse.success(serviceResponse.getDataObject().getRegistrationKey(), "User registered successfully");
         } catch (Exception e) {
             logger.error("Unexpected registration error", e);
-            return ResponseEntity.internalServerError().body(new MessageResponse("An unexpected error occurred during registration."));
+            return ApiResponse.error(String.format("An unexpected error occurred during registration.", e.getMessage()));
         }
     }
 }

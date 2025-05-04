@@ -14,7 +14,7 @@
     </div>
 
     <!-- General Error Message -->
-    <div *ngIf="generalError" class="rounded-md bg-red-50 p-4">
+    <div *ngIf="generalErrors" class="rounded-md bg-red-50 p-4">
       <div class="flex">
         <div class="flex-shrink-0">
           <!-- Heroicon name: solid/x-circle -->
@@ -25,7 +25,11 @@
         <div class="ml-3">
           <h3 class="text-sm font-medium text-red-800">Registration Error</h3>
           <div class="mt-2 text-sm text-red-700">
-            <p>{{ generalError }}</p>
+            <ul>
+              <li *ngFor="let error of generalErrors">
+                {{ error }}
+              </li>
+            </ul>
           </div>
         </div>
       </div>

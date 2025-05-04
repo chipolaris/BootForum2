@@ -3,19 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 
-// Define an interface for the registration payload (matches SignUpRequest without confirmPassword)
-export interface RegistrationPayload {
-  username: string;
-  password?: string; // Password might be optional if handled differently, but usually required
-  firstName: string;
-  lastName: string;
-  email: string;
-}
-
-// Define an interface for the backend's success/error message response
-export interface MessageResponse {
-  message: string;
-}
+import { RegistrationPayload, MessageResponse, ApiResponse } from '../_data/dtos';
 
 @Injectable({ providedIn: 'root' })
 export class RegistrationService {
@@ -28,10 +16,10 @@ export class RegistrationService {
    * @param userData The user registration data.
    * @returns Observable<MessageResponse>
    */
-  register(userData: RegistrationPayload): Observable<MessageResponse> {
-    return this.http.post<MessageResponse>(`${this.registrationUrl}`, userData)
+  register(userData: RegistrationPayload): Observable<ApiResponse<string>> {
+    return this.http.post<ApiResponse<string>>(`${this.registrationUrl}`, userData)
       .pipe(
-        tap(response => console.log('Registration API success:', response)), // Log success
+        tap(response => console.log('Registration submitted:', response)), // Log success
         catchError(this.handleError) // Use a shared error handler
       );
   }

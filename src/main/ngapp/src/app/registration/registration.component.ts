@@ -41,7 +41,7 @@ export class RegistrationComponent implements OnInit {
   registrationForm!: FormGroup;
   isLoading = false;
   submitted = false;
-  generalError: string | null = null;
+  generalErrors: string[] | null = null;
 
   private fb = inject(FormBuilder);
   private registrationService = inject(RegistrationService);
@@ -65,7 +65,7 @@ export class RegistrationComponent implements OnInit {
 
   onSubmit(): void {
     this.submitted = true;
-    this.generalError = null; // Clear previous errors
+    this.generalErrors = null; // Clear previous errors
 
     // Stop here if form is invalid
     if (this.registrationForm.invalid) {
@@ -77,22 +77,38 @@ export class RegistrationComponent implements OnInit {
     this.isLoading = true;
 
     // Prepare data - exclude confirmPassword
-    const { confirmPassword, ...signUpData } = this.registrationForm.value;
+    const { confirmPassword, ...registrationData } = this.registrationForm.value;
 
-    this.registrationService.register(signUpData)
+    this.registrationService.register(registrationData)
       .pipe(finalize(() => this.isLoading = false))
       .subscribe({
         next: (response) => {
-          console.log('Registration successful:', response);
-          this.messageService.add({ severity: 'success', summary: 'Registration Successful', detail: response.message || 'Registration submitted!' });
-          // Redirect to login page after a short delay
-          setTimeout(() => this.router.navigate(['/app/login']), 2000);
+          if (response.success && response.data) {
+            console.log('Registration successful:\n', response);
+            this.messageService.add({ severity: 'success', summary: 'Registration Successful', detail: response.message || 'Registration submitted!' });
+
+            this.router.navigate(['/app/registration-confirmation'], { state: { registrationKey: response.data } });
+          }
+          else if(response.errors){
+            // Handle errors
+            this.generalErrors = response.errors;
+
+            console.error('Registration failed:\n', this.generalErrors.join('\n'));
+            this.messageService.add({ severity: 'error', summary: 'Registration Failed', detail: this.generalErrors.join('; ') ?? 'Please try again.' });
+          }
+          else {
+            let errorStr: string = 'An unknown error occurred during registration.';
+            console.error("Registration failed:\n", errorStr);
+            this.messageService.add({ severity: 'error', summary: 'Registration Failed', detail: errorStr });
+            this.generalErrors = [errorStr]; // template expects an array of strings to display
+          }
         },
         error: (error) => {
-          console.error('Registration failed:', error.error);
           // Extract error message from backend response if available
-          this.generalError = error?.error?.message || error?.message || 'An unknown error occurred during registration.';
-          this.messageService.add({ severity: 'error', summary: 'Registration Failed', detail: this.generalError ?? 'Please try again.' });
+          let errorStr: string = error?.error?.message || error?.message || 'An unknown error occurred during registration.';
+          console.error('Registration failed:\n', errorStr);
+          this.messageService.add({ severity: 'error', summary: 'Registration Failed', detail: errorStr ?? 'Please try again.' });
+          this.generalErrors = [errorStr]; // template expects an array of strings to display
         }
       });
   }
