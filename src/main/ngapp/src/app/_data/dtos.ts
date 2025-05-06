@@ -1,3 +1,13 @@
+// Define an interface for the create discussion payload
+export interface CreateDiscussionPayload {
+  forumId: number;
+  discussionId: number | null; // discussionId should be null initially
+  title: string;
+  comment: string;
+  images: FileList | null;
+  attachments: FileList | null;
+}
+
 // Define an interface for the registration payload (matches SignUpRequest without confirmPassword)
 export interface RegistrationPayload {
   username: string;
@@ -8,9 +18,9 @@ export interface RegistrationPayload {
 }
 
 // Define an interface for the backend's success/error message response
-export interface MessageResponse {
+/* export interface MessageResponse {
   message: string;
-}
+} */
 
 // Define an interface for the generic API response structure
 export interface ApiResponse<T> {
