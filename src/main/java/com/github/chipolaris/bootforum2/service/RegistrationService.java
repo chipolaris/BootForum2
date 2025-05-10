@@ -106,11 +106,6 @@ public class RegistrationService {
     private User initializeUser(Registration registration) {
 
         User user = new User();
-        user.setAccountStatus(AccountStatus.ACTIVE);
-        user.setUserRole(UserRole.USER);
-        user.setPerson(new Person());
-        user.setPreferences(new Preferences());
-        user.setStat(new UserStat());
 
         user.setUsername(registration.getUsername());
         // note: no need to encode password as it is already encoded in Registration

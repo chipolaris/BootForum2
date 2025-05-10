@@ -8,6 +8,9 @@ import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { heroClipboardDocumentList, heroArrowUpOnSquareStack } from '@ng-icons/heroicons/outline';
+
 // Custom Validator for Password Match
 export function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
   const password = control.get('password');
@@ -30,9 +33,10 @@ export function passwordMatchValidator(control: AbstractControl): ValidationErro
     ReactiveFormsModule,
     RouterModule, // For routerLink
     ToastModule,
-    ProgressSpinnerModule
+    ProgressSpinnerModule,
+    NgIcon
   ],
-  providers: [MessageService], // Provide if not global
+  providers: [MessageService, provideIcons({heroClipboardDocumentList, heroArrowUpOnSquareStack})], // Provide if not global
   templateUrl: './registration.component.html',
   styleUrls: ['./registration.component.css'] // Can be empty if only using Tailwind
 })

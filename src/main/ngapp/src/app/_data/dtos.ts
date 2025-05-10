@@ -1,4 +1,4 @@
-// Define an interface for the create discussion payload
+// Model for the create discussion payload
 export interface CreateDiscussionPayload {
   forumId: number;
   discussionId: number | null; // discussionId should be null initially
@@ -8,7 +8,16 @@ export interface CreateDiscussionPayload {
   attachments: FileList | null;
 }
 
-// Define an interface for the registration payload (matches SignUpRequest without confirmPassword)
+// Model for the forum creation payload
+export interface ForumDataPayload {
+  title: string;
+  description: string;
+  icon: string;
+  iconColor: string;
+  active: boolean;
+}
+
+// Model for the registration payload (matches SignUpRequest without confirmPassword)
 export interface RegistrationPayload {
   username: string;
   password?: string; // Password might be optional if handled differently, but usually required

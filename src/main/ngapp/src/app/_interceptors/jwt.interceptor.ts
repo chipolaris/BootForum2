@@ -5,6 +5,7 @@ import { AuthenticationService } from '../_services/authentication.service'; // 
 
 /**
  * Functional HTTP Interceptor to add the JWT Authorization header.
+ * The token is retrieved from the AuthenticationService.
  */
 export const jwtInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,

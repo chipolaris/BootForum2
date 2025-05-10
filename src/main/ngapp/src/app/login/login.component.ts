@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, RouterModule } from '@angular/router'; // Import RouterModule if using routerLink
+import { Router, RouterModule, ActivatedRoute } from '@angular/router'; // Import RouterModule if using routerLink
 import {
   FormBuilder,
   FormGroup,
@@ -8,6 +8,9 @@ import {
 } from '@angular/forms';
 import { CommonModule } from '@angular/common'; // Import CommonModule for *ngIf etc.
 import { finalize } from 'rxjs/operators';
+
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { heroArrowRightEndOnRectangle, heroLockClosed } from '@ng-icons/heroicons/outline';
 
 // --- PrimeNG Modules ---
 import { MessageService } from 'primeng/api';
@@ -31,13 +34,14 @@ import { AuthenticationService } from '../_services/authentication.service'; // 
     ToastModule,
     InputTextModule,
     ProgressSpinnerModule,
+    NgIcon,
     // -----------------------------------------
   ],
   providers: [
     // MessageService is often provided root, but can be provided here if needed
     // If AuthService is not providedIn: 'root', provide it here:
     // AuthService
-    AuthenticationService, MessageService
+    AuthenticationService, MessageService, provideIcons({heroArrowRightEndOnRectangle, heroLockClosed})
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
@@ -52,6 +56,7 @@ export class LoginComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthenticationService, // Inject your AuthService
     private router: Router,
+    private route: ActivatedRoute, // Inject ActivatedRoute
     private messageService: MessageService // Inject PrimeNG MessageService
   ) {}
 
@@ -112,8 +117,9 @@ export class LoginComponent implements OnInit {
             detail: `Welcome back!`,
           }); // Customize user info if available
           // Navigate to a protected route (e.g., dashboard)
-          // --- ADJUST TARGET ROUTE AS NEEDED ---
-          this.router.navigate(['/app/dashboard']);
+          // --- HANDLE returnUrl ---
+          const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/app/dashboard';
+          this.router.navigateByUrl(returnUrl);
           // ------------------------------------
         },
         error: (error) => {

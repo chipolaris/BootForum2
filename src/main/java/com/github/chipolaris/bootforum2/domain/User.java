@@ -1,7 +1,6 @@
 package com.github.chipolaris.bootforum2.domain;
 
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -34,16 +33,22 @@ import com.github.chipolaris.bootforum2.enumeration.UserRole;
 		pkColumnValue="USER_ID", valueColumnName="GEN_VALUE", initialValue = 1000, allocationSize=10)
 public class User extends BaseEntity {
 
+	public User() {
+		this.setAccountStatus(AccountStatus.ACTIVE);
+		this.setUserRole(UserRole.USER);
+		this.setPerson(new Person());
+		this.setPreferences(new Preferences());
+		this.setStat(new UserStat());
+	}
+
 	@PrePersist
 	public void prePersist() {
-		Date now = Calendar.getInstance().getTime();
-		this.setCreateDate(now);
+		this.setCreateDate(LocalDateTime.now());
 	}
 
 	@PreUpdate
 	public void preUpdate() {
-		Date now = Calendar.getInstance().getTime();
-		this.setUpdateDate(now);
+		this.setUpdateDate(LocalDateTime.now());
 	}
 
 	@Id

@@ -5,31 +5,31 @@ import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @MappedSuperclass
 public abstract class BaseEntity {
 	
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name="CREATE_DATE")
-	private Date createDate;
+	private LocalDateTime createDate;
 	
 	@Column(name = "CREATE_BY", nullable = true, length=50)
 	private String createBy;
 	
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name="UPDATE_DATE")
-	private Date updateDate;
+	private LocalDateTime updateDate;
 	
 	@Column(name = "UPDATE_BY", nullable = true, length=50)
 	private String updateBy;
 	
 	public abstract Long getId();
 	
-	public Date getCreateDate() {
+	public LocalDateTime getCreateDate() {
 		return createDate;
 	}
-	public void setCreateDate(Date createDate) {
+	public void setCreateDate(LocalDateTime createDate) {
 		this.createDate = createDate;
 	}
 	
@@ -40,10 +40,10 @@ public abstract class BaseEntity {
 		this.createBy = createBy;
 	}
 	
-	public Date getUpdateDate() {
+	public LocalDateTime getUpdateDate() {
 		return updateDate;
 	}
-	public void setUpdateDate(Date updateDate) {
+	public void setUpdateDate(LocalDateTime updateDate) {
 		this.updateDate = updateDate;
 	}
 	

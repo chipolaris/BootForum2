@@ -3,7 +3,6 @@ package com.github.chipolaris.bootforum2.rest;
 import com.github.chipolaris.bootforum2.domain.Registration;
 import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.dto.ApiResponse;
-import com.github.chipolaris.bootforum2.dto.MessageResponse;
 import com.github.chipolaris.bootforum2.dto.RegistrationRequest;
 import com.github.chipolaris.bootforum2.service.RegistrationService;
 import com.github.chipolaris.bootforum2.service.ServiceResponse;
@@ -11,7 +10,6 @@ import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;

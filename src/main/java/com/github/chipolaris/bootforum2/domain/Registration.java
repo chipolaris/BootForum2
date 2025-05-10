@@ -1,9 +1,5 @@
 package com.github.chipolaris.bootforum2.domain;
 
-import java.util.Calendar;
-import java.util.Date;
-
-import com.github.chipolaris.bootforum2.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,6 +10,8 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name="REGISTRATION_T")
 @TableGenerator(name="RegistrationIdGenerator", table="ENTITY_ID_T", pkColumnName="GEN_KEY",
@@ -22,16 +20,14 @@ public class Registration extends BaseEntity {
 
     @PrePersist
     public void prePersist() {
-        Date now = Calendar.getInstance().getTime();
+        LocalDateTime now = LocalDateTime.now();
         this.setCreateDate(now);
         this.setUpdateDate(now);
     }
 
     @PreUpdate
     public void preUpdate() {
-
-        Date now = Calendar.getInstance().getTime();
-        this.setUpdateDate(now);
+        this.setUpdateDate(LocalDateTime.now());
     }
 
     // persisted attributes

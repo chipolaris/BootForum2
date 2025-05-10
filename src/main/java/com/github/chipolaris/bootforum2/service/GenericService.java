@@ -26,9 +26,9 @@ public class GenericService {
 	 * @return
 	 */
 	@Transactional(readOnly=false)
-	public <E> ServiceResponse<Long> saveEntity(E entity) {
+	public <E> ServiceResponse<Void> saveEntity(E entity) {
 		
-		ServiceResponse<Long> response = new ServiceResponse<Long>();
+		ServiceResponse<Void> response = new ServiceResponse<>();
 		genericDAO.persist(entity);
 		
 		return response;

@@ -18,6 +18,8 @@
     "@angular/platform-browser": "^19.0.0",
     "@angular/platform-browser-dynamic": "^19.0.0",
     "@angular/router": "^19.0.0",
+    "@ng-icons/core": "^31.3.0",
+    "@ng-icons/heroicons": "^31.3.0",
     "@primeng/themes": "^19.0.10",
     "@toast-ui/editor": "^3.2.2",
     "ngx-captcha": "^13.0.0",

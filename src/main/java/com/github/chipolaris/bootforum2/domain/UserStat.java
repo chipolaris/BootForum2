@@ -1,7 +1,6 @@
 package com.github.chipolaris.bootforum2.domain;
 
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -27,7 +26,7 @@ public class UserStat extends BaseEntity {
     public UserStat() {}
     @PrePersist
     public void prePersist() {
-        Date now = Calendar.getInstance().getTime();
+        LocalDateTime now = LocalDateTime.now();
         this.setCreateDate(now);
         this.setUpdateDate(now);
     }
@@ -60,7 +59,7 @@ public class UserStat extends BaseEntity {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name="LAST_LOGIN")
-    private Date lastLogin;
+    private LocalDateTime lastLogin;
 
     @Override
     public Long getId() {
@@ -137,10 +136,10 @@ public class UserStat extends BaseEntity {
         this.profileViewed += value;
     }
 
-    public Date getLastLogin() {
+    public LocalDateTime getLastLogin() {
         return lastLogin;
     }
-    public void setLastLogin(Date lastLogin) {
+    public void setLastLogin(LocalDateTime lastLogin) {
         this.lastLogin = lastLogin;
     }
 }

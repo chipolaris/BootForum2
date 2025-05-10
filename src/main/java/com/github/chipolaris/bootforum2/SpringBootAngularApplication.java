@@ -53,6 +53,7 @@ public class SpringBootAngularApplication {
     protected static class SecurityConfiguration {
 
         static final String[] SECURED_ROLES = new String[]{"ADMIN", "USER"};
+        static final String[] ADMIN_ROLES = new String[]{"ADMIN"};
         // Define API paths
         private static final String API_AUTH_PATH = "/api/authenticate"; // New JWT auth endpoint
         private static final String API_USER_PROFILE_PATH = "/api/user/profile";
@@ -103,6 +104,7 @@ public class SpringBootAngularApplication {
                             // Secure specific API endpoints
                             .requestMatchers(API_USER_PROFILE_PATH).authenticated() // Still requires authentication
                             .requestMatchers("/api/secured/**").hasAnyRole(SECURED_ROLES)
+                            .requestMatchers("/api/admin/**").hasAnyRole(ADMIN_ROLES)
                             // Any other request must be authenticated
                             .anyRequest().authenticated()
                     );

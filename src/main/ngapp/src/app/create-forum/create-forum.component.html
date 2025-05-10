@@ -1,0 +1,94 @@
+<div class="container mx-auto p-4 sm:p-6 max-w-lg">
+
+  <h2 class="text-2xl font-semibold mb-6 text-center text-indigo-700">Create New Forum</h2>
+
+  <form [formGroup]="forumForm" (ngSubmit)="onSubmit()" novalidate class="space-y-6 bg-white p-6 rounded-lg shadow-md">
+
+    <!-- At the top of the form or near the submit button -->
+    <div *ngIf="errorMessage" class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Forum Title -->
+    <div>
+      <label for="forumTitle" class="block text-sm font-medium text-gray-700 mb-1">Forum Title</label>
+      <input
+        type="text"
+        id="forumTitle"
+        formControlName="title"
+        required
+        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        [ngClass]="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': submitted && f['title'].invalid }"
+        placeholder="Enter forum title"
+      />
+      <div *ngIf="submitted && f['title'].errors" class="mt-1 text-xs text-red-600">
+        <span *ngIf="f['title'].errors['required']">Forum title is required.</span>
+        <span *ngIf="f['title'].errors['maxlength']">Forum title cannot exceed 100 characters.</span>
+      </div>
+    </div>
+
+    <!-- Forum Description -->
+    <div>
+      <label for="forumDescription" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+      <textarea
+        id="forumDescription"
+        formControlName="description"
+        required
+        rows="4"
+        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        [ngClass]="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': submitted && f['description'].invalid }"
+        placeholder="Describe the forum..."
+      ></textarea>
+      <div *ngIf="submitted && f['description'].errors" class="mt-1 text-xs text-red-600">
+        <span *ngIf="f['description'].errors['required']">Description is required.</span>
+        <span *ngIf="f['description'].errors['maxlength']">Description cannot exceed 500 characters.</span>
+      </div>
+    </div>
+
+    <!-- Icon and Color Picker -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Forum Icon & Color</label>
+      <app-icon-picker
+        [initialIconName]="f['icon'].value"
+        [initialColor]="f['color'].value"
+        (selectionChanged)="handleIconSelection($event)"
+      ></app-icon-picker>
+      <!-- Hidden input for iconColor validation message if needed, though IconPickerComponent handles its own iconColor -->
+      <input type="hidden" formControlName="color" /> <!-- Ensures iconColor is part of the form for validation state -->
+      <div *ngIf="submitted && f['color'].errors" class="mt-1 text-xs text-red-600">
+        <span *ngIf="f['color'].errors['required']">Color is required (should be set by picker).</span>
+      </div>
+    </div>
+
+    <!-- Forum Active State -->
+    <div class="flex items-center">
+      <input
+        id="forumActive"
+        type="checkbox"
+        formControlName="active"
+        class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+      />
+      <label for="forumActive" class="ml-2 block text-sm text-gray-900">
+        Active
+      </label>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="pt-2">
+      <button
+        type="submit"
+        [disabled]="isLoading"
+        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <span class="absolute left-0 inset-y-0 flex items-center pl-3" *ngIf="isLoading">
+          <!-- Loading Spinner -->
+          <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </span>
+        {{ isLoading ? 'Creating...' : 'Create Forum' }}
+      </button>
+    </div>
+  </form>
+</div>

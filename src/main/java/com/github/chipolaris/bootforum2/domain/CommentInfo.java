@@ -1,7 +1,6 @@
 package com.github.chipolaris.bootforum2.domain;
 
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,15 +22,14 @@ public class CommentInfo extends BaseEntity {
 
     @PrePersist
     public void prePersist() {
-        Date now = Calendar.getInstance().getTime();
+        LocalDateTime now = LocalDateTime.now();
         this.setCreateDate(now);
         this.setUpdateDate(now);
     }
 
     @PreUpdate
     public void preUpdate() {
-        Date now = Calendar.getInstance().getTime();
-        this.setUpdateDate(now);
+        this.setUpdateDate(LocalDateTime.now());
     }
 
     @Id
@@ -52,7 +50,7 @@ public class CommentInfo extends BaseEntity {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name="COMMENT_DATE")
-    private Date commentDate;
+    private LocalDateTime commentDate;
 
     @Override
     public Long getId() {
@@ -90,10 +88,10 @@ public class CommentInfo extends BaseEntity {
         this.commentor = commentor;
     }
 
-    public Date getCommentDate() {
+    public LocalDateTime getCommentDate() {
         return commentDate;
     }
-    public void setCommentDate(Date commentDate) {
+    public void setCommentDate(LocalDateTime commentDate) {
         this.commentDate = commentDate;
     }
 }
