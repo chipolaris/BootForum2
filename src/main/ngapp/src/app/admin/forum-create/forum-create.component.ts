@@ -3,24 +3,24 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router'; // Import Router
 
-import { ForumDataPayload } from '../_data/dtos';
-import { IconPickerComponent, IconSelection } from '../icon-picker/icon-picker.component';
-import { ForumService } from '../_services/forum.service'; // Import your ForumService (adjust path)
+import { ForumDataPayload } from '../../_data/dtos';
+import { IconPickerComponent, IconSelection } from '../../icon-picker/icon-picker.component';
+import { ForumService } from '../../_services/forum.service'; // Import your ForumService (adjust path)
 // Optional: For displaying success/error messages
 // import { ToastrService } from 'ngx-toastr';
 
 @Component({
-  selector: 'app-create-forum',
+  selector: 'app-forum-create',
   standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,
     IconPickerComponent
   ],
-  templateUrl: './create-forum.component.html',
-  styleUrls: ['./create-forum.component.css']
+  templateUrl: './forum-create.component.html',
+  styleUrls: ['./forum-create.component.css']
 })
-export class CreateForumComponent implements OnInit {
+export class ForumCreateComponent implements OnInit {
 
   forumForm!: FormGroup;
   submitted = false;

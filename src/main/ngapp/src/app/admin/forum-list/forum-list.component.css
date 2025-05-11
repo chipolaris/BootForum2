@@ -1,0 +1,13 @@
+/* You can add custom styles here if needed, but PrimeNG and Tailwind should cover most cases */
+/* Example: Ensure table actions don't wrap aggressively */
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td:last-child {
+  white-space: nowrap;
+}
+
+/* Tailwind's truncate might need a max-width on the cell or parent to work effectively */
+.truncate {
+  display: inline-block; /* or block */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -56,6 +56,22 @@ export class ForumService {
       );
   }
 
+  // <<< NEW METHOD >>>
+  getAllForums(): Observable<ApiResponse<Forum[]>> { // Expect an array of Forums
+    return this.http.get<ApiResponse<Forum[]>>(this.baseAdminApiUrl)
+      .pipe(
+        tap(response => {
+          if (response.success) {
+            console.log('All forums fetched successfully', response.data);
+          } else {
+            console.error('Failed to fetch all forums', response.message, response.errors);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
+  // <<< END NEW METHOD >>>
+
   private handleError(error: any): Observable<never> {
     console.error('An error occurred in ForumService:', error);
     let errorMessage = 'Something bad happened; please try again later.';

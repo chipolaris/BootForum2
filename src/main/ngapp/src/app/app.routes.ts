@@ -1,7 +1,8 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './home/home.component';
-import { CreateForumComponent } from './create-forum/create-forum.component';
-import { EditForumComponent } from './edit-forum/edit-forum.component';
+import { ForumCreateComponent } from './admin/forum-create/forum-create.component';
+import { ForumEditComponent } from './admin/forum-edit/forum-edit.component';
+import { ForumListComponent } from './admin/forum-list/forum-list.component';
 import { CreateDiscussionComponent } from './create-discussion/create-discussion.component';
 import { RegistrationComponent } from './registration/registration.component';
 import { RegistrationConfirmationComponent } from './registration-confirmation/registration-confirmation.component';
@@ -16,11 +17,15 @@ export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' }, // Redirect empty path to home
       /*  { path: 'app/toast-ui-component', component: ToastEditorComponent }, */
   {
-    path: 'app/create-forum', component: CreateForumComponent, canActivate: [authGuard],
+    path: 'app/admin/forum-create', component: ForumCreateComponent, canActivate: [authGuard],
     data: { roles: ['ADMIN'] }
   },
   {
-    path: 'app/forums/:id', component: EditForumComponent, canActivate: [authGuard],
+    path: 'app/admin/forums', component: ForumListComponent, canActivate: [authGuard],
+    data: { roles: ['ADMIN'] }
+  },
+  {
+    path: 'app/admin/forums/:id', component: ForumEditComponent, canActivate: [authGuard],
     data: { roles: ['ADMIN'] }
   },
   { path: 'app/create-discussion', component: CreateDiscussionComponent },

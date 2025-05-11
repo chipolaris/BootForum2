@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api")
 public class ForumController {
@@ -61,6 +63,29 @@ public class ForumController {
     }
 
     /**
+     * Retrieves a list of all forums.
+     * This endpoint is assumed to be admin-protected.
+     *
+     * @return ApiResponse containing a list of Forums or an error message.
+     */
+    @GetMapping("/admin/forums") // Path for retrieving all forums
+    public ApiResponse<?> getAllForums() {
+        try {
+            ServiceResponse<List<Forum>> response = genericService.getAllEntities(Forum.class);
+
+            if (response.getAckCode() == ServiceResponse.AckCodeType.SUCCESS) {
+                return ApiResponse.success(response.getDataObject(), "Forums retrieved successfully");
+            } else {
+                // Use messages from ServiceResponse if available
+                return ApiResponse.error(response.getMessages(), "Fetch Error");
+            }
+        } catch (Exception e) {
+            logger.error("Error retrieving all forums", e);
+            return ApiResponse.error("An unexpected error occurred while retrieving forums: " + e.getMessage());
+        }
+    }
+
+    /**
      * Updates an existing forum.
      * This endpoint is assumed to be admin-protected.
      *
@@ -102,5 +127,6 @@ public class ForumController {
             return ApiResponse.error(String.format("An unexpected error occurred during updating forum: %s", e.getMessage()));
         }
     }
+
 
 }

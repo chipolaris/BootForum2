@@ -14,9 +14,11 @@
             <li>
               <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/dashboard"> Dashboard </a>
             </li>
-
             <li *ngIf="(isLoggedIn$ | async) && (isAdmin$ | async)">
-              <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/create-forum"> Create Forum </a>
+              <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/admin/forums"> Forums </a>
+            </li>
+            <li *ngIf="(isLoggedIn$ | async) && (isAdmin$ | async)">
+              <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/admin/forum-create"> Create Forum </a>
             </li>
           </ul>
         </nav>
