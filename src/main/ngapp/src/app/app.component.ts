@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core'; // Removed Inject
 import { Router, RouterLink, RouterModule, RouterOutlet } from '@angular/router';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
@@ -15,37 +15,33 @@ import { User } from './_data/models';
   imports: [ RouterLink, RouterOutlet, RouterModule, ToastModule, NgIf, CommonModule ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
-  providers: [MessageService]
+  providers: [ ] // MessageService is usually provided in app.config
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit { // Removed 'implements OnInit' if ngOnInit is empty
   title = 'BootForum2';
 
   isLoggedIn$: Observable<boolean>;
   isAdmin$: Observable<boolean>;
 
   constructor(
-     public authService: AuthenticationService, // @Inject is optional for public constructor params
-     public router: Router
+	 public authService: AuthenticationService,
+	 public router: Router
   ) {
-     this.isLoggedIn$ = this.authService.currentUser.pipe(map(user => !!user));
-     this.isAdmin$ = this.authService.currentUser.pipe(
-       map((user: User | null) => !!(user && user.userRole === 'ADMIN'))
-     );
+	 this.isLoggedIn$ = this.authService.currentUser.pipe(map(user => !!user));
+	 this.isAdmin$ = this.authService.currentUser.pipe(
+	   map((user: User | null) => !!(user && user.userRole === 'ADMIN'))
+	 );
   }
 
   ngOnInit(): void {
-    if (this.authService.hasToken() && !this.authService.isAuthenticated()) {
-       this.authService.getUserProfile().subscribe({
-        error: (err) => {
-          console.error('AppComponent: Failed to re-establish session, logging out.', err);
-          this.authService.logout();
-        }
-       });
-    }
+    // The APP_INITIALIZER now handles the initial auth state loading.
+    // This logic can be removed or simplified.
+    // You might still want to log if the user is authenticated after init.
+    console.log('AppComponent initialized. User authenticated:', this.authService.isAuthenticated());
   }
 
   logout() {
     this.authService.logout();
-    this.router.navigate(['/app/login']); // Redirect to login screen after logout
+    this.router.navigate(['/app/login']);
   }
 }

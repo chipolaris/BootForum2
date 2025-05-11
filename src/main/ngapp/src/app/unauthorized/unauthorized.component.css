@@ -1,0 +1,7 @@
+/* Add any component-specific styles here if needed */
+/* For example, if you want to ensure the h-full on the root div works as expected */
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Ensure the host takes full height if its parent allows */
+}

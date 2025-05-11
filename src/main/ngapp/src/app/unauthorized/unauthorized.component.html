@@ -1,0 +1,45 @@
+<div class="flex flex-col justify-center items-center h-full">
+  <!-- Card: White background, shadow, padding, rounded corners -->
+  <div class="bg-white shadow-md rounded-lg p-8 mx-auto w-64 sm:w-64 md:w-80 lg:w-96 xl:w-[500px]">
+
+    <!-- Header Section -->
+    <div>
+      <h2 class="mt-6 text-center text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-red-700 flex items-center justify-center gap-2">
+        <ng-icon name="heroExclamationTriangle" class="text-red-600"></ng-icon>
+        Access Denied
+      </h2>
+    </div>
+
+    <!-- Message Section -->
+    <div class="mt-8 text-center">
+      <p class="text-gray-700 text-sm sm:text-base">
+        You do not have the necessary permissions to access this page.
+      </p>
+      <p class="mt-2 text-gray-600 text-xs sm:text-sm">
+        If you believe this is an error, please contact your administrator.
+      </p>
+    </div>
+
+    <!-- Action Button -->
+    <div class="mt-10">
+      <a
+        routerLink="/app/dashboard"
+        class="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+      >
+        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+          <ng-icon name="heroArrowLeftStartOnRectangle" size="1.5em"></ng-icon>
+        </span>
+        Go to Dashboard
+      </a>
+    </div>
+
+    <!-- Optional: Link to go back -->
+    <!--
+    <div class="text-sm text-center mt-4">
+      <a (click)="goBack()" class="font-medium text-indigo-600 hover:text-indigo-500 cursor-pointer">
+        Go Back
+      </a>
+    </div>
+    -->
+  </div>
+</div>

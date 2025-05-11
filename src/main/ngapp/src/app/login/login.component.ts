@@ -38,10 +38,7 @@ import { AuthenticationService } from '../_services/authentication.service'; // 
     // -----------------------------------------
   ],
   providers: [
-    // MessageService is often provided root, but can be provided here if needed
-    // If AuthService is not providedIn: 'root', provide it here:
-    // AuthService
-    AuthenticationService, MessageService, provideIcons({heroArrowRightEndOnRectangle, heroLockClosed})
+    provideIcons({heroArrowRightEndOnRectangle, heroLockClosed})
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],

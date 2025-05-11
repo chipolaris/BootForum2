@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './home/home.component';
+import { UnauthorizedComponent } from './unauthorized/unauthorized.component';
 import { ForumCreateComponent } from './admin/forum-create/forum-create.component';
 import { ForumEditComponent } from './admin/forum-edit/forum-edit.component';
 import { ForumListComponent } from './admin/forum-list/forum-list.component';
@@ -9,13 +10,12 @@ import { RegistrationConfirmationComponent } from './registration-confirmation/r
 import { EmailConfirmationComponent } from './email-confirmation/email-confirmation.component';
 import { LoginComponent } from './login/login.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
-/* import { ToastEditorComponent } from './toast-editor/toast-editor.component'; */
-import { authGuard } from './_guards/auth.guard'; // Import the guard
+import { authGuard } from './_guards/auth.guard';
 
 export const routes: Routes = [
   { path: 'home', component: HomeComponent },
   { path: '', redirectTo: '/home', pathMatch: 'full' }, // Redirect empty path to home
-      /*  { path: 'app/toast-ui-component', component: ToastEditorComponent }, */
+  { path: 'app/unauthorized', component: UnauthorizedComponent },
   {
     path: 'app/admin/forum-create', component: ForumCreateComponent, canActivate: [authGuard],
     data: { roles: ['ADMIN'] }
