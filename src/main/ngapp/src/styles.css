@@ -8,3 +8,38 @@
 /* @import '@toast-ui/editor/dist/theme/toastui-editor-dark.css'; */
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+
+/* Custom smaller font size for PrimeNG p-table */
+/* Apply this class to the p-table's styleClass attribute */
+.primeng-table-smaller-font .p-datatable-thead > tr > th,
+.primeng-table-smaller-font .p-datatable-tbody > tr > td {
+  font-size: 0.9em; /* Example: 12.8px. Adjust as needed. */
+  /* You might also want to adjust padding if the smaller font makes it look off */
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+/* Optional: Adjust paginator font size for tables with this class */
+.primeng-table-smaller-font .p-paginator-bottom {
+  font-size: 0.9em; /* Adjust as needed */
+}
+
+.primeng-table-smaller-font .p-paginator-bottom .p-dropdown {
+  font-size: 0.9em; /* Adjust as needed */
+}
+
+.primeng-table-smaller-font .p-paginator-bottom .p-paginator-pages .p-paginator-page {
+  min-width: 2rem; /* Adjust if default looks too big */
+  height: 2rem;    /* Adjust if default looks too big */
+  font-size: 0.9em; /* Ensure page numbers are also smaller */
+}
+
+/* Optional: Adjust search input font size if it's part of the table caption
+   and uses p-inputtext-sm. PrimeNG's p-inputtext-sm already reduces font size,
+   so this might not be necessary or could be made more specific if needed.
+*/
+.primeng-table-smaller-font .p-inputtext-sm {
+    font-size: 0.9em;
+}
+

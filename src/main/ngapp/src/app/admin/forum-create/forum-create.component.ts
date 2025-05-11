@@ -108,4 +108,11 @@ export class ForumCreateComponent implements OnInit {
       active: this.initialActiveState
     });
   }
+
+  // Optional: A cancel button could navigate back
+  onCancel(): void {
+    // Navigate back or to a default page
+    this.router.navigate(['/app/admin/forums']); // Or use Location.back()
+  }
+
 }

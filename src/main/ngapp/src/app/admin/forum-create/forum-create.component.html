@@ -73,12 +73,20 @@
       </label>
     </div>
 
+    <hr class="border-t border-gray-300 my-0 mx-auto" />
+
     <!-- Submit Button -->
-    <div class="pt-2">
+    <div class="flex items-center justify-end space-x-4 pt-4">
+      <button type="button" (click)="onCancel()" [disabled]="isLoading"
+              class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer">
+        Cancel
+      </button>
+
       <button
         type="submit"
         [disabled]="isLoading"
-        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+
+        class="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center cursor-pointer"
       >
         <span class="absolute left-0 inset-y-0 flex items-center pl-3" *ngIf="isLoading">
           <!-- Loading Spinner -->
