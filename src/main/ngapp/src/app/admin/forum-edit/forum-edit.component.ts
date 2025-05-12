@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router'; // Import ActivatedRoute
 
-import { ForumDataPayload, ApiResponse } from '../../_data/dtos';
+import { ForumDTO, ApiResponse } from '../../_data/dtos';
 import { Forum } from '../../_data/models';
 import { IconPickerComponent, IconSelection } from '../../icon-picker/icon-picker.component';
 import { ForumService } from '../../_services/forum.service';
@@ -126,11 +126,11 @@ export class ForumEditComponent implements OnInit {
 
     this.isLoading = true;
 
-    // Construct payload based on Angular's ForumDataPayload (dtos.ts)
+    // Construct payload based on Angular's ForumDTO (dtos.ts)
     // This assumes your Java backend can map these fields correctly
     // (e.g., Angular 'icon' to Java 'iconName' field, Angular 'iconColor' to Java 'color' field if names differ)
     // Based on your CreateForumComponent, your Angular DTO uses 'icon' for name and 'iconColor' for hex.
-    const payload: ForumDataPayload = {
+    const payload: ForumDTO = {
       title: this.f['title'].value,
       description: this.f['description'].value,
       icon: this.f['icon'].value,          // Icon Name
@@ -147,7 +147,7 @@ export class ForumEditComponent implements OnInit {
           console.log('Forum update successful', apiResponse.data);
           this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Forum updated successfully!' });
           // Navigate to a different page, e.g., dashboard or forum list
-          this.router.navigate(['/app/dashboard']); // TODO: Adjust navigation target
+          this.router.navigate(['/app/admin/forums']);
         } else {
           this.errorMessage = apiResponse.message || 'Failed to update forum.';
           this.messageService.add({ severity: 'error', summary: 'Update Failed', detail: this.errorMessage || " Error " });

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router'; // Import Router
 
-import { ForumDataPayload } from '../../_data/dtos';
+import { ForumDTO } from '../../_data/dtos';
 import { IconPickerComponent, IconSelection } from '../../icon-picker/icon-picker.component';
 import { ForumService } from '../../_services/forum.service'; // Import your ForumService (adjust path)
 // Optional: For displaying success/error messages
@@ -66,7 +66,7 @@ export class ForumCreateComponent implements OnInit {
 
     this.isLoading = true;
 
-    const payload: ForumDataPayload = {
+    const payload: ForumDTO = {
       title: this.f['title'].value,
       description: this.f['description'].value,
       icon: this.f['icon'].value,

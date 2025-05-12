@@ -25,13 +25,6 @@
 
         <div class="flex items-center gap-4">
           <div class="sm:flex sm:gap-4">
-            <a *ngIf="!(isLoggedIn$ | async)"
-              class="block rounded-md bg-teal-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-teal-700"
-              routerLink="/app/login"
-            >
-              <span class="pi pi-sign-in mr-2"></span>
-              Login
-            </a>
 
             <button *ngIf="isLoggedIn$ | async" (click)="logout()"
                class="block rounded-md bg-orange-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-orange-700 cursor-pointer"
@@ -46,6 +39,14 @@
             >
               <span class="pi pi-clipboard mr-2"></span>
               Register
+            </a>
+
+            <a *ngIf="!(isLoggedIn$ | async)"
+               class="block rounded-md bg-teal-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-teal-700"
+               routerLink="/app/login"
+            >
+              <span class="pi pi-sign-in mr-2"></span>
+              Login
             </a>
 
           </div>

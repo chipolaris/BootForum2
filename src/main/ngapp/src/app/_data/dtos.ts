@@ -9,7 +9,8 @@ export interface CreateDiscussionPayload {
 }
 
 // Model for the forum creation payload
-export interface ForumDataPayload {
+export interface ForumDTO {
+  id?: number;
   title: string;
   description: string;
   icon: string;

@@ -26,12 +26,9 @@ import jakarta.persistence.TableGenerator;
         pkColumnValue="FORUM_ID", valueColumnName="GEN_VALUE", initialValue = 1000, allocationSize=10)
 public class Forum extends BaseEntity {
 
-    public Forum() {
-        this.stat = new ForumStat();
-    }
-
     @PrePersist
     public void prePersist() {
+        this.setStat(new ForumStat());
         this.setCreateDate(LocalDateTime.now());
     }
 
