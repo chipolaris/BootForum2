@@ -1,11 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core'; // Removed EventEmitter, Output
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router'; // Import Router
+import { Router } from '@angular/router';
 
 import { ForumDTO } from '../../_data/dtos';
 import { IconPickerComponent, IconSelection } from '../../icon-picker/icon-picker.component';
-import { ForumService } from '../../_services/forum.service'; // Import your ForumService (adjust path)
+import { ForumService } from '../../_services/forum.service';
 // Optional: For displaying success/error messages
 // import { ToastrService } from 'ngx-toastr';
 
@@ -86,7 +86,7 @@ export class ForumCreateComponent implements OnInit {
         // Navigate to a different page, e.g., the new forum's page or a list
         // If the response contains the new forum's ID or slug:
         // this.router.navigate(['/forums', response.id]);
-        this.router.navigate(['/app/forum-list']);
+        this.router.navigate(['/app/admin/forums']);
       },
       error: (err) => {
         this.isLoading = false;

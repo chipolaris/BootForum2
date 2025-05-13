@@ -1,0 +1,6 @@
+/* Add any component-specific styles here if needed */
+/* For example, to ensure the container takes up space if it's inside a flex parent */
+:host {
+  display: block;
+  width: 100%;
+}

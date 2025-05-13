@@ -1,0 +1,37 @@
+/* src/app/admin/forum-structure-tree/forum-structure-tree.component.css */
+:host {
+  display: block; /* Ensures the component takes up block space */
+}
+
+/* Style for Material Icons if you use them via class name */
+.material-icons-outlined {
+  font-family: 'Material Icons Outlined'; /* Ensure you have this font linked */
+  font-weight: normal;
+  font-style: normal;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
+}
+
+/* PrimeNG Tree Customizations (Optional) */
+:host ::ng-deep .p-tree {
+  border: none; /* Remove default border if using Tailwind shadow */
+  padding: 0;
+}
+
+:host ::ng-deep .p-tree .p-tree-container .p-treenode .p-treenode-content {
+  padding: 0.35rem 0.5rem; /* Adjust padding for tree nodes */
+}
+
+:host ::ng-deep .p-tree .p-tree-filter-container .p-tree-filter {
+    width: 100%; /* Make filter input full width */
+    margin-bottom: 1rem;
+}

@@ -4,7 +4,6 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, ActivatedRoute } from '@angular/router'; // Import ActivatedRoute
 
 import { ForumDTO, ApiResponse } from '../../_data/dtos';
-import { Forum } from '../../_data/models';
 import { IconPickerComponent, IconSelection } from '../../icon-picker/icon-picker.component';
 import { ForumService } from '../../_services/forum.service';
 import { MessageService } from 'primeng/api'; // For Toast messages
@@ -71,7 +70,7 @@ export class ForumEditComponent implements OnInit {
     this.isFetching = true;
     this.errorMessage = null;
     this.forumService.getForumById(id).subscribe({
-      next: (apiResponse: ApiResponse<Forum>) => {
+      next: (apiResponse: ApiResponse<ForumDTO>) => {
         if (apiResponse.success && apiResponse.data) {
           const forumData = apiResponse.data;
           this.forumForm.patchValue({
@@ -141,7 +140,7 @@ export class ForumEditComponent implements OnInit {
     console.log('Submitting Updated Forum Payload to service:', payload);
 
     this.forumService.updateForum(this.forumId, payload).subscribe({
-      next: (apiResponse: ApiResponse<Forum>) => {
+      next: (apiResponse: ApiResponse<ForumDTO>) => {
         this.isLoading = false;
         if (apiResponse.success && apiResponse.data) {
           console.log('Forum update successful', apiResponse.data);

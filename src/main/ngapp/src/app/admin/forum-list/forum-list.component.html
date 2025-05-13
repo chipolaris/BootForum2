@@ -43,10 +43,10 @@
       </ng-template>
       <ng-template pTemplate="body" let-forum>
         <tr>
-          <td>{{ forum.id }}</td>
-          <td>{{ forum.title }}</td>
-          <td class="truncate max-w-xs" [pTooltip]="forum.description" tooltipPosition="top">{{ forum.description }}</td>
-          <td class="text-center">
+          <td class="align-middle">{{ forum.id }}</td>
+          <td class="align-middle">{{ forum.title }}</td>
+          <td class="truncate max-w-xs align-middle" [pTooltip]="forum.description" tooltipPosition="top">{{ forum.description }}</td>
+          <td class="text-center align-middle">
             <div class="flex items-center justify-center">
               <span *ngIf="forum.icon" class="mr-1" [pTooltip]="forum.icon" tooltipPosition="top">{{ forum.icon }}</span>
               <div *ngIf="forum.iconColor" class="w-4 h-4 rounded-full border border-gray-400"
@@ -54,10 +54,10 @@
               </div>
             </div>
           </td>
-          <td class="text-center">
+          <td class="text-center align-middle">
             <p-tag [value]="forum.active ? 'Yes' : 'No'" [severity]="getSeverity(forum.active)"></p-tag>
           </td>
-          <td class="text-center space-x-2">
+          <td class="text-center space-x-2 align-middle">
             <button pButton pRipple type="button" icon="pi pi-pencil"
                     class="p-button-rounded p-button-info p-button-sm"
                     (click)="editForum(forum.id)" pTooltip="Edit Forum" tooltipPosition="top"></button>

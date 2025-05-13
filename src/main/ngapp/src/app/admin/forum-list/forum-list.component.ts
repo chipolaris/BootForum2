@@ -2,8 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router'; // RouterModule for routerLink
 
-import { Forum } from '../../_data/models';
-import { ApiResponse } from '../../_data/dtos';
+import { ApiResponse, ForumDTO } from '../../_data/dtos';
 import { ForumService } from '../../_services/forum.service';
 
 import { MessageService } from 'primeng/api';
@@ -32,7 +31,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
   styleUrls: ['./forum-list.component.css']
 })
 export class ForumListComponent implements OnInit {
-  forums: Forum[] = [];
+  forums: ForumDTO[] = [];
   isLoading = false;
   errorMessage: string | null = null;
 
@@ -48,7 +47,7 @@ export class ForumListComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = null;
     this.forumService.getAllForums().subscribe({
-      next: (apiResponse: ApiResponse<Forum[]>) => {
+      next: (apiResponse: ApiResponse<ForumDTO[]>) => {
         if (apiResponse.success && apiResponse.data) {
           this.forums = apiResponse.data;
         } else {

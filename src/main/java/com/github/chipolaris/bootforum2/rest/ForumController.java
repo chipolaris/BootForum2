@@ -3,6 +3,7 @@ package com.github.chipolaris.bootforum2.rest;
 import com.github.chipolaris.bootforum2.domain.Forum;
 import com.github.chipolaris.bootforum2.dto.ApiResponse;
 import com.github.chipolaris.bootforum2.dto.ForumDTO;
+import com.github.chipolaris.bootforum2.dto.ForumMapDTO;
 import com.github.chipolaris.bootforum2.service.GenericService;
 import com.github.chipolaris.bootforum2.service.ServiceResponse;
 import jakarta.annotation.Resource;
@@ -11,8 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/api")
@@ -26,7 +27,7 @@ public class ForumController {
     @PostMapping("/admin/create-forum")
     public ApiResponse<?> createForum(@Valid @RequestBody ForumDTO forumDTO) {
         try {
-            Forum forum = forumDTO.newForum(); // get basic values from DTO
+            Forum forum = forumDTO.createForum(); // get basic values from DTO
             ServiceResponse<Void> serviceResponse = genericService.saveEntity(forum);
 
             if(serviceResponse.getAckCode() == ServiceResponse.AckCodeType.FAILURE) {
@@ -124,7 +125,7 @@ public class ForumController {
 
             // Return the updated forum entity.
             // The 'existingForum' instance is managed by JPA and reflects the saved state.
-            return ApiResponse.success(existingForum, "Forum updated successfully");
+            return ApiResponse.success(forumDTO.fromForum(existingForum), "Forum updated successfully");
 
         } catch (Exception e) {
             logger.error(String.format("Unexpected error updating forum with ID %d", id), e);
@@ -132,5 +133,9 @@ public class ForumController {
         }
     }
 
-
+    @GetMapping("/admin/rootForumGroup")
+    public ApiResponse<?> rootForumGroup() {
+        // TODO: retrieve a list of ForumDTOs and a list of ForumGroupDTOs
+        return ApiResponse.success(new ForumMapDTO(new ArrayList<>(), new ArrayList<>()), "Forum map retrieved successfully");
+    }
 }

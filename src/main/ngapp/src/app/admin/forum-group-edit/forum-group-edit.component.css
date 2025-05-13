@@ -1,0 +1,5 @@
+/* src/app/admin/forum-group-edit/forum-group-edit.component.css */
+:host {
+  display: block;
+  width: 100%;
+}

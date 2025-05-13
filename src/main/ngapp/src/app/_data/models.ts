@@ -22,7 +22,7 @@ export interface User {
   updatedBy?: string;
 }
 
-export interface Forum {
+export interface ForumNotUsed {
   id?: number;
   title: string;
   description: string;

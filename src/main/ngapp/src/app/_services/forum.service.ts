@@ -3,7 +3,6 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { ForumDTO, ApiResponse } from '../_data/dtos'; // Ensure ApiResponse is imported
-import { Forum } from '../_data/models';
 
 @Injectable({
   providedIn: 'root'
@@ -14,8 +13,8 @@ export class ForumService {
   private baseAdminApiUrl = '/api/admin/forums';
   private createApiUrl = '/api/admin/create-forum'; // Kept for createForum
 
-  createForum(payload: ForumDTO): Observable<ApiResponse<Forum>> {
-    return this.http.post<ApiResponse<Forum>>(this.createApiUrl, payload)
+  createForum(payload: ForumDTO): Observable<ApiResponse<ForumDTO>> {
+    return this.http.post<ApiResponse<ForumDTO>>(this.createApiUrl, payload)
       .pipe(
         tap(response => {
           if (response.success) {
@@ -28,8 +27,8 @@ export class ForumService {
       );
   }
 
-  getForumById(id: number): Observable<ApiResponse<Forum>> {
-    return this.http.get<ApiResponse<Forum>>(`${this.baseAdminApiUrl}/${id}`)
+  getForumById(id: number): Observable<ApiResponse<ForumDTO>> {
+    return this.http.get<ApiResponse<ForumDTO>>(`${this.baseAdminApiUrl}/${id}`)
       .pipe(
         tap(response => {
           if (response.success) {
@@ -42,8 +41,8 @@ export class ForumService {
       );
   }
 
-  updateForum(id: number, payload: ForumDTO): Observable<ApiResponse<Forum>> {
-    return this.http.put<ApiResponse<Forum>>(`${this.baseAdminApiUrl}/${id}`, payload)
+  updateForum(id: number, payload: ForumDTO): Observable<ApiResponse<ForumDTO>> {
+    return this.http.put<ApiResponse<ForumDTO>>(`${this.baseAdminApiUrl}/${id}`, payload)
       .pipe(
         tap(response => {
           if (response.success) {
@@ -56,9 +55,8 @@ export class ForumService {
       );
   }
 
-  // <<< NEW METHOD >>>
-  getAllForums(): Observable<ApiResponse<Forum[]>> { // Expect an array of Forums
-    return this.http.get<ApiResponse<Forum[]>>(this.baseAdminApiUrl)
+  getAllForums(): Observable<ApiResponse<ForumDTO[]>> { // Expect an array of Forums
+    return this.http.get<ApiResponse<ForumDTO[]>>(this.baseAdminApiUrl)
       .pipe(
         tap(response => {
           if (response.success) {
@@ -70,7 +68,6 @@ export class ForumService {
         catchError(this.handleError)
       );
   }
-  // <<< END NEW METHOD >>>
 
   private handleError(error: any): Observable<never> {
     console.error('An error occurred in ForumService:', error);

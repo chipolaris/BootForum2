@@ -14,7 +14,7 @@ import java.util.Map;
 @Repository
 public class GenericQuery {
 
-	@PersistenceContext//(unitName = "DealPostPersistenceUnit")
+	@PersistenceContext
 	protected EntityManager entityManager;
 	
 	/**

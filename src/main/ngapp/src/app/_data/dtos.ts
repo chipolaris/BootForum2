@@ -18,6 +18,15 @@ export interface ForumDTO {
   active: boolean;
 }
 
+export interface ForumGroupDTO {
+  id?: number;
+  title: string;
+  icon: string;
+  iconColor: string;
+  forums?: ForumDTO[] | null;
+  subGroups?: ForumGroupDTO[] | null;
+}
+
 // Model for the registration payload (matches SignUpRequest without confirmPassword)
 export interface RegistrationPayload {
   username: string;
@@ -26,11 +35,6 @@ export interface RegistrationPayload {
   lastName: string;
   email: string;
 }
-
-// Define an interface for the backend's success/error message response
-/* export interface MessageResponse {
-  message: string;
-} */
 
 // Define an interface for the generic API response structure
 export interface ApiResponse<T> {

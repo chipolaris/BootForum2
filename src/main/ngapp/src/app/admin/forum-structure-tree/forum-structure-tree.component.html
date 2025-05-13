@@ -1,0 +1,50 @@
+<!-- src/app/admin/forum-structure-tree/forum-structure-tree.component.html -->
+<div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+  <p-toast></p-toast>
+
+  <h2 class="text-2xl font-semibold mb-6 text-indigo-700">Forum Structure</h2>
+
+  <div *ngIf="isLoading" class="flex justify-center items-center my-8">
+    <p-progressSpinner styleClass="w-12 h-12" strokeWidth="4"></p-progressSpinner>
+    <span class="ml-3 text-lg text-gray-600">Loading forum structure...</span>
+  </div>
+
+  <div *ngIf="errorMessage && !isLoading" class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md shadow">
+    <p class="font-medium">Error:</p>
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage && treeNodes.length > 0" class="bg-white p-4 rounded-lg shadow-lg">
+    <p-tree [value]="treeNodes" selectionMode="single" (onNodeSelect)="onNodeSelect($event)" filter="true" filterPlaceholder="Search structure...">
+      <ng-template let-node pTemplate="default">
+        <div class="flex items-center">
+          <!-- Custom Icon based on DTO -->
+          <ng-container *ngIf="node.data.icon && node.data.iconColor">
+            <span class="material-icons-outlined mr-2 text-lg" [style.color]="node.data.iconColor">
+              <!-- MODIFIED LINE: Call the component method -->
+              {{ getDisplayIconName(node.data.icon) }}
+            </span>
+          </ng-container>
+          <!-- Fallback PrimeIcon if no custom icon (already handled by node.icon, node.expandedIcon, node.collapsedIcon) -->
+
+          <span class="font-medium">{{ node.label }}</span>
+
+          <!-- Optional: Display if forum is inactive -->
+          <ng-container *ngIf="node.type === 'forum' && node.data.active === false">
+            <p-tag styleClass="ml-2" severity="warning" value="Inactive"></p-tag>
+          </ng-container>
+        </div>
+      </ng-template>
+      <ng-template pTemplate="empty">
+        <div class="p-4 text-center text-gray-500">
+          No forum structure found or the root group is empty.
+        </div>
+      </ng-template>
+    </p-tree>
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage && treeNodes.length === 0"
+       class="p-4 text-center text-gray-500 bg-white rounded-lg shadow-lg">
+    No forum structure to display. The root forum group might be empty or not configured.
+  </div>
+</div>

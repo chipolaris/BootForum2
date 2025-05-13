@@ -28,7 +28,7 @@ public record ForumDTO(
 
         ForumStatDTO stat) {
 
-        public Forum newForum() {
+        public Forum createForum() {
                 Forum forum = new Forum();
                 //forum.setId(this.id);
                 forum.setTitle(this.title);
