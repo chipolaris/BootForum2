@@ -50,13 +50,13 @@
       <label class="block text-sm font-medium text-gray-700 mb-1">Forum Icon & Color</label>
       <app-icon-picker
         [initialIconName]="f['icon'].value"
-        [initialColor]="f['color'].value"
+        [initialColor]="f['iconColor'].value"
         (selectionChanged)="handleIconSelection($event)"
       ></app-icon-picker>
       <!-- Hidden input for iconColor validation message if needed, though IconPickerComponent handles its own iconColor -->
-      <input type="hidden" formControlName="color" /> <!-- Ensures iconColor is part of the form for validation state -->
-      <div *ngIf="submitted && f['color'].errors" class="mt-1 text-xs text-red-600">
-        <span *ngIf="f['color'].errors['required']">Color is required (should be set by picker).</span>
+      <input type="hidden" formControlName="iconColor" /> <!-- Ensures iconColor is part of the form for validation state -->
+      <div *ngIf="submitted && f['iconColor'].errors" class="mt-1 text-xs text-red-600">
+        <span *ngIf="f['iconColor'].errors['required']">Color is required (should be set by picker).</span>
       </div>
     </div>
 

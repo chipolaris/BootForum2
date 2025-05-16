@@ -5,7 +5,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, ActivatedRoute } from '@angular/router'; // ActivatedRoute to get ID
 import { switchMap } from 'rxjs/operators';
 
-import { ForumGroupDTO } from '../../_data/dtos';
+import { ForumGroupDTO, ForumGroupUpdateDTO } from '../../_data/dtos';
 import { IconPickerComponent, IconSelection } from '../../icon-picker/icon-picker.component';
 import { ForumGroupService } from '../../_services/forum-group.service';
 
@@ -128,8 +128,8 @@ export class ForumGroupEditComponent implements OnInit {
 
     this.isLoading = true;
 
-    const payload: ForumGroupDTO = {
-      // id: this.forumGroupId, // ID is in URL, not typically in PUT payload body unless API requires
+    const payload: ForumGroupUpdateDTO = {
+      id: this.forumGroupId, // ID is in URL, not typically in PUT payload body unless API requires
       title: this.f['title'].value,
       icon: this.f['icon'].value,
       iconColor: this.f['iconColor'].value,

@@ -1,8 +1,10 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // Required for ngModel
 
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
+import { OverlayPanelModule, OverlayPanel } from 'primeng/overlaypanel'; // << IMPORT THESE
+
 // Import the specific Heroicons you want to offer
 import {
   heroUser,
@@ -46,7 +48,7 @@ export interface IconSelection {
 @Component({
   selector: 'app-icon-picker',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgIconComponent],
+  imports: [CommonModule, FormsModule, NgIconComponent,OverlayPanelModule],
   templateUrl: './icon-picker.component.html',
   styleUrls: ['./icon-picker.component.css'], // Can be empty if all styles are Tailwind in HTML
   providers: [
@@ -78,19 +80,22 @@ export class IconPickerComponent implements OnInit {
 
   selectedIconName: string | null = null;
   selectedColor: string = '#333333';
-  isPickerOpen: boolean = false;
+  // isPickerOpen: boolean = false;
+  @ViewChild('op') overlayPanel!: OverlayPanel; // << For programmatic control if needed
 
   ngOnInit(): void {
     this.selectedIconName = this.initialIconName;
     this.selectedColor = this.initialColor;
   }
 
-  togglePicker(): void {
-    this.isPickerOpen = !this.isPickerOpen;
+  togglePicker(event: Event): void { // Event is needed for OverlayPanel toggle
+    // this.isPickerOpen = !this.isPickerOpen; // Old way
+    this.overlayPanel.toggle(event); // New way
   }
 
   closePicker(): void {
-    this.isPickerOpen = false;
+	  // this.isPickerOpen = false; // Old way
+	  this.overlayPanel.hide(); // New way
   }
 
   selectIcon(iconName: string): void {

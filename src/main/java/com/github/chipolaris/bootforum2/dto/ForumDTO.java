@@ -26,6 +26,8 @@ public record ForumDTO(
 
         boolean active,
 
+        Long forumGroupId,
+
         ForumStatDTO stat) {
 
         public Forum createForum() {
@@ -43,6 +45,7 @@ public record ForumDTO(
                 return forum == null ? null : new ForumDTO(forum.getId(), forum.getTitle(),
                         forum.getDescription(), forum.getIcon(),
                         forum.getIconColor(), forum.isActive(),
+                        forum.getForumGroup() != null ? forum.getForumGroup().getId() : null,
                         ForumStatDTO.fromForumStat(forum.getStat()));
         }
 }

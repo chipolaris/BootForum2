@@ -1,18 +1,19 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router } from '@angular/router'; // Keep for fallback
 
-import { ForumGroupDTO } from '../../_data/dtos';
+import { ForumGroupDTO, ForumGroupCreateDTO, ApiResponse } from '../../_data/dtos'; // Ensure ApiResponse is imported
 import { IconPickerComponent, IconSelection } from '../../icon-picker/icon-picker.component';
 import { ForumGroupService } from '../../_services/forum-group.service';
 
-// PrimeNG for messages and spinner
+// PrimeNG for messages, spinner, and dialogs
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { ButtonModule } from 'primeng/button'; // For pButton directive
-import { InputTextModule } from 'primeng/inputtext'; // For pInputText directive
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog'; // <<< ADDED
 
 @Component({
   selector: 'app-forum-group-create',
@@ -26,7 +27,7 @@ import { InputTextModule } from 'primeng/inputtext'; // For pInputText directive
     ButtonModule,
     InputTextModule
   ],
-  providers: [MessageService], // Provide MessageService for p-toast
+  providers: [MessageService],
   templateUrl: './forum-group-create.component.html',
   styleUrls: ['./forum-group-create.component.css']
 })
@@ -37,20 +38,31 @@ export class ForumGroupCreateComponent implements OnInit {
   isLoading = false;
   errorMessage: string | null = null;
 
-  // Default values similar to ForumCreateComponent
-  initialIconName: string | null = 'heroAcademicCap'; // Different default icon
-  initialColor: string = '#3b82f6'; // A different default color (e.g., blue)
+  initialIconName: string | null = 'heroAcademicCap';
+  initialColor: string = '#3b82f6';
+
+  parentGroupId: number | null = null; // <<< ADDED: To store parent ID
 
   private fb = inject(FormBuilder);
   private forumGroupService = inject(ForumGroupService);
   private router = inject(Router);
   private messageService = inject(MessageService);
 
+  // <<< ADDED: Inject DialogRef and Config, make them optional for standalone use
+  public dialogRef = inject(DynamicDialogRef, { optional: true });
+  public config = inject(DynamicDialogConfig, { optional: true });
+
   ngOnInit(): void {
+    // <<< ADDED: Retrieve parentGroupId from dialog config
+    if (this.config?.data?.parentGroupId) {
+      this.parentGroupId = this.config.data.parentGroupId;
+      console.log('ForumGroupCreateComponent initialized with parentGroupId:', this.parentGroupId);
+    }
+
     this.forumGroupForm = this.fb.group({
       title: ['', [Validators.required, Validators.maxLength(100)]],
-      icon: [this.initialIconName as string | null], // No required validator, can be null
-      iconColor: [this.initialColor, Validators.required] // Color is usually tied to icon
+      icon: [this.initialIconName as string | null],
+      iconColor: [this.initialColor, Validators.required]
     });
   }
 
@@ -68,9 +80,7 @@ export class ForumGroupCreateComponent implements OnInit {
     this.errorMessage = null;
 
     if (this.forumGroupForm.invalid) {
-      console.log('Form is invalid:', this.forumGroupForm.errors);
       this.messageService.add({ severity: 'warn', summary: 'Validation Error', detail: 'Please check the form for errors.' });
-      // Mark all fields as touched to display errors
       Object.values(this.f).forEach(control => {
         control.markAsTouched();
       });
@@ -79,20 +89,24 @@ export class ForumGroupCreateComponent implements OnInit {
 
     this.isLoading = true;
 
-    const payload: ForumGroupDTO = {
+    const payload: ForumGroupCreateDTO = {
       title: this.f['title'].value,
       icon: this.f['icon'].value,
       iconColor: this.f['iconColor'].value,
+      parentGroupId: this.parentGroupId // <<< ADDED: Include parentGroupId
     };
 
     this.forumGroupService.createForumGroup(payload).subscribe({
-      next: (response) => {
+      next: (response: ApiResponse<ForumGroupDTO>) => { // <<< Ensure response type is ApiResponse<ForumGroupDTO>
         this.isLoading = false;
-        if (response.success) {
+        if (response.success && response.data) { // <<< Check response.data
           this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Forum Group created successfully!' });
-          this.resetForm();
-          // Navigate to a list of forum groups or admin dashboard
-          this.router.navigate(['/app/dashboard']); // Or a future '/app/admin/forum-groups'
+          if (this.dialogRef) {
+            this.dialogRef.close(response.data); // <<< ADDED: Close dialog with created group
+          } else {
+            this.resetForm(); // Reset form if not in dialog
+            this.router.navigate(['/app/admin/dashboard']); // Fallback navigation
+          }
         } else {
           this.errorMessage = response.message || 'Failed to create forum group.';
           this.messageService.add({ severity: 'error', summary: 'Creation Failed', detail: this.errorMessage });
@@ -118,6 +132,11 @@ export class ForumGroupCreateComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/app/admin/dashboard']); // Or wherever appropriate
+    // <<< ADDED: Handle dialog close on cancel
+    if (this.dialogRef) {
+      this.dialogRef.close();
+    } else {
+      this.router.navigate(['/app/admin/dashboard']); // Fallback navigation
+    }
   }
 }

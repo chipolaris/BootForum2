@@ -16,23 +16,53 @@
 
   <div *ngIf="!isLoading && !errorMessage && treeNodes.length > 0" class="bg-white p-4 rounded-lg shadow-lg">
     <p-tree [value]="treeNodes" selectionMode="single" (onNodeSelect)="onNodeSelect($event)" filter="true" filterPlaceholder="Search structure...">
-      <ng-template let-node pTemplate="default">
-        <div class="flex items-center">
-          <!-- Custom Icon based on DTO -->
-          <ng-container *ngIf="node.data.icon && node.data.iconColor">
-            <span class="material-icons-outlined mr-2 text-lg" [style.color]="node.data.iconColor">
-              <!-- MODIFIED LINE: Call the component method -->
-              {{ getDisplayIconName(node.data.icon) }}
-            </span>
-          </ng-container>
-          <!-- Fallback PrimeIcon if no custom icon (already handled by node.icon, node.expandedIcon, node.collapsedIcon) -->
+      <ng-template let-node pTemplate="forumGroup">
+        <div class="flex items-center justify-between w-full group"> <!-- Added w-full and group for hover effects -->
+          <div class="flex items-center">
+            <!-- Custom Icon based on DTO -->
+            <ng-container *ngIf="node.data.icon && node.data.iconColor">
+              <ng-container *ngIf="node.data.icon as iconName">
+                <ng-icon
+                  [name]="iconName"
+                  [style.color]="node.data.iconColor"
+                  size="20"
+                  class="mr-2">
+                </ng-icon>
+              </ng-container>
+            </ng-container>
+            <span class="font-medium">{{ node.label }}</span>
+          </div>
 
-          <span class="font-medium">{{ node.label }}</span>
+          <!-- Action Buttons for Forum Groups -->
+          <div class="ml-auto pl-2 space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button pButton type="button" icon="pi pi-plus-circle"
+                    pTooltip="Add Forum" tooltipPosition="top"
+                    class="p-button-rounded p-button-text p-button-success p-button-sm"
+                    (click)="openAddForumDialog($event, node)"></button>
+            <button pButton type="button" icon="pi pi-sitemap"
+                    pTooltip="Add Subgroup" tooltipPosition="top"
+                    class="p-button-rounded p-button-text p-button-info p-button-sm"
+                    (click)="openAddForumGroupDialog($event, node)"></button>
+          </div>
+        </div>
+      </ng-template>
 
-          <!-- Optional: Display if forum is inactive -->
-          <ng-container *ngIf="node.type === 'forum' && node.data.active === false">
-            <p-tag styleClass="ml-2" severity="warning" value="Inactive"></p-tag>
-          </ng-container>
+      <ng-template let-node pTemplate="forum">
+        <div class="flex items-center justify-between w-full group"> <!-- Added w-full and group for hover effects -->
+          <div class="flex items-center">
+            <!-- Custom Icon based on DTO -->
+            <ng-container *ngIf="node.data.icon && node.data.iconColor">
+              <ng-container *ngIf="node.data.icon as iconName">
+                <ng-icon
+                  [name]="iconName"
+                  [style.color]="node.data.iconColor"
+                  size="20"
+                  class="mr-2">
+                </ng-icon>
+              </ng-container>
+            </ng-container>
+            <span class="font-medium">{{ node.label }}</span>
+          </div>
         </div>
       </ng-template>
       <ng-template pTemplate="empty">

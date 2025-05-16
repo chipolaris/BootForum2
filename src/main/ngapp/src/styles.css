@@ -15,6 +15,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .primeng-table-smaller-font .p-datatable-thead > tr > th,
 .primeng-table-smaller-font .p-datatable-tbody > tr > td {
   font-size: 0.9em; /* Example: 12.8px. Adjust as needed. */
+  line-height: 1.5;
   /* You might also want to adjust padding if the smaller font makes it look off */
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;

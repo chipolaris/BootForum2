@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
-import { ForumDTO, ApiResponse } from '../_data/dtos'; // Ensure ApiResponse is imported
+import { ForumDTO, ForumCreateDTO, ForumUpdateDTO, ApiResponse } from '../_data/dtos'; // Ensure ApiResponse is imported
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +13,7 @@ export class ForumService {
   private baseAdminApiUrl = '/api/admin/forums';
   private createApiUrl = '/api/admin/create-forum'; // Kept for createForum
 
-  createForum(payload: ForumDTO): Observable<ApiResponse<ForumDTO>> {
+  createForum(payload: ForumCreateDTO): Observable<ApiResponse<ForumDTO>> {
     return this.http.post<ApiResponse<ForumDTO>>(this.createApiUrl, payload)
       .pipe(
         tap(response => {
@@ -41,7 +41,7 @@ export class ForumService {
       );
   }
 
-  updateForum(id: number, payload: ForumDTO): Observable<ApiResponse<ForumDTO>> {
+  updateForum(id: number, payload: ForumUpdateDTO): Observable<ApiResponse<ForumDTO>> {
     return this.http.put<ApiResponse<ForumDTO>>(`${this.baseAdminApiUrl}/${id}`, payload)
       .pipe(
         tap(response => {

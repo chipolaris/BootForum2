@@ -45,7 +45,7 @@
         <tr>
           <td class="align-middle">{{ forum.id }}</td>
           <td class="align-middle">{{ forum.title }}</td>
-          <td class="truncate max-w-xs align-middle" [pTooltip]="forum.description" tooltipPosition="top">{{ forum.description }}</td>
+          <td class="max-w-xs align-middle" [pTooltip]="forum.description" tooltipPosition="top">{{ forum.description }}</td>
           <td class="text-center align-middle">
             <div class="flex items-center justify-center">
               <span *ngIf="forum.icon" class="mr-1" [pTooltip]="forum.icon" tooltipPosition="top">{{ forum.icon }}</span>

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { ForumGroupDTO, ApiResponse } from '../_data/dtos';
+import { ForumGroupDTO, ForumGroupCreateDTO, ForumGroupUpdateDTO, ApiResponse } from '../_data/dtos';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +13,7 @@ export class ForumGroupService {
   private createApiUrl = '/api/admin/create-forum-group';
   private rootForumGroupApiUrl = '/api/admin/root-forum-group'; // New URL
 
-  createForumGroup(payload: ForumGroupDTO): Observable<ApiResponse<ForumGroupDTO>> {
+  createForumGroup(payload: ForumGroupCreateDTO): Observable<ApiResponse<ForumGroupDTO>> {
     return this.http.post<ApiResponse<ForumGroupDTO>>(this.createApiUrl, payload)
       .pipe(
         tap(response => {
@@ -41,7 +41,7 @@ export class ForumGroupService {
       );
   }
 
-  updateForumGroup(id: number, payload: ForumGroupDTO): Observable<ApiResponse<ForumGroupDTO>> {
+  updateForumGroup(id: number, payload: ForumGroupUpdateDTO): Observable<ApiResponse<ForumGroupDTO>> {
     // Note: Backend controller currently returns ApiResponse<ForumGroup> (domain object) on update.
     // Ideally, it should return ApiResponse<ForumGroupDTO>.
     // This frontend service is typed to expect ApiResponse<ForumGroupDTO>.

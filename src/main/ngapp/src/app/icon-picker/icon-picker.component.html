@@ -1,86 +1,91 @@
-<div class="relative inline-block text-left">
+<!-- icon-picker.component.html -->
+<div class="inline-block text-left"> <!-- Removed 'relative' as OverlayPanel handles positioning -->
   <!-- Button to trigger the picker -->
   <div>
     <button
       type="button"
-      (click)="togglePicker()"
-      class="inline-flex items-center justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-      aria-expanded="true"
-      aria-haspopup="true"
+      (click)="togglePicker($event)"
+    class="inline-flex items-center justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+    aria-expanded="true"
+    aria-haspopup="true"
     >
-      <ng-container *ngIf="selectedIconName; else noIconSelectedText">
-        <ng-icon [name]="selectedIconName" [style.color]="selectedColor" size="20" class="mr-2"></ng-icon>
-      </ng-container>
-      <ng-template #noIconSelectedText>
-        <span class="mr-2">Select Icon</span>
-      </ng-template>
-      <!-- Color Swatch -->
-      <span class="inline-block w-5 h-5 rounded border border-gray-400" [style.backgroundColor]="selectedColor"></span>
-      <!-- Dropdown arrow -->
-      <ng-icon name="heroChevronDown" size="20" class="ml-2 -mr-1 text-gray-400"></ng-icon>
+    <!-- ... button content (selected icon, color swatch, chevron) ... -->
+    <ng-container *ngIf="selectedIconName; else noIconSelectedText">
+      <ng-icon [name]="selectedIconName" [style.color]="selectedColor" size="20" class="mr-2"></ng-icon>
+    </ng-container>
+    <ng-template #noIconSelectedText>
+      <span class="mr-2">Select Icon</span>
+    </ng-template>
+    <span class="inline-block w-5 h-5 rounded border border-gray-400" [style.backgroundColor]="selectedColor"></span>
+    <ng-icon name="heroChevronDown" size="20" class="ml-2 -mr-1 text-gray-400"></ng-icon>
     </button>
   </div>
 
-  <!-- Picker Dropdown -->
-  <div
-    *ngIf="isPickerOpen"
-    class="origin-top-right absolute right-0 mt-2 w-72 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none p-4 space-y-4 z-50"
-    role="menu"
-    aria-orientation="vertical"
-    aria-labelledby="menu-button"
-    tabindex="-1"
-  >
-    <!-- Icon Grid -->
-    <div class="grid grid-cols-6 gap-1">
-      <button
-        *ngFor="let icon of availableIcons"
-        type="button"
-        (click)="selectIcon(icon.name)"
-        class="p-2 rounded-md flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:bg-gray-200 focus:ring-1 focus:ring-indigo-500"
-        [ngClass]="{'bg-indigo-100 ring-1 ring-indigo-500': icon.name === selectedIconName}"
-        [attr.aria-label]="icon.displayName"
-        title="{{icon.displayName}}"
+  <!-- Picker Dropdown using p-overlayPanel -->
+  <p-overlayPanel #op [appendTo]="'body'" [showCloseIcon]="false" styleClass="p-0">
+    <!-- ^ Add p-0 if you want your padding -->
+    <ng-template pTemplate="content">
+      <!-- This is your previous dropdown content -->
+      <div
+        class="w-72 rounded-md bg-white p-4 space-y-4"
+        role="menu"
+        aria-orientation="vertical"
+        aria-labelledby="menu-button"
+        tabindex="-1"
       >
-        <ng-icon [name]="icon.name" size="24" class="text-gray-600"></ng-icon>
-      </button>
-    </div>
+        <!-- Icon Grid -->
+        <div class="grid grid-cols-6 gap-1">
+          <button
+            *ngFor="let icon of availableIcons"
+            type="button"
+            (click)="selectIcon(icon.name)"
+            class="p-2 rounded-md flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:bg-gray-200 focus:ring-1 focus:ring-indigo-500"
+            [ngClass]="{'bg-indigo-100 ring-1 ring-indigo-500': icon.name === selectedIconName}"
+            [attr.aria-label]="icon.displayName"
+            title="{{icon.displayName}}"
+          >
+            <ng-icon [name]="icon.name" size="24" class="text-gray-600"></ng-icon>
+          </button>
+        </div>
 
-    <!-- Color Picker & Preview -->
-    <div class="flex items-center space-x-3">
-      <label for="iconColorPicker" class="text-sm font-medium text-gray-700">Color:</label>
-      <input
-        type="color"
-        id="iconColorPicker"
-        [value]="selectedColor"
-        (input)="onColorInput($event)"
-        class="h-8 w-16 p-0 border-gray-300 rounded-md cursor-pointer"
-      />
-      <div class="flex-grow p-2 border border-gray-200 rounded-md flex items-center justify-center h-10">
-        <ng-container *ngIf="selectedIconName; else noPreviewIcon">
-          <ng-icon [name]="selectedIconName" [style.color]="selectedColor" size="24"></ng-icon>
-        </ng-container>
-        <ng-template #noPreviewIcon>
-          <span class="text-xs text-gray-400">No Icon</span>
-        </ng-template>
+        <!-- Color Picker & Preview -->
+        <div class="flex items-center space-x-3">
+          <label for="iconColorPicker" class="text-sm font-medium text-gray-700">Color:</label>
+          <input
+            type="color"
+            id="iconColorPicker"
+            [value]="selectedColor"
+            (input)="onColorInput($event)"
+            class="h-8 w-16 p-0 border-gray-300 rounded-md cursor-pointer"
+          />
+          <div class="flex-grow p-2 border border-gray-200 rounded-md flex items-center justify-center h-10">
+            <ng-container *ngIf="selectedIconName; else noPreviewIcon">
+              <ng-icon [name]="selectedIconName" [style.color]="selectedColor" size="24"></ng-icon>
+            </ng-container>
+            <ng-template #noPreviewIcon>
+              <span class="text-xs text-gray-400">No Icon</span>
+            </ng-template>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex justify-between items-center pt-2 border-t border-gray-200">
+          <button
+            type="button"
+            (click)="clearIcon()"
+            class="text-xs text-indigo-600 hover:text-indigo-500 focus:outline-none"
+          >
+            Clear Icon
+          </button>
+          <button
+            type="button"
+            (click)="closePicker()"
+          class="px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+          Done
+          </button>
+        </div>
       </div>
-    </div>
-
-    <!-- Actions -->
-    <div class="flex justify-between items-center pt-2 border-t border-gray-200">
-      <button
-        type="button"
-        (click)="clearIcon()"
-        class="text-xs text-indigo-600 hover:text-indigo-500 focus:outline-none"
-      >
-        Clear Icon
-      </button>
-      <button
-        type="button"
-        (click)="closePicker()"
-        class="px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-      >
-        Done
-      </button>
-    </div>
-  </div>
+    </ng-template>
+  </p-overlayPanel>
 </div>

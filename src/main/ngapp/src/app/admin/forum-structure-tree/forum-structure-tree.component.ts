@@ -1,23 +1,63 @@
 // src/app/admin/forum-structure-tree/forum-structure-tree.component.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-// Remove TreeNodeSelectEvent from here if it's causing the error
-// We will define the event structure directly in the method
-import { TreeNode, MessageService } from 'primeng/api'; // Keep TreeNode and MessageService
+import { TreeNode, MessageService } from 'primeng/api';
 import { TreeModule } from 'primeng/tree';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
-import { TagModule } from 'primeng/tag'; // For visual cues if needed
+import { TagModule } from 'primeng/tag';
+import { ButtonModule } from 'primeng/button'; // For action buttons
+import { DialogService, DynamicDialogModule, DynamicDialogRef } from 'primeng/dynamicdialog'; // For dialogs
 
 import { Router } from '@angular/router';
 
 import { ForumGroupService } from '../../_services/forum-group.service';
 import { ForumGroupDTO, ForumDTO, ApiResponse } from '../../_data/dtos';
 
+// Import Create Components
+import { ForumCreateComponent } from '../forum-create/forum-create.component';
+import { ForumGroupCreateComponent } from '../forum-group-create/forum-group-create.component';
+
+// Import NgIconComponent and provideIcons
+import { NgIconComponent, provideIcons } from '@ng-icons/core';
+// Import the specific Heroicons you use (match IconPickerComponent)
+import {
+  heroUser,
+  heroHome,
+  heroCog6Tooth,
+  heroBell,
+  heroAcademicCap,
+  heroArchiveBoxArrowDown,
+  heroFaceSmile,
+  heroPhoto,
+  heroLink,
+  heroLockClosed,
+  heroMapPin,
+  heroStar
+  // Add any other icons if your DTOs might contain them
+} from '@ng-icons/heroicons/outline';
+
+// This object maps string names (used by ng-icon) to the actual icon objects
+const iconsToProvideInTree = {
+  heroUser,
+  heroHome,
+  heroCog6Tooth,
+  heroBell,
+  heroAcademicCap,
+  heroArchiveBoxArrowDown,
+  heroFaceSmile,
+  heroPhoto,
+  heroLink,
+  heroLockClosed,
+  heroMapPin,
+  heroStar
+};
+
 // Define a more specific TreeNode type for our use case
 interface CustomTreeNode extends TreeNode {
   data: ForumGroupDTO | ForumDTO;
   type: 'forumGroup' | 'forum';
+  // id is already part of data.id, no need to duplicate here
 }
 
 // Define the expected structure for the node select event
@@ -34,9 +74,12 @@ interface NodeSelectEvent {
     TreeModule,
     ProgressSpinnerModule,
     ToastModule,
-    TagModule
+    TagModule,
+    ButtonModule,
+    DynamicDialogModule,
+    NgIconComponent
   ],
-  providers: [MessageService],
+  providers: [MessageService, DialogService, provideIcons(iconsToProvideInTree)],
   templateUrl: './forum-structure-tree.component.html',
   styleUrls: ['./forum-structure-tree.component.css']
 })
@@ -44,10 +87,12 @@ export class ForumStructureTreeComponent implements OnInit {
   treeNodes: CustomTreeNode[] = [];
   isLoading = true;
   errorMessage: string | null = null;
+  dialogRef: DynamicDialogRef | undefined;
 
   private forumGroupService = inject(ForumGroupService);
   private messageService = inject(MessageService);
   private router = inject(Router);
+  private dialogService = inject(DialogService); // Injected
 
   ngOnInit(): void {
     this.loadForumStructure();
@@ -59,10 +104,9 @@ export class ForumStructureTreeComponent implements OnInit {
     this.forumGroupService.getRootForumGroup().subscribe({
       next: (response: ApiResponse<ForumGroupDTO>) => {
         if (response.success && response.data) {
-          this.treeNodes = [this.transformGroupToTreeNode(response.data)];
-          // Automatically expand the root node and its direct children for better UX
+          this.treeNodes = [this.transformGroupToTreeNode(response.data, true)];
           if (this.treeNodes.length > 0) {
-            this.expandNodeAndChildren(this.treeNodes[0], 2); // Expand root and its children (depth 2)
+            this.expandNodeAndChildren(this.treeNodes[0], 2);
           }
         } else {
           this.errorMessage = response.message || 'Root forum group not found or failed to load.';
@@ -78,13 +122,13 @@ export class ForumStructureTreeComponent implements OnInit {
     });
   }
 
-  private transformGroupToTreeNode(group: ForumGroupDTO): CustomTreeNode {
+  private transformGroupToTreeNode(group: ForumGroupDTO, isRoot: boolean = false): CustomTreeNode {
     const node: CustomTreeNode = {
       label: group.title,
       data: group,
       type: 'forumGroup',
       leaf: false,
-      expanded: false, // Default to collapsed, will be handled by expandNodeAndChildren
+      expanded: isRoot, // Expand root by default
       children: [],
       expandedIcon: 'pi pi-folder-open',
       collapsedIcon: 'pi pi-folder',
@@ -97,6 +141,12 @@ export class ForumStructureTreeComponent implements OnInit {
     if (group.subGroups && group.subGroups.length > 0) {
       node.children?.push(...group.subGroups.map(subGroup => this.transformGroupToTreeNode(subGroup)));
     }
+    // Sort children: groups first, then forums, then alphabetically
+    node.children?.sort((a, b) => {
+        if (a.type === 'forumGroup' && b.type === 'forum') return -1;
+        if (a.type === 'forum' && b.type === 'forumGroup') return 1;
+        return (a.label || '').localeCompare(b.label || '');
+    });
     return node;
   }
 
@@ -122,10 +172,10 @@ export class ForumStructureTreeComponent implements OnInit {
     }
   }
 
-  // MODIFIED onNodeSelect method
-  onNodeSelect(event: NodeSelectEvent): void { // Changed parameter type to the locally defined interface
-    const selectedNode = event.node as CustomTreeNode; // Type assertion to CustomTreeNode
-
+  onNodeSelect(event: NodeSelectEvent): void {
+    const selectedNode = event.node as CustomTreeNode;
+    // Existing navigation logic...
+    // (This can be kept or modified if clicking the node itself should do something different now)
     console.log('Node selected:', selectedNode.data);
     this.messageService.add({
         severity: 'info',
@@ -133,37 +183,85 @@ export class ForumStructureTreeComponent implements OnInit {
         detail: selectedNode.label
     });
 
+    // Example: Navigate to edit page on click
     if (selectedNode.type === 'forumGroup') {
       const groupData = selectedNode.data as ForumGroupDTO;
       if (typeof groupData.id === 'number') {
-        // Corrected route based on app.routes.ts for ForumGroupEditComponent
-        this.router.navigate(['/app/admin/forum-groups', groupData.id]);
-      } else {
-        console.error('Selected ForumGroup does not have a valid ID for navigation.');
-        this.messageService.add({ severity: 'error', summary: 'Navigation Error', detail: 'Selected group has no ID.' });
+        this.router.navigate(['/app/admin/forum-group-edit', groupData.id]); // Adjusted path
       }
     } else if (selectedNode.type === 'forum') {
       const forumData = selectedNode.data as ForumDTO;
       if (typeof forumData.id === 'number') {
-        // Corrected route based on app.routes.ts for ForumEditComponent
-        this.router.navigate(['/app/admin/forums', forumData.id]);
-      } else {
-        console.error('Selected Forum does not have a valid ID for navigation.');
-        this.messageService.add({ severity: 'error', summary: 'Navigation Error', detail: 'Selected forum has no ID.' });
+        this.router.navigate(['/app/admin/forum-edit', forumData.id]); // Adjusted path
       }
     }
   }
 
-  // +++ NEW METHOD to process icon name +++
-  getDisplayIconName(icon: string | null): string | null {
-    if (!icon) {
-      return null; // Or an empty string if preferred for template
+  // --- Methods for Adding New Nodes ---
+
+  openAddForumDialog(event: MouseEvent, parentGroupNode: CustomTreeNode): void {
+    event.stopPropagation(); // Prevent node selection event
+    const parentGroupData = parentGroupNode.data as ForumGroupDTO;
+
+    this.dialogRef = this.dialogService.open(ForumCreateComponent, {
+      header: `Add New Forum under "${parentGroupData.title}"`,
+      width: 'min(90%, 700px)', // Responsive width
+      contentStyle: { "max-height": "90vh", "overflow": "auto" },
+      baseZIndex: 10000,
+      data: { parentGroupId: parentGroupData.id }, // Pass parent ID
+      appendTo: 'body'
+    });
+
+    this.dialogRef.onClose.subscribe((newForum: ForumDTO | undefined) => {
+      if (newForum && newForum.id !== undefined) {
+        this.addNodeToTree(parentGroupNode, this.transformForumToTreeNode(newForum));
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: `Forum "${newForum.title}" added.` });
+      }
+    });
+  }
+
+  openAddForumGroupDialog(event: MouseEvent, parentGroupNode: CustomTreeNode): void {
+    event.stopPropagation(); // Prevent node selection event
+    const parentGroupData = parentGroupNode.data as ForumGroupDTO;
+
+    this.dialogRef = this.dialogService.open(ForumGroupCreateComponent, {
+      header: `Add New Subgroup under "${parentGroupData.title}"`,
+      width: 'min(90%, 700px)', // Responsive width
+      contentStyle: { "max-height": "90vh", "overflow": "auto" },
+      baseZIndex: 10000,
+      data: { parentGroupId: parentGroupData.id } // Pass parent ID
+    });
+
+    this.dialogRef.onClose.subscribe((newGroup: ForumGroupDTO | undefined) => {
+      if (newGroup && newGroup.id !== undefined) {
+        // Ensure the new group node is created correctly (e.g., with empty children array)
+        const newGroupNode = this.transformGroupToTreeNode(newGroup);
+        this.addNodeToTree(parentGroupNode, newGroupNode);
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: `Group "${newGroup.title}" added.` });
+      }
+    });
+  }
+
+  private addNodeToTree(parentNode: CustomTreeNode, newNode: CustomTreeNode): void {
+    if (!parentNode.children) {
+      parentNode.children = [];
     }
-    // This logic is for converting something like 'heroFolderOpen' to 'folder_open' for Material Icons
-    if (icon.startsWith('hero')) {
-      return icon.substring(4).toLowerCase().replace(/([A-Z])/g, '_$1').toLowerCase();
+    parentNode.children.push(newNode);
+    // Sort children again after adding
+    parentNode.children.sort((a, b) => {
+        if (a.type === 'forumGroup' && b.type === 'forum') return -1;
+        if (a.type === 'forum' && b.type === 'forumGroup') return 1;
+        return (a.label || '').localeCompare(b.label || '');
+    });
+
+    parentNode.expanded = true; // Ensure parent is expanded
+    this.treeNodes = [...this.treeNodes]; // Trigger change detection for the tree
+  }
+
+  // Cleanup dialog reference
+  ngOnDestroy() {
+    if (this.dialogRef) {
+      this.dialogRef.close();
     }
-    // If not a 'hero' icon, return it as is (assuming it's a direct Material Icon name or other)
-    return icon;
   }
 }

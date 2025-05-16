@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router'; // Import ActivatedRoute
 
-import { ForumDTO, ApiResponse } from '../../_data/dtos';
+import { ForumDTO, ForumUpdateDTO, ApiResponse } from '../../_data/dtos';
 import { IconPickerComponent, IconSelection } from '../../icon-picker/icon-picker.component';
 import { ForumService } from '../../_services/forum.service';
 import { MessageService } from 'primeng/api'; // For Toast messages
@@ -129,7 +129,8 @@ export class ForumEditComponent implements OnInit {
     // This assumes your Java backend can map these fields correctly
     // (e.g., Angular 'icon' to Java 'iconName' field, Angular 'iconColor' to Java 'color' field if names differ)
     // Based on your CreateForumComponent, your Angular DTO uses 'icon' for name and 'iconColor' for hex.
-    const payload: ForumDTO = {
+    const payload: ForumUpdateDTO = {
+      id: this.forumId,
       title: this.f['title'].value,
       description: this.f['description'].value,
       icon: this.f['icon'].value,          // Icon Name

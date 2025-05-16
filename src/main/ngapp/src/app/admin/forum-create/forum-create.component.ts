@@ -1,13 +1,20 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router } from '@angular/router'; // Keep for fallback if not in dialog
 
-import { ForumDTO } from '../../_data/dtos';
+import { ForumDTO, ForumCreateDTO, ApiResponse } from '../../_data/dtos';
 import { IconPickerComponent, IconSelection } from '../../icon-picker/icon-picker.component';
 import { ForumService } from '../../_services/forum.service';
-// Optional: For displaying success/error messages
-// import { ToastrService } from 'ngx-toastr';
+
+// PrimeNG for dialogs and UI elements
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputSwitchModule } from 'primeng/inputswitch';
+import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 
 @Component({
   selector: 'app-forum-create',
@@ -15,9 +22,15 @@ import { ForumService } from '../../_services/forum.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    IconPickerComponent
+    IconPickerComponent,
+    ToastModule,            // For messages
+    ProgressSpinnerModule,  // For loading
+    ButtonModule,           // For pButton
+    InputTextModule,        // For pInputText
+    InputSwitchModule       // For p-inputSwitch for 'active'
   ],
-  templateUrl: './forum-create.component.html',
+  providers: [MessageService], // Provide if not already globally or by host
+  templateUrl: './forum-create.component.html', // Ensure this template uses pButton etc.
   styleUrls: ['./forum-create.component.css']
 })
 export class ForumCreateComponent implements OnInit {
@@ -25,24 +38,37 @@ export class ForumCreateComponent implements OnInit {
   forumForm!: FormGroup;
   submitted = false;
   isLoading = false;
-  errorMessage: string | null = null; // For displaying errors
+  errorMessage: string | null = null;
 
   initialIconName: string | null = 'heroArchiveBoxArrowDown';
   initialColor: string = '#4f46e5';
   initialActiveState: boolean = true;
 
+  parentGroupId: number | null = null; // To store parent ID from dialog config
+
   private fb = inject(FormBuilder);
-  private forumService = inject(ForumService); // INJECTED
-  private router = inject(Router);           // INJECTED
-  // private toastr = inject(ToastrService); // Optional: for notifications
+  private forumService = inject(ForumService);
+  private router = inject(Router);
+  private messageService = inject(MessageService);
+
+  // Inject DialogRef and Config, make them optional for standalone use
+  public dialogRef = inject(DynamicDialogRef, { optional: true });
+  public config = inject(DynamicDialogConfig, { optional: true });
 
   ngOnInit(): void {
+    if (this.config?.data?.parentGroupId) {
+      this.parentGroupId = this.config.data.parentGroupId;
+      console.log('ForumCreateComponent initialized with parentGroupId:', this.parentGroupId);
+    }
+
     this.forumForm = this.fb.group({
       title: ['', [Validators.required, Validators.maxLength(100)]],
       description: ['', [Validators.required, Validators.maxLength(500)]],
       icon: [this.initialIconName as string | null],
-      color: [this.initialColor, Validators.required],
+      // 'color' was used in forum-edit, let's be consistent or use 'iconColor' as in DTO
+      iconColor: [this.initialColor, Validators.required], // Changed 'color' to 'iconColor' to match DTO
       active: [this.initialActiveState]
+      // parentGroupId: [this.parentGroupId] // Can add to form if needed, or just use the class property
     });
   }
 
@@ -51,68 +77,72 @@ export class ForumCreateComponent implements OnInit {
   handleIconSelection(selection: IconSelection): void {
     this.forumForm.patchValue({
       icon: selection.iconName,
-      color: selection.iconColor
+      iconColor: selection.iconColor // Changed 'color' to 'iconColor'
     });
   }
 
   onSubmit(): void {
     this.submitted = true;
-    this.errorMessage = null; // Clear previous errors
+    this.errorMessage = null;
 
     if (this.forumForm.invalid) {
-      console.log('Form is invalid:', this.forumForm.errors);
+      this.messageService.add({severity: 'warn', summary: 'Validation Error', detail: 'Please check the form.'});
+      Object.values(this.f).forEach(control => control.markAsTouched());
       return;
     }
 
     this.isLoading = true;
 
-    const payload: ForumDTO = {
+    const payload: ForumCreateDTO = {
       title: this.f['title'].value,
       description: this.f['description'].value,
       icon: this.f['icon'].value,
-      iconColor: this.f['color'].value,
+      iconColor: this.f['iconColor'].value, // Changed 'color' to 'iconColor'
       active: this.f['active'].value,
+      parentGroupId: this.parentGroupId // Include parentGroupId
     };
 
-    console.log('Submitting Forum Payload directly to service:', payload);
-
-    // Call the service instead of emitting
     this.forumService.createForum(payload).subscribe({
-      next: (response) => {
+      next: (response: ApiResponse<ForumDTO>) => {
         this.isLoading = false;
-        console.log('Forum creation successful', response);
-        // this.toastr.success('Forum created successfully!'); // Optional
-        this.resetForm();
-        // Navigate to a different page, e.g., the new forum's page or a list
-        // If the response contains the new forum's ID or slug:
-        // this.router.navigate(['/forums', response.id]);
-        this.router.navigate(['/app/admin/forums']);
+        if (response.success && response.data) {
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Forum created successfully!' });
+          if (this.dialogRef) {
+            this.dialogRef.close(response.data); // Close dialog with the created forum
+          } else {
+            this.router.navigate(['/app/admin/forums']); // Fallback navigation
+          }
+        } else {
+          this.errorMessage = response.message || 'Failed to create forum.';
+          this.messageService.add({ severity: 'error', summary: 'Creation Failed', detail: this.errorMessage });
+        }
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.message || 'Failed to create forum. Please try again.';
-        console.error('Forum creation failed', err);
-        // this.toastr.error(this.errorMessage); // Optional
+        this.errorMessage = err.message || 'An unexpected error occurred.';
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.errorMessage || 'An unexpected error occurred.' });
       }
     });
   }
 
   resetForm(): void {
+    // ... (implementation as before)
     this.submitted = false;
     this.errorMessage = null;
     this.forumForm.reset({
       icon: this.initialIconName,
-      color: this.initialColor,
+      iconColor: this.initialColor, // Changed 'color' to 'iconColor'
       title: '',
       description: '',
       active: this.initialActiveState
     });
   }
 
-  // Optional: A cancel button could navigate back
   onCancel(): void {
-    // Navigate back or to a default page
-    this.router.navigate(['/app/admin/forums']); // Or use Location.back()
+    if (this.dialogRef) {
+      this.dialogRef.close(); // Close dialog without data
+    } else {
+      this.router.navigate(['/app/admin/forums']); // Fallback navigation
+    }
   }
-
 }

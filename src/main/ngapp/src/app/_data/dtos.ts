@@ -16,6 +16,25 @@ export interface ForumDTO {
   icon: string;
   iconColor: string;
   active: boolean;
+  // TODO: figure with one to add parentGroupId/forumGroupId
+}
+
+export interface ForumCreateDTO {
+  title: string;
+  description: string;
+  icon: string;
+  iconColor: string;
+  active: boolean;
+  parentGroupId: number | null;
+}
+
+export interface ForumUpdateDTO {
+  id?: number;
+  title: string;
+  description: string;
+  icon: string;
+  iconColor: string;
+  active: boolean;
 }
 
 export interface ForumGroupDTO {
@@ -26,6 +45,21 @@ export interface ForumGroupDTO {
   forums?: ForumDTO[] | null;
   subGroups?: ForumGroupDTO[] | null;
 }
+
+export interface ForumGroupCreateDTO {
+  title: string;
+  icon: string;
+  iconColor: string;
+  parentGroupId: number | null;
+}
+
+export interface ForumGroupUpdateDTO {
+  id?: number;
+  title: string;
+  icon: string;
+  iconColor: string;
+}
+
 
 // Model for the registration payload (matches SignUpRequest without confirmPassword)
 export interface RegistrationPayload {
