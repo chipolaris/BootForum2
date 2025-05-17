@@ -3,42 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // Required for ngModel
 
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
-import { OverlayPanelModule, OverlayPanel } from 'primeng/overlaypanel'; // << IMPORT THESE
+import { OverlayPanelModule, OverlayPanel } from 'primeng/overlaypanel';
 
-// Import the specific Heroicons you want to offer
-import {
-  heroUser,
-  heroHome,
-  heroCog6Tooth, // Updated name for Cog
-  heroBell,
-  heroAcademicCap,
-  heroArchiveBoxArrowDown, // Updated name for ArchiveBox
-  heroFaceSmile,
-  heroPhoto,
-  heroLink,
-  heroLockClosed,
-  heroMapPin,
-  heroStar,
-  heroChevronDown,
-} from '@ng-icons/heroicons/outline';
-
-// This object maps string names (used by ng-icon) to the actual icon objects
-// These are the icons the component will provide for itself
-const iconsToProvideInThisComponent = {
-  heroUser,
-  heroHome,
-  heroCog6Tooth,
-  heroBell,
-  heroAcademicCap,
-  heroArchiveBoxArrowDown,
-  heroFaceSmile,
-  heroPhoto,
-  heroLink,
-  heroLockClosed,
-  heroMapPin,
-  heroStar,
-  heroChevronDown
-};
+import { APP_PICKER_AVAILABLE_ICONS, APP_ICONS, AppIconDefinition } from '../shared/hero-icons';
 
 export interface IconSelection {
   iconName: string | null;
@@ -52,7 +19,7 @@ export interface IconSelection {
   templateUrl: './icon-picker.component.html',
   styleUrls: ['./icon-picker.component.css'], // Can be empty if all styles are Tailwind in HTML
   providers: [
-    provideIcons(iconsToProvideInThisComponent)
+    provideIcons(APP_ICONS)
   ],
 })
 export class IconPickerComponent implements OnInit {
@@ -61,22 +28,7 @@ export class IconPickerComponent implements OnInit {
 
   @Output() selectionChanged = new EventEmitter<IconSelection>();
 
-  // List of icons available in the picker
-  // The 'name' property MUST match the key in iconsToProvideInThisComponent
-  availableIcons: { displayName: string; name: string }[] = [
-    { displayName: 'User', name: 'heroUser' },
-    { displayName: 'Home', name: 'heroHome' },
-    { displayName: 'Settings', name: 'heroCog6Tooth' },
-    { displayName: 'Bell', name: 'heroBell' },
-    { displayName: 'Education', name: 'heroAcademicCap' },
-    { displayName: 'Archive', name: 'heroArchiveBoxArrowDown' },
-    { displayName: 'Smile', name: 'heroFaceSmile' },
-    { displayName: 'Photo', name: 'heroPhoto' },
-    { displayName: 'Link', name: 'heroLink' },
-    { displayName: 'Lock', name: 'heroLockClosed' },
-    { displayName: 'Map Pin', name: 'heroMapPin' },
-    { displayName: 'Star', name: 'heroStar' },
-  ];
+  availableIcons: AppIconDefinition[] = APP_PICKER_AVAILABLE_ICONS;
 
   selectedIconName: string | null = null;
   selectedColor: string = '#333333';

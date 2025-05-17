@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common'; // Import CommonModule for *ngIf
 import { finalize } from 'rxjs/operators';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { heroArrowRightEndOnRectangle, heroLockClosed } from '@ng-icons/heroicons/outline';
+import { APP_ICONS } from '../shared/hero-icons';
 
 // --- PrimeNG Modules ---
 import { MessageService } from 'primeng/api';
@@ -38,7 +38,7 @@ import { AuthenticationService } from '../_services/authentication.service'; // 
     // -----------------------------------------
   ],
   providers: [
-    provideIcons({heroArrowRightEndOnRectangle, heroLockClosed})
+    provideIcons(APP_ICONS)
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],

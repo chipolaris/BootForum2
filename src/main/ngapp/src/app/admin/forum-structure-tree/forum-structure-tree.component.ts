@@ -20,44 +20,14 @@ import { ForumGroupCreateComponent } from '../forum-group-create/forum-group-cre
 
 // Import NgIconComponent and provideIcons
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
-// Import the specific Heroicons you use (match IconPickerComponent)
-import {
-  heroUser,
-  heroHome,
-  heroCog6Tooth,
-  heroBell,
-  heroAcademicCap,
-  heroArchiveBoxArrowDown,
-  heroFaceSmile,
-  heroPhoto,
-  heroLink,
-  heroLockClosed,
-  heroMapPin,
-  heroStar
-  // Add any other icons if your DTOs might contain them
-} from '@ng-icons/heroicons/outline';
 
-// This object maps string names (used by ng-icon) to the actual icon objects
-const iconsToProvideInTree = {
-  heroUser,
-  heroHome,
-  heroCog6Tooth,
-  heroBell,
-  heroAcademicCap,
-  heroArchiveBoxArrowDown,
-  heroFaceSmile,
-  heroPhoto,
-  heroLink,
-  heroLockClosed,
-  heroMapPin,
-  heroStar
-};
+// Import the shared icon object map
+import { APP_ICONS } from '../../shared/hero-icons';
 
 // Define a more specific TreeNode type for our use case
 interface CustomTreeNode extends TreeNode {
   data: ForumGroupDTO | ForumDTO;
   type: 'forumGroup' | 'forum';
-  // id is already part of data.id, no need to duplicate here
 }
 
 // Define the expected structure for the node select event
@@ -79,7 +49,7 @@ interface NodeSelectEvent {
     DynamicDialogModule,
     NgIconComponent
   ],
-  providers: [MessageService, DialogService, provideIcons(iconsToProvideInTree)],
+  providers: [MessageService, DialogService, provideIcons(APP_ICONS)],
   templateUrl: './forum-structure-tree.component.html',
   styleUrls: ['./forum-structure-tree.component.css']
 })

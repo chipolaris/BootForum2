@@ -40,7 +40,7 @@ export class ForumCreateComponent implements OnInit {
   isLoading = false;
   errorMessage: string | null = null;
 
-  initialIconName: string | null = 'heroArchiveBoxArrowDown';
+  initialIconName: string | null = 'heroAcademicCapSolid';
   initialColor: string = '#4f46e5';
   initialActiveState: boolean = true;
 

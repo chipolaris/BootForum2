@@ -38,7 +38,7 @@ export class ForumGroupCreateComponent implements OnInit {
   isLoading = false;
   errorMessage: string | null = null;
 
-  initialIconName: string | null = 'heroAcademicCap';
+  initialIconName: string | null = 'heroAcademicCapSolid';
   initialColor: string = '#3b82f6';
 
   parentGroupId: number | null = null; // <<< ADDED: To store parent ID
