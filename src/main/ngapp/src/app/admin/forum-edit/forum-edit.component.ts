@@ -2,6 +2,8 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router'; // Import ActivatedRoute
+// << IMPORT DynamicDialogRef and DynamicDialogConfig >>
+import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 
 import { ForumDTO, ForumUpdateDTO, ApiResponse } from '../../_data/dtos';
 import { IconPickerComponent, IconSelection } from '../../icon-picker/icon-picker.component';
@@ -33,9 +35,13 @@ export class ForumEditComponent implements OnInit {
   forumId: number | null = null;
 
   // Initial values for the form, will be overridden by fetched data
-  initialIconName: string | null = 'heroArchiveBoxArrowDown';
+  initialIconName: string | null = null;
   initialColor: string | null = '#4f46e5';
   initialActiveState: boolean = true;
+
+  // << INJECT DynamicDialogRef and DynamicDialogConfig (optional) >>
+  private dialogRef = inject(DynamicDialogRef, { optional: true });
+  private dialogConfig = inject(DynamicDialogConfig, { optional: true });
 
   private fb = inject(FormBuilder);
   private forumService = inject(ForumService);
@@ -47,23 +53,46 @@ export class ForumEditComponent implements OnInit {
     this.forumForm = this.fb.group({
       title: ['', [Validators.required, Validators.maxLength(100)]],
       description: ['', [Validators.required, Validators.maxLength(500)]],
-      icon: [this.initialIconName as string | null], // Will be icon name
-      color: [this.initialColor, Validators.required], // Will be icon hex color
+      icon: [this.initialIconName as string | null],
+      iconColor: [this.initialColor ?? '#4f46e5', Validators.required], // Ensure initialColor is not null here
       active: [this.initialActiveState]
     });
 
-    this.route.paramMap.subscribe(params => {
-      const id = params.get('id');
-      if (id) {
-        this.forumId = +id; // Convert string to number
-        this.loadForumData(this.forumId);
+    // Check if forumId is passed via dialog data
+    const dialogForumId = this.dialogConfig?.data?.forumId;
+    if (dialogForumId !== undefined && dialogForumId !== null) {
+      if (typeof dialogForumId === 'number' && !isNaN(dialogForumId)) {
+        this.forumId = dialogForumId;
+        this.loadForumData(this.forumId); // Now forumId is guaranteed to be a number
       } else {
-        this.errorMessage = 'Forum ID not found in route.';
+        this.errorMessage = 'Invalid Forum ID received in dialog data.';
         this.messageService.add({ severity: 'error', summary: 'Error', detail: this.errorMessage });
-        // Optionally navigate away if no ID
-        // this.router.navigate(['/app/dashboard']);
+        console.error('ForumEditComponent: forumId from dialogConfig.data was not a valid number:', dialogForumId);
+        if (this.dialogRef) {
+          this.dialogRef.close();
+        }
       }
-    });
+    } else {
+      // Fallback to route parameters if not in dialog data
+      this.route.paramMap.subscribe(params => {
+        const idStr = params.get('id');
+        if (idStr) {
+          const numId = +idStr; // Convert string ID to number
+          if (!isNaN(numId)) { // Check if conversion resulted in a valid number
+            this.forumId = numId;
+            this.loadForumData(this.forumId); // Now forumId is guaranteed to be a number
+          } else {
+            this.errorMessage = 'Invalid Forum ID in URL.';
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: this.errorMessage });
+            if (this.dialogRef) { this.dialogRef.close(); } else { this.router.navigate(['/app/dashboard']); }
+          }
+        } else {
+          this.errorMessage = 'Forum ID not found in URL.';
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: this.errorMessage });
+          if (this.dialogRef) { this.dialogRef.close(); } else { this.router.navigate(['/app/dashboard']); }
+        }
+      });
+    }
   }
 
   loadForumData(id: number): void {
@@ -77,7 +106,7 @@ export class ForumEditComponent implements OnInit {
             title: forumData.title,
             description: forumData.description,
             icon: forumData.icon,           // Forum.icon is the icon name
-            color: forumData.iconColor,     // Forum.iconColor is the hex color
+            iconCcolor: forumData.iconColor,     // Forum.iconColor is the hex color
             active: forumData.active
           });
           // Update initial values for icon picker if needed
@@ -103,7 +132,7 @@ export class ForumEditComponent implements OnInit {
   handleIconSelection(selection: IconSelection): void {
     this.forumForm.patchValue({
       icon: selection.iconName,
-      color: selection.iconColor
+      iconColor: selection.iconColor
     });
   }
 
@@ -134,7 +163,7 @@ export class ForumEditComponent implements OnInit {
       title: this.f['title'].value,
       description: this.f['description'].value,
       icon: this.f['icon'].value,          // Icon Name
-      iconColor: this.f['color'].value,    // Icon Hex Color
+      iconColor: this.f['iconColor'].value,    // Icon Hex Color
       active: this.f['active'].value,
     };
 
@@ -144,10 +173,15 @@ export class ForumEditComponent implements OnInit {
       next: (apiResponse: ApiResponse<ForumDTO>) => {
         this.isLoading = false;
         if (apiResponse.success && apiResponse.data) {
-          console.log('Forum update successful', apiResponse.data);
           this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Forum updated successfully!' });
-          // Navigate to a different page, e.g., dashboard or forum list
-          this.router.navigate(['/app/admin/forums']);
+          /* // Navigate to a different page, e.g., dashboard or forum list
+          this.router.navigate(['/app/admin/forums']); */
+                    // << MODIFIED: Close dialog if open, else navigate >>
+          if (this.dialogRef) {
+            this.dialogRef.close(apiResponse.data); // Pass back updated data
+          } else {
+            this.router.navigate(['/app/admin/forums']); // Or wherever appropriate
+          }
         } else {
           this.errorMessage = apiResponse.message || 'Failed to update forum.';
           this.messageService.add({ severity: 'error', summary: 'Update Failed', detail: this.errorMessage || " Error " });
@@ -164,7 +198,11 @@ export class ForumEditComponent implements OnInit {
 
   // Optional: A cancel button could navigate back
   onCancel(): void {
-    // Navigate back or to a default page
-    this.router.navigate(['/app/admin/forums']); // Or use Location.back()
+    // << MODIFIED: Close dialog if open, else navigate >>
+    if (this.dialogRef) {
+      this.dialogRef.close();
+    } else {
+      this.router.navigate(['/app/admin/forums']);
+    }
   }
 }

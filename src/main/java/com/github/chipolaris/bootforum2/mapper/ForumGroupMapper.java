@@ -6,6 +6,7 @@ import com.github.chipolaris.bootforum2.dto.ForumGroupDTO;
 import com.github.chipolaris.bootforum2.dto.ForumGroupUpdateDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface ForumGroupMapper {
@@ -15,4 +16,6 @@ public interface ForumGroupMapper {
     ForumGroup toEntity(ForumGroupUpdateDTO dto);
 
     ForumGroupDTO toForumGroupDTO(ForumGroup forumGroup);
+
+    void mergeDTOToEntity(ForumGroupUpdateDTO dto, @MappingTarget ForumGroup entity);
 }

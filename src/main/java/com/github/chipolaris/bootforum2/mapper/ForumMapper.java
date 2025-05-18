@@ -6,6 +6,7 @@ import com.github.chipolaris.bootforum2.dto.ForumDTO;
 import com.github.chipolaris.bootforum2.dto.ForumUpdateDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface ForumMapper {
@@ -17,4 +18,6 @@ public interface ForumMapper {
     Forum toEntity(ForumUpdateDTO dto);
 
     ForumDTO toForumDTO(Forum forum);
+
+    void mergeIntoEntity(ForumUpdateDTO dto, @MappingTarget Forum entity);
 }

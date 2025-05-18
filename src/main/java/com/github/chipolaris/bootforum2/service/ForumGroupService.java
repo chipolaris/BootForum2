@@ -58,13 +58,19 @@ public class ForumGroupService {
 
         ServiceResponse<ForumGroupDTO> response = new ServiceResponse<>();
 
-        ForumGroup forumGroup = forumGroupMapper.toEntity(forumGroupUpdateDTO);
+        ForumGroup forumGroup = genericDAO.find(ForumGroup.class, forumGroupUpdateDTO.id());
+        if(forumGroup == null) {
+            response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
+                    .addMessage(String.format("Forum group with id %d is not found", forumGroupUpdateDTO.id()));
+        }
+        else {
+            forumGroupMapper.mergeDTOToEntity(forumGroupUpdateDTO, forumGroup);
 
-        forumGroup = genericDAO.merge(forumGroup);
+            forumGroup = genericDAO.merge(forumGroup);
 
-        response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumGroupMapper.toForumGroupDTO(forumGroup))
-                .addMessage("Forum updated successfully");
-
+            response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumGroupMapper.toForumGroupDTO(forumGroup))
+                    .addMessage("Forum updated successfully");
+        }
         return response;
     }
 
@@ -87,6 +93,7 @@ public class ForumGroupService {
         return response;
     }
 
+    @Transactional(readOnly = true)
     public ServiceResponse<ForumGroupDTO> getRootForumGroup() {
 
         ServiceResponse<ForumGroupDTO> response = new ServiceResponse<>();

@@ -8,7 +8,7 @@ import java.util.List;
 public record ForumGroupDTO(Long id, String title, String icon, String iconColor, Long parentId,
                              List<ForumDTO> forums, List<ForumGroupDTO> subGroups) {
 
-    public static ForumGroupDTO fromForumGroup(ForumGroup forumGroup) {
+/*    public static ForumGroupDTO fromForumGroup(ForumGroup forumGroup) {
         ForumGroupDTO forumGroupDTO = new ForumGroupDTO(
                 forumGroup.getId(),
                 forumGroup.getTitle(),
@@ -30,5 +30,5 @@ public record ForumGroupDTO(Long id, String title, String icon, String iconColor
         forumGroup.setIconColor(this.iconColor);
 
         return forumGroup;
-    }
+    }*/
 }

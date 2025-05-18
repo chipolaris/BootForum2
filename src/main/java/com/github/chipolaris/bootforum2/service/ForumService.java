@@ -58,13 +58,20 @@ public class ForumService {
 
         ServiceResponse<ForumDTO> response = new ServiceResponse<>();
 
-        Forum forum = forumMapper.toEntity(forumUpdateDTO);
+        Forum forum = genericDAO.find(Forum.class, forumUpdateDTO.id());
 
-        forum = genericDAO.merge(forum);
+        if(forum == null) {
+            response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
+                    .addMessage(String.format("Forum with id %d is not found",forumUpdateDTO.id()));
+        }
+        else {
+            forumMapper.mergeIntoEntity(forumUpdateDTO, forum);
 
-        response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumMapper.toForumDTO(forum))
-                .addMessage("Forum updated successfully");
+            forum = genericDAO.merge(forum);
 
+            response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumMapper.toForumDTO(forum))
+                    .addMessage("Forum updated successfully");
+        }
         return response;
     }
 

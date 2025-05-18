@@ -14,15 +14,17 @@ import { Router } from '@angular/router';
 import { ForumGroupService } from '../../_services/forum-group.service';
 import { ForumGroupDTO, ForumDTO, ApiResponse } from '../../_data/dtos';
 
-// Import Create Components
+// Import Create/Edit Components
 import { ForumCreateComponent } from '../forum-create/forum-create.component';
 import { ForumGroupCreateComponent } from '../forum-group-create/forum-group-create.component';
+import { ForumEditComponent } from '../forum-edit/forum-edit.component';
+import { ForumGroupEditComponent } from '../forum-group-edit/forum-group-edit.component'; // << IMPORT ForumGroupEditComponent
 
 // Import NgIconComponent and provideIcons
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 
 // Import the shared icon object map
-import { APP_ICONS } from '../../shared/hero-icons';
+import { APP_ICONS } from '../../shared/hero-icons'; // Assuming this is APP_ICONS_OUTLINE_MAP or similar
 
 // Define a more specific TreeNode type for our use case
 interface CustomTreeNode extends TreeNode {
@@ -62,7 +64,7 @@ export class ForumStructureTreeComponent implements OnInit {
   private forumGroupService = inject(ForumGroupService);
   private messageService = inject(MessageService);
   private router = inject(Router);
-  private dialogService = inject(DialogService); // Injected
+  private dialogService = inject(DialogService);
 
   ngOnInit(): void {
     this.loadForumStructure();
@@ -98,9 +100,9 @@ export class ForumStructureTreeComponent implements OnInit {
       data: group,
       type: 'forumGroup',
       leaf: false,
-      expanded: isRoot, // Expand root by default
+      expanded: isRoot,
       children: [],
-      expandedIcon: 'pi pi-folder-open',
+      expandedIcon: 'pi pi-folder-open', // Keep PrimeNG icons for groups if no custom icon
       collapsedIcon: 'pi pi-folder',
     };
 
@@ -111,7 +113,6 @@ export class ForumStructureTreeComponent implements OnInit {
     if (group.subGroups && group.subGroups.length > 0) {
       node.children?.push(...group.subGroups.map(subGroup => this.transformGroupToTreeNode(subGroup)));
     }
-    // Sort children: groups first, then forums, then alphabetically
     node.children?.sort((a, b) => {
         if (a.type === 'forumGroup' && b.type === 'forum') return -1;
         if (a.type === 'forum' && b.type === 'forumGroup') return 1;
@@ -126,14 +127,12 @@ export class ForumStructureTreeComponent implements OnInit {
       data: forum,
       type: 'forum',
       leaf: true,
-      icon: 'pi pi-comments',
+      icon: 'pi pi-comments', // Keep PrimeNG icon for forums if no custom icon
     };
   }
 
   private expandNodeAndChildren(node: TreeNode, maxDepth: number, currentDepth: number = 1): void {
-    if (currentDepth > maxDepth) {
-      return;
-    }
+    if (currentDepth > maxDepth) return;
     node.expanded = true;
     if (node.children) {
       for (const child of node.children) {
@@ -144,44 +143,38 @@ export class ForumStructureTreeComponent implements OnInit {
 
   onNodeSelect(event: NodeSelectEvent): void {
     const selectedNode = event.node as CustomTreeNode;
-    // Existing navigation logic...
-    // (This can be kept or modified if clicking the node itself should do something different now)
-    console.log('Node selected:', selectedNode.data);
     this.messageService.add({
         severity: 'info',
         summary: `${selectedNode.type === 'forumGroup' ? 'Group' : 'Forum'} Selected`,
         detail: selectedNode.label
     });
 
-    // Example: Navigate to edit page on click
     if (selectedNode.type === 'forumGroup') {
       const groupData = selectedNode.data as ForumGroupDTO;
       if (typeof groupData.id === 'number') {
-        this.router.navigate(['/app/admin/forum-group-edit', groupData.id]); // Adjusted path
+        // Open dialog
+        this.openEditForumGroupDialog(selectedNode, groupData);
       }
     } else if (selectedNode.type === 'forum') {
       const forumData = selectedNode.data as ForumDTO;
       if (typeof forumData.id === 'number') {
-        this.router.navigate(['/app/admin/forum-edit', forumData.id]); // Adjusted path
+        this.openEditForumDialog(selectedNode, forumData);
       }
     }
   }
 
   // --- Methods for Adding New Nodes ---
-
   openAddForumDialog(event: MouseEvent, parentGroupNode: CustomTreeNode): void {
-    event.stopPropagation(); // Prevent node selection event
+    event.stopPropagation();
     const parentGroupData = parentGroupNode.data as ForumGroupDTO;
-
     this.dialogRef = this.dialogService.open(ForumCreateComponent, {
       header: `Add New Forum under "${parentGroupData.title}"`,
-      width: 'min(90%, 700px)', // Responsive width
+      width: 'min(90%, 700px)',
       contentStyle: { "max-height": "90vh", "overflow": "auto" },
       baseZIndex: 10000,
-      data: { parentGroupId: parentGroupData.id }, // Pass parent ID
+      data: { parentGroupId: parentGroupData.id },
       appendTo: 'body'
     });
-
     this.dialogRef.onClose.subscribe((newForum: ForumDTO | undefined) => {
       if (newForum && newForum.id !== undefined) {
         this.addNodeToTree(parentGroupNode, this.transformForumToTreeNode(newForum));
@@ -191,20 +184,18 @@ export class ForumStructureTreeComponent implements OnInit {
   }
 
   openAddForumGroupDialog(event: MouseEvent, parentGroupNode: CustomTreeNode): void {
-    event.stopPropagation(); // Prevent node selection event
+    event.stopPropagation();
     const parentGroupData = parentGroupNode.data as ForumGroupDTO;
-
     this.dialogRef = this.dialogService.open(ForumGroupCreateComponent, {
       header: `Add New Subgroup under "${parentGroupData.title}"`,
-      width: 'min(90%, 700px)', // Responsive width
+      width: 'min(90%, 700px)',
       contentStyle: { "max-height": "90vh", "overflow": "auto" },
       baseZIndex: 10000,
-      data: { parentGroupId: parentGroupData.id } // Pass parent ID
+      data: { parentGroupId: parentGroupData.id },
+      appendTo: 'body'
     });
-
     this.dialogRef.onClose.subscribe((newGroup: ForumGroupDTO | undefined) => {
       if (newGroup && newGroup.id !== undefined) {
-        // Ensure the new group node is created correctly (e.g., with empty children array)
         const newGroupNode = this.transformGroupToTreeNode(newGroup);
         this.addNodeToTree(parentGroupNode, newGroupNode);
         this.messageService.add({ severity: 'success', summary: 'Success', detail: `Group "${newGroup.title}" added.` });
@@ -212,26 +203,98 @@ export class ForumStructureTreeComponent implements OnInit {
     });
   }
 
+  // --- Methods for Editing Nodes ---
+  openEditForumDialog(nodeToUpdate: CustomTreeNode, forumData: ForumDTO): void {
+    if (typeof forumData.id !== 'number') return;
+    this.dialogRef = this.dialogService.open(ForumEditComponent, {
+      header: `Edit Forum: "${forumData.title}"`,
+      width: 'min(90%, 700px)',
+      contentStyle: { "max-height": "90vh", "overflow": "auto" },
+      baseZIndex: 10000,
+      data: { forumId: forumData.id },
+      appendTo: 'body',
+      focusOnShow: false,
+    });
+    this.dialogRef.onClose.subscribe((updatedForum: ForumDTO | undefined) => {
+      if (updatedForum && updatedForum.id === nodeToUpdate.data.id) {
+        nodeToUpdate.label = updatedForum.title;
+
+        nodeToUpdate.data = { ...nodeToUpdate.data, ...updatedForum };
+        this.treeNodes = [...this.treeNodes];
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: `Forum "${updatedForum.title}" updated.` });
+      }
+    });
+  }
+
+  // << NEW METHOD for editing Forum Group >>
+
+openEditForumGroupDialogTemp(groupData: ForumGroupDTO): void {
+  if (typeof groupData.id !== 'number') return;
+
+  const safeGroup = this.getFlatForumGroup(groupData);
+  console.log('Passing to dialog:', safeGroup);
+
+  this.dialogRef = this.dialogService.open(ForumGroupEditComponent, {
+    header: `Edit Forum Group: "${safeGroup.title}"`,
+    width: 'min(90%, 700px)',
+    contentStyle: { "max-height": "90vh", "overflow": "auto" },
+    baseZIndex: 10000,
+    data: { forumGroupId: safeGroup.id },
+    appendTo: 'body',
+    focusOnShow: false,
+  });
+}
+
+  openEditForumGroupDialog(nodeToUpdate: CustomTreeNode, groupData: ForumGroupDTO): void {
+    if (typeof groupData.id !== 'number') return;
+
+    this.dialogRef = this.dialogService.open(ForumGroupEditComponent, {
+      header: `Edit Forum Group: "${groupData.title}"`,
+      width: 'min(90%, 700px)',
+      contentStyle: { "max-height": "90vh", "overflow": "auto" },
+      baseZIndex: 10000,
+      data: { forumGroupId: groupData.id }, // Pass forumGroupId to the edit component
+      appendTo: 'body',
+      focusOnShow: false,
+    });
+
+    this.dialogRef.onClose.subscribe((updatedGroup: ForumGroupDTO | undefined) => {
+      if (updatedGroup && updatedGroup.id === nodeToUpdate.data.id) {
+        // Update the node in the tree
+        nodeToUpdate.label = updatedGroup.title;
+
+        nodeToUpdate.data = { ...nodeToUpdate.data, ...updatedGroup }; // Merge updated data
+
+        // Refresh the tree to reflect changes
+        this.treeNodes = [...this.treeNodes];
+
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: `Forum Group "${updatedGroup.title}" updated.` });
+      }
+    });
+  }
+
   private addNodeToTree(parentNode: CustomTreeNode, newNode: CustomTreeNode): void {
-    if (!parentNode.children) {
-      parentNode.children = [];
-    }
+    if (!parentNode.children) parentNode.children = [];
     parentNode.children.push(newNode);
-    // Sort children again after adding
     parentNode.children.sort((a, b) => {
         if (a.type === 'forumGroup' && b.type === 'forum') return -1;
         if (a.type === 'forum' && b.type === 'forumGroup') return 1;
         return (a.label || '').localeCompare(b.label || '');
     });
-
-    parentNode.expanded = true; // Ensure parent is expanded
-    this.treeNodes = [...this.treeNodes]; // Trigger change detection for the tree
+    parentNode.expanded = true;
+    this.treeNodes = [...this.treeNodes];
   }
 
-  // Cleanup dialog reference
   ngOnDestroy() {
     if (this.dialogRef) {
       this.dialogRef.close();
     }
   }
+
+  private getFlatForumGroup(group: ForumGroupDTO): ForumGroupDTO {
+    const { id, title, icon, iconColor } = group;
+    return { id, title, icon, iconColor };
+  }
+
+
 }

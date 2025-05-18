@@ -5,7 +5,10 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, ActivatedRoute } from '@angular/router'; // ActivatedRoute to get ID
 import { switchMap } from 'rxjs/operators';
 
-import { ForumGroupDTO, ForumGroupUpdateDTO } from '../../_data/dtos';
+// << IMPORT DynamicDialogRef and DynamicDialogConfig >>
+import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+
+import { ForumGroupDTO, ForumGroupUpdateDTO, ApiResponse } from '../../_data/dtos';
 import { IconPickerComponent, IconSelection } from '../../icon-picker/icon-picker.component';
 import { ForumGroupService } from '../../_services/forum-group.service';
 
@@ -45,6 +48,10 @@ export class ForumGroupEditComponent implements OnInit {
   currentIconName: string | null = null;
   currentIconColor: string = '#333333'; // Default fallback for icon picker
 
+  // << INJECT DynamicDialogRef and DynamicDialogConfig (optional) >>
+  private dialogRef = inject(DynamicDialogRef, { optional: true });
+  private dialogConfig = inject(DynamicDialogConfig, { optional: true });
+
   private fb = inject(FormBuilder);
   private forumGroupService = inject(ForumGroupService);
   private router = inject(Router);
@@ -58,34 +65,77 @@ export class ForumGroupEditComponent implements OnInit {
       iconColor: [this.currentIconColor, Validators.required]
     });
 
-    this.route.paramMap.pipe(
-      switchMap(params => {
-        const id = params.get('id');
-        if (id) {
-          this.forumGroupId = +id;
-          this.isFetching = true;
-          return this.forumGroupService.getForumGroupById(this.forumGroupId);
-        } else {
-          this.errorMessage = 'Forum Group ID not found in URL.';
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: this.errorMessage });
-          this.isFetching = false;
-          this.router.navigate(['/app/dashboard']); // Or a list page
-          throw new Error(this.errorMessage);
+    // << GET forumGroupId from dialog data first, then from route >>
+    const dialogForumGroupId = this.dialogConfig?.data?.forumGroupId;
+    if (dialogForumGroupId !== undefined && dialogForumGroupId !== null) {
+      if (typeof dialogForumGroupId === 'number' && !isNaN(dialogForumGroupId)) {
+        this.forumGroupId = dialogForumGroupId;
+        this.isFetching = true;
+        this.loadForumGroupData(this.forumGroupId);
+      } else {
+        this.errorMessage = 'Invalid Forum Group ID received in dialog data.';
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.errorMessage });
+        this.isFetching = false;
+        if (this.dialogRef) {
+          this.dialogRef.close();
         }
-      })
-    ).subscribe({
-      next: (response) => {
+      }
+    } else {
+      this.route.paramMap.pipe(
+        switchMap(params => {
+          const idStr = params.get('id');
+          if (idStr) {
+            const numId = +idStr;
+            if (!isNaN(numId)) {
+              this.forumGroupId = numId;
+              this.isFetching = true;
+              return this.forumGroupService.getForumGroupById(this.forumGroupId);
+            } else {
+              this.errorMessage = 'Invalid Forum Group ID in URL.';
+              throw new Error(this.errorMessage); // Will be caught by subscribe error block
+            }
+          } else {
+            this.errorMessage = 'Forum Group ID not found in URL.';
+            throw new Error(this.errorMessage); // Will be caught by subscribe error block
+          }
+        })
+      ).subscribe({
+        next: (response: ApiResponse<ForumGroupDTO>) => { // Explicitly type response
+          if (response.success && response.data) {
+            this.populateForm(response.data);
+          } else {
+            this.errorMessage = response.message || 'Failed to load forum group data.';
+            this.messageService.add({ severity: 'error', summary: 'Load Failed', detail: this.errorMessage });
+          }
+          this.isFetching = false;
+        },
+        error: (err) => {
+          this.errorMessage = err.message || 'An unexpected error occurred while fetching data.';
+          this.messageService.add({ severity: 'error', summary: 'Fetch Error', detail: this.errorMessage || 'An unexpected error occurred.'});
+          this.isFetching = false;
+          if (!this.dialogRef) { // Only navigate if not in a dialog
+            this.router.navigate(['/app/dashboard']);
+          }
+        }
+      });
+    }
+  }
+
+  // Helper method to load data, used by both dialog and route paths
+  loadForumGroupData(id: number): void {
+    this.forumGroupService.getForumGroupById(id).subscribe({
+      next: (response: ApiResponse<ForumGroupDTO>) => {
         if (response.success && response.data) {
           this.populateForm(response.data);
         } else {
           this.errorMessage = response.message || 'Failed to load forum group data.';
-          this.messageService.add({ severity: 'error', summary: 'Load Failed', detail: this.errorMessage });
+          this.messageService.add({ severity: 'error', summary: 'Load Failed', detail: this.errorMessage});
         }
         this.isFetching = false;
       },
       error: (err) => {
         this.errorMessage = err.message || 'An unexpected error occurred while fetching data.';
-        this.messageService.add({ severity: 'error', summary: 'Fetch Error', detail: this.errorMessage || 'An unexpected error occurred.' });
+        this.messageService.add({ severity: 'error', summary: 'Fetch Error', detail: this.errorMessage || 'An unexpected error occurred.'});
         this.isFetching = false;
       }
     });
@@ -136,12 +186,16 @@ export class ForumGroupEditComponent implements OnInit {
     };
 
     this.forumGroupService.updateForumGroup(this.forumGroupId, payload).subscribe({
-      next: (response) => {
+      next: (response: ApiResponse<ForumGroupDTO>) => { // Expect ForumGroupDTO on successful update
         this.isLoading = false;
-        if (response.success) {
+        if (response.success && response.data) {
           this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Forum Group updated successfully!' });
-          // Optionally navigate away, e.g., to a list or dashboard
-          this.router.navigate(['/app/dashboard']); // Or a future '/app/admin/forum-groups'
+          // << MODIFIED: Close dialog if open, else navigate >>
+          if (this.dialogRef) {
+            this.dialogRef.close(response.data); // Pass back updated data
+          } else {
+            this.router.navigate(['/app/dashboard']);
+          }
         } else {
           this.errorMessage = response.message || 'Failed to update forum group.';
           this.messageService.add({ severity: 'error', summary: 'Update Failed', detail: this.errorMessage || 'An unexpected error occurred.' });
@@ -156,7 +210,11 @@ export class ForumGroupEditComponent implements OnInit {
   }
 
   onCancel(): void {
-    // Navigate back or to a default admin page
-    this.router.navigate(['/app/dashboard']); // Or use Location.back() or to a list page
+    // << MODIFIED: Close dialog if open, else navigate >>
+    if (this.dialogRef) {
+      this.dialogRef.close();
+    } else {
+      this.router.navigate(['/app/dashboard']);
+    }
   }
 }
