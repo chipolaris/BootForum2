@@ -1,3 +1,4 @@
+-- Deprecated: use seed-data.json instead
 -- MySQL 5.7+ compatible
 
 -- Add person for admin user

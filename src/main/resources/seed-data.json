@@ -1,0 +1,15 @@
+{
+  "users": [
+    {
+      "username": "admin",
+      "password": "secret123",
+      "userRole": "ADMIN",
+      "accountStatus": "ACTIVE",
+      "person": {
+        "firstName": "Admin",
+        "lastName": "User",
+        "email": "admin@bootforum2.dev"
+      }
+    }
+  ]
+}

@@ -27,22 +27,6 @@ public class ForumController {
     @Resource
     private ForumService forumService;
 
-    //@PostMapping("/admin/create-forum")
-    public ApiResponse<?> createForum_Old(@Valid @RequestBody ForumDTO forumDTO) {
-        try {
-            Forum forum = forumDTO.createForum(); // get basic values from DTO
-            ServiceResponse<Void> serviceResponse = genericService.saveEntity(forum);
-
-            if(serviceResponse.getAckCode() == ServiceResponse.AckCodeType.FAILURE) {
-                return ApiResponse.error(serviceResponse.getMessages(),"Forum creation failed");
-            }
-            return ApiResponse.success(ForumDTO.fromForum(forum),"Forum created successfully");
-        } catch (Exception e) {
-            logger.error("Unexpected create forum error", e);
-            return ApiResponse.error(String.format("An unexpected error occurred during creating forum.", e.getMessage()));
-        }
-    }
-
     @PostMapping("/admin/create-forum")
     public ApiResponse<?> createForum(@Valid @RequestBody ForumCreateDTO forumCreateDTO) {
         try {
@@ -66,23 +50,6 @@ public class ForumController {
      * @param id The ID of the forum to retrieve.
      * @return ApiResponse containing the Forum or an error message.
      */
-    //@GetMapping("/admin/forums/{id}") // Path for retrieving a specific forum
-    public ApiResponse<?> getForumOld(@PathVariable Long id) {
-        try {
-            // Assuming genericService.find returns the entity or null if not found
-            Forum forum = genericService.findEntity(Forum.class, id).getDataObject();
-
-            if (forum == null) {
-                return ApiResponse.error(String.format("Forum with ID %d not found.", id));
-            }
-
-            return ApiResponse.success(ForumDTO.fromForum(forum), "Forum retrieved successfully");
-        } catch (Exception e) {
-            logger.error(String.format("Error retrieving forum with ID %d", id), e);
-            return ApiResponse.error(String.format("An unexpected error occurred while retrieving forum: %s", e.getMessage()));
-        }
-    }
-
     @GetMapping("/admin/forums/{id}") // Path for retrieving a specific forum
     public ApiResponse<?> getForum(@PathVariable Long id) {
         try {
@@ -106,26 +73,6 @@ public class ForumController {
      *
      * @return ApiResponse containing a list of Forums or an error message.
      */
-    //@GetMapping("/admin/forums") // Path for retrieving all forums
-    public ApiResponse<?> getAllForumsOld() {
-        try {
-            ServiceResponse<List<Forum>> response = genericService.getAllEntities(Forum.class);
-
-            if (response.getAckCode() == ServiceResponse.AckCodeType.SUCCESS) {
-
-                List<ForumDTO> forumDTOS = response.getDataObject().stream().map(ForumDTO::fromForum).toList();
-
-                return ApiResponse.success(forumDTOS, "Forums retrieved successfully");
-            } else {
-                // Use messages from ServiceResponse if available
-                return ApiResponse.error(response.getMessages(), "Fetch Error");
-            }
-        } catch (Exception e) {
-            logger.error("Error retrieving all forums", e);
-            return ApiResponse.error("An unexpected error occurred while retrieving forums: " + e.getMessage());
-        }
-    }
-
     @GetMapping("/admin/forums")
     public ApiResponse<?> getAllForums() {
         try {
@@ -151,41 +98,6 @@ public class ForumController {
      * @param forumDTO The request body containing updated forum data.
      * @return ApiResponse containing the updated Forum or an error message.
      */
-    //@PutMapping("/admin/forums/{id}") // Path for updating a specific forum
-    public ApiResponse<?> updateForumOld(@PathVariable Long id, @Valid @RequestBody ForumDTO forumDTO) {
-
-        try {
-            Forum existingForum = genericService.findEntity(Forum.class, id).getDataObject();
-
-            if (existingForum == null) {
-                return ApiResponse.error(String.format("Forum with ID %d not found for update.", id));
-            }
-
-            // Update the properties of the existing forum entity from the request DTO
-            existingForum.setTitle(forumDTO.title());
-            existingForum.setDescription(forumDTO.description());
-            existingForum.setIcon(forumDTO.icon());
-            existingForum.setIconColor(forumDTO.iconColor());
-            existingForum.setActive(forumDTO.active());
-            // Note: Fields like createdBy, createDate are typically not updated.
-            // updatedBy and updateDate might be handled by JPA @PreUpdate listeners or service logic.
-
-            ServiceResponse<Void> serviceResponse = genericService.saveEntity(existingForum); // saveEntity should handle updates for managed entities with an ID
-
-            if (serviceResponse.getAckCode() == ServiceResponse.AckCodeType.FAILURE) {
-                return ApiResponse.error(serviceResponse.getMessages(), "Forum update failed");
-            }
-
-            // Return the updated forum entity.
-            // The 'existingForum' instance is managed by JPA and reflects the saved state.
-            return ApiResponse.success(forumDTO.fromForum(existingForum), "Forum updated successfully");
-
-        } catch (Exception e) {
-            logger.error(String.format("Unexpected error updating forum with ID %d", id), e);
-            return ApiResponse.error(String.format("An unexpected error occurred during updating forum: %s", e.getMessage()));
-        }
-    }
-
     @PutMapping("/admin/forums/{id}") // Path for updating a specific forum
     public ApiResponse<?> updateForum(@PathVariable Long id, @Valid @RequestBody ForumUpdateDTO forumUpdateDTO) {
 
@@ -207,11 +119,5 @@ public class ForumController {
             logger.error(String.format("Unexpected error updating forum with ID %d", id), e);
             return ApiResponse.error(String.format("An unexpected error occurred during updating forum: %s", e.getMessage()));
         }
-    }
-
-    @GetMapping("/admin/rootForumGroup")
-    public ApiResponse<?> rootForumGroup() {
-        // TODO: retrieve a list of ForumDTOs and a list of ForumGroupDTOs
-        return ApiResponse.success(new ForumMapDTO(new ArrayList<>(), new ArrayList<>()), "Forum map retrieved successfully");
     }
 }

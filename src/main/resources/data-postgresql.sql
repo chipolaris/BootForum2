@@ -1,3 +1,4 @@
+-- Deprecated: use seed-data.json instead
 -- Add person for admin user
 insert into person_t(id, create_by, create_date, update_by, update_date, email, first_name, last_name)
 select 1000, 'system', current_date, 'system', null, 'admin@bootforum2.dev', 'Admin', 'User'

@@ -18,7 +18,7 @@ import { ForumGroupDTO, ForumDTO, ApiResponse } from '../../_data/dtos';
 import { ForumCreateComponent } from '../forum-create/forum-create.component';
 import { ForumGroupCreateComponent } from '../forum-group-create/forum-group-create.component';
 import { ForumEditComponent } from '../forum-edit/forum-edit.component';
-import { ForumGroupEditComponent } from '../forum-group-edit/forum-group-edit.component'; // << IMPORT ForumGroupEditComponent
+import { ForumGroupEditComponent } from '../forum-group-edit/forum-group-edit.component';
 
 // Import NgIconComponent and provideIcons
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
@@ -227,24 +227,6 @@ export class ForumStructureTreeComponent implements OnInit {
   }
 
   // << NEW METHOD for editing Forum Group >>
-
-openEditForumGroupDialogTemp(groupData: ForumGroupDTO): void {
-  if (typeof groupData.id !== 'number') return;
-
-  const safeGroup = this.getFlatForumGroup(groupData);
-  console.log('Passing to dialog:', safeGroup);
-
-  this.dialogRef = this.dialogService.open(ForumGroupEditComponent, {
-    header: `Edit Forum Group: "${safeGroup.title}"`,
-    width: 'min(90%, 700px)',
-    contentStyle: { "max-height": "90vh", "overflow": "auto" },
-    baseZIndex: 10000,
-    data: { forumGroupId: safeGroup.id },
-    appendTo: 'body',
-    focusOnShow: false,
-  });
-}
-
   openEditForumGroupDialog(nodeToUpdate: CustomTreeNode, groupData: ForumGroupDTO): void {
     if (typeof groupData.id !== 'number') return;
 

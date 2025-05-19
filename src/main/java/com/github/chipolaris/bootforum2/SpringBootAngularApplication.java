@@ -1,11 +1,20 @@
 package com.github.chipolaris.bootforum2;
 
 import com.github.chipolaris.bootforum2.dao.GenericDAO;
+import com.github.chipolaris.bootforum2.dao.QueryMeta;
+import com.github.chipolaris.bootforum2.domain.Forum;
+import com.github.chipolaris.bootforum2.domain.ForumGroup;
 import com.github.chipolaris.bootforum2.domain.Person;
 import com.github.chipolaris.bootforum2.domain.User;
+import com.github.chipolaris.bootforum2.dto.ForumGroupDTO;
+import com.github.chipolaris.bootforum2.dto.ForumUpdateDTO;
+import com.github.chipolaris.bootforum2.mapper.ForumMapper;
 import com.github.chipolaris.bootforum2.repository.PersonRepository;
 import com.github.chipolaris.bootforum2.repository.UserRepository;
 import com.github.chipolaris.bootforum2.security.JwtAuthenticationFilter;
+import com.github.chipolaris.bootforum2.service.ForumGroupService;
+import com.github.chipolaris.bootforum2.service.GenericService;
+import com.github.chipolaris.bootforum2.service.ServiceResponse;
 import jakarta.annotation.Resource;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -169,7 +178,9 @@ public class SpringBootAngularApplication {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean @Order(1)
+
+
+    @Bean @Order(2)
     CommandLineRunner validateSchema(DataSource dataSource) {
         return args -> {
             try (Connection conn = dataSource.getConnection()) {
@@ -182,8 +193,8 @@ public class SpringBootAngularApplication {
         };
     }
 
-    @Bean @Order(2)
-    CommandLineRunner validateData(GenericDAO genericDAO) {
+    @Bean @Order(3)
+    CommandLineRunner validateData(GenericDAO genericDAO, ForumMapper forumMapper, ForumGroupService forumGroupService) {
         return args -> {
             System.out.println("Validating data...");
 
@@ -194,11 +205,11 @@ public class SpringBootAngularApplication {
                 System.out.println("User 'admin' does not exist (something wrong)");
             }
 
-            if(!genericDAO.entityExists(User.class,"username","admin2")) {
-                System.out.println("User 'admin2' does not exist (as expected)");
+            if(genericDAO.entityExists(User.class,"username","admin2")) {
+                System.out.println("User 'admin2' exists (as expected)");
             }
             else {
-                System.out.println("User 'admin2' exists (something wrong)");
+                System.out.println("User 'admin2' does not exist (something wrong)");
             }
 
             if(genericDAO.entityExists(Person.class, Map.of("firstName", "Admin", "lastName", "User"))) {
@@ -215,6 +226,17 @@ public class SpringBootAngularApplication {
             else {
                 System.out.println("Person 'Admin2 User' exists (something wrong)");
             }
+
+            ForumUpdateDTO dto = new ForumUpdateDTO(2000l, "test title", "test description", "test icon", "test icon color", true);
+
+            Forum forum = forumMapper.toEntity(dto);
+
+            System.out.println("forum.id is " + forum.getId());
+
+
+           /* ServiceResponse<ForumGroupDTO> serviceResponse = forumGroupService.getRootForumGroup();
+
+            System.out.println("forumGroupDTO.id " + serviceResponse.getDataObject().id());*/
         };
     }
 

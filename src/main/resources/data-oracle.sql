@@ -1,3 +1,4 @@
+-- Deprecated: use seed-data.json instead
 -- Add person for admin user
 MERGE INTO person_t p
 USING (SELECT 1000 AS id FROM dual) src

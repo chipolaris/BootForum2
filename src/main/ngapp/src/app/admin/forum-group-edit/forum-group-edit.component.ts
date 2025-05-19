@@ -5,7 +5,6 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, ActivatedRoute } from '@angular/router'; // ActivatedRoute to get ID
 import { switchMap } from 'rxjs/operators';
 
-// << IMPORT DynamicDialogRef and DynamicDialogConfig >>
 import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 
 import { ForumGroupDTO, ForumGroupUpdateDTO, ApiResponse } from '../../_data/dtos';
@@ -190,7 +189,6 @@ export class ForumGroupEditComponent implements OnInit {
         this.isLoading = false;
         if (response.success && response.data) {
           this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Forum Group updated successfully!' });
-          // << MODIFIED: Close dialog if open, else navigate >>
           if (this.dialogRef) {
             this.dialogRef.close(response.data); // Pass back updated data
           } else {
@@ -210,7 +208,6 @@ export class ForumGroupEditComponent implements OnInit {
   }
 
   onCancel(): void {
-    // << MODIFIED: Close dialog if open, else navigate >>
     if (this.dialogRef) {
       this.dialogRef.close();
     } else {
