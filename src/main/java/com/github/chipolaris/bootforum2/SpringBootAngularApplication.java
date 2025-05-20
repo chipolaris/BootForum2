@@ -194,7 +194,7 @@ public class SpringBootAngularApplication {
     }
 
     @Bean @Order(3)
-    CommandLineRunner validateData(GenericDAO genericDAO, ForumMapper forumMapper, ForumGroupService forumGroupService) {
+    CommandLineRunner validateData(GenericDAO genericDAO) {
         return args -> {
             System.out.println("Validating data...");
 
@@ -205,11 +205,11 @@ public class SpringBootAngularApplication {
                 System.out.println("User 'admin' does not exist (something wrong)");
             }
 
-            if(genericDAO.entityExists(User.class,"username","admin2")) {
-                System.out.println("User 'admin2' exists (as expected)");
+            if(genericDAO.entityExists(User.class,"username","user1")) {
+                System.out.println("User 'user1' exists (as expected)");
             }
             else {
-                System.out.println("User 'admin2' does not exist (something wrong)");
+                System.out.println("User 'user1' does not exist (something wrong)");
             }
 
             if(genericDAO.entityExists(Person.class, Map.of("firstName", "Admin", "lastName", "User"))) {
@@ -219,24 +219,15 @@ public class SpringBootAngularApplication {
                 System.out.println("Person 'Admin User' does not exist (something wrong)");
             }
 
-            if(!genericDAO.entityExists(Person.class, Map.of("firstName", "Admin2", "lastName", "User"))) {
-                System.out.println("Person 'Admin2 User' does not exist (as expected)");
+            if(genericDAO.entityExists(Person.class, Map.of("firstName", "One", "lastName", "User"))) {
+                System.out.println("Person 'One User' exists (as expected)");
 
             }
             else {
-                System.out.println("Person 'Admin2 User' exists (something wrong)");
+                System.out.println("Person 'One User' does not exist (something wrong)");
             }
 
-            ForumUpdateDTO dto = new ForumUpdateDTO(2000l, "test title", "test description", "test icon", "test icon color", true);
 
-            Forum forum = forumMapper.toEntity(dto);
-
-            System.out.println("forum.id is " + forum.getId());
-
-
-           /* ServiceResponse<ForumGroupDTO> serviceResponse = forumGroupService.getRootForumGroup();
-
-            System.out.println("forumGroupDTO.id " + serviceResponse.getDataObject().id());*/
         };
     }
 

@@ -10,6 +10,25 @@
         "lastName": "User",
         "email": "admin@bootforum2.dev"
       }
+    },
+    {
+      "username": "user1",
+      "password": "secret123",
+      "userRole": "USER",
+      "accountStatus": "ACTIVE",
+      "person": {
+        "firstName": "One",
+        "lastName": "User",
+        "email": "user1@bootforum2.dev"
+      }
+    }
+  ],
+  "forumGroups": [
+    {
+      "title": "Root Forum Group",
+      "icon": "heroHomeSolid",
+      "iconColor": "#333333",
+      "sortOrder": 0
     }
   ]
 }
