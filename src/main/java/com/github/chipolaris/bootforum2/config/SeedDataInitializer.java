@@ -2,8 +2,8 @@ package com.github.chipolaris.bootforum2.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.chipolaris.bootforum2.dao.dynamic.DynamicDAO;
-import com.github.chipolaris.bootforum2.dao.dynamic.DynamicFilter;
-import com.github.chipolaris.bootforum2.dao.dynamic.DynamicQuery;
+import com.github.chipolaris.bootforum2.dao.dynamic.FilterSpec;
+import com.github.chipolaris.bootforum2.dao.dynamic.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.ForumGroup;
 import com.github.chipolaris.bootforum2.domain.Person;
 import com.github.chipolaris.bootforum2.domain.User;
@@ -59,11 +59,11 @@ public class SeedDataInitializer implements ApplicationRunner {
 
             if (seedData.users() != null) { // Use record accessor users()
                 for (SeedUser seedUser : seedData.users()) { // Iterate over SeedUser records
-                    DynamicQuery userExistsQuery = DynamicQuery.builder(User.class)
-                            .filter(DynamicFilter.of("username", DynamicFilter.Operator.EQ, seedUser.username())) // Use record accessor
+                    QuerySpec userExistsQuery = QuerySpec.builder(User.class)
+                            .filter(FilterSpec.of("username", FilterSpec.Operator.EQ, seedUser.username())) // Use record accessor
                             .build();
 
-                    boolean userExists = dynamicDAO.isExist(userExistsQuery); // or isExistOptimized
+                    boolean userExists = dynamicDAO.exists(userExistsQuery); // or isExistOptimized
 
                     if (!userExists) {
                         logger.info("User '{}' not found. Seeding user...", seedUser.username()); // Use record accessor
@@ -101,13 +101,13 @@ public class SeedDataInitializer implements ApplicationRunner {
             // Seed Forum Groups
             if (seedData.forumGroups() != null) {
                 for (SeedForumGroup seedForumGroup : seedData.forumGroups()) {
-                    DynamicQuery forumGroupExistsQuery = DynamicQuery.builder(ForumGroup.class)
-                            .filter(DynamicFilter.of("title", DynamicFilter.Operator.EQ, seedForumGroup.title()))
+                    QuerySpec forumGroupExistsQuery = QuerySpec.builder(ForumGroup.class)
+                            .filter(FilterSpec.of("title", FilterSpec.Operator.EQ, seedForumGroup.title()))
                             // For root, parent is null. If seeding sub-groups, you might add a parent filter.
-                            .filter(DynamicFilter.of("parent", DynamicFilter.Operator.ISNULL, true))
+                            .filter(FilterSpec.of("parent", FilterSpec.Operator.IS_NULL, true))
                             .build();
 
-                    boolean forumGroupExists = dynamicDAO.isExist(forumGroupExistsQuery);
+                    boolean forumGroupExists = dynamicDAO.exists(forumGroupExistsQuery);
 
                     if (!forumGroupExists) {
                         logger.info("Forum Group '{}' not found. Seeding forum group...", seedForumGroup.title());

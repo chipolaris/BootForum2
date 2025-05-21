@@ -1,13 +1,15 @@
 package com.github.chipolaris.bootforum2.service;
 
-import com.github.chipolaris.bootforum2.dao.GenericDAO;
+import com.github.chipolaris.bootforum2.dao.dynamic.DynamicDAO;
 import com.github.chipolaris.bootforum2.domain.Forum;
 import com.github.chipolaris.bootforum2.domain.ForumGroup;
 import com.github.chipolaris.bootforum2.dto.ForumCreateDTO;
 import com.github.chipolaris.bootforum2.dto.ForumDTO;
 import com.github.chipolaris.bootforum2.dto.ForumUpdateDTO;
 import com.github.chipolaris.bootforum2.mapper.ForumMapper;
-import jakarta.annotation.Resource;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,11 +18,14 @@ import java.util.List;
 @Service
 public class ForumService {
 
-    @Resource
+    @PersistenceContext
+    protected EntityManager entityManager;
+
+    @Autowired
     private ForumMapper forumMapper;
 
-    @Resource
-    private GenericDAO genericDAO;
+    @Autowired
+    private DynamicDAO dynamicDAO;
 
     @Transactional(readOnly=false)
     public ServiceResponse<ForumDTO> createForum(ForumCreateDTO forumCreateDTO) {
@@ -35,7 +40,7 @@ public class ForumService {
         }
         else {
             // make sure the specified forum group exists
-            ForumGroup forumGroup = genericDAO.find(ForumGroup.class, forumGroupId);
+            ForumGroup forumGroup = entityManager.find(ForumGroup.class, forumGroupId);
             if(forumGroup == null) {
                 response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
                         .addMessage(String.format("Forum group with id %d is not found", forumGroupId));
@@ -43,7 +48,7 @@ public class ForumService {
             else {
                 Forum forum = forumMapper.toEntity(forumCreateDTO);
                 forum.setForumGroup(forumGroup);
-                genericDAO.persist(forum);
+                entityManager.persist(forum);
 
                 response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumMapper.toForumDTO(forum))
                         .addMessage("Forum created successfully");
@@ -58,7 +63,7 @@ public class ForumService {
 
         ServiceResponse<ForumDTO> response = new ServiceResponse<>();
 
-        Forum forum = genericDAO.find(Forum.class, forumUpdateDTO.id());
+        Forum forum = entityManager.find(Forum.class, forumUpdateDTO.id());
 
         if(forum == null) {
             response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
@@ -67,7 +72,7 @@ public class ForumService {
         else {
             forumMapper.mergeIntoEntity(forumUpdateDTO, forum);
 
-            forum = genericDAO.merge(forum);
+            forum = entityManager.merge(forum);
 
             response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumMapper.toForumDTO(forum))
                     .addMessage("Forum updated successfully");
@@ -80,7 +85,7 @@ public class ForumService {
 
         ServiceResponse<ForumDTO> response = new ServiceResponse<>();
 
-        Forum forum = genericDAO.find(Forum.class, id);
+        Forum forum = entityManager.find(Forum.class, id);
 
         if(forum == null) {
             response.setAckCode(ServiceResponse.AckCodeType.FAILURE).
@@ -99,7 +104,7 @@ public class ForumService {
 
         ServiceResponse<List<ForumDTO>> response = new ServiceResponse<>();
 
-        List<Forum> forums = genericDAO.findAll(Forum.class);
+        List<Forum> forums = dynamicDAO.all(Forum.class);
         List<ForumDTO> forumDTOs = forums.stream().map(forumMapper::toForumDTO).toList();
 
         response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).

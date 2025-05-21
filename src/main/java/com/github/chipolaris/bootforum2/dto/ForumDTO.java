@@ -29,23 +29,4 @@ public record ForumDTO(
         Long forumGroupId,
 
         ForumStatDTO stat) {
-
-        public Forum createForum() {
-                Forum forum = new Forum();
-                //forum.setId(this.id);
-                forum.setTitle(this.title);
-                forum.setDescription(this.description);
-                forum.setIcon(this.icon);
-                forum.setIconColor(this.iconColor);
-                forum.setActive(this.active);
-                return forum;
-        }
-
-        public static ForumDTO fromForum(Forum forum) {
-                return forum == null ? null : new ForumDTO(forum.getId(), forum.getTitle(),
-                        forum.getDescription(), forum.getIcon(),
-                        forum.getIconColor(), forum.isActive(),
-                        forum.getForumGroup() != null ? forum.getForumGroup().getId() : null,
-                        ForumStatDTO.fromForumStat(forum.getStat()));
-        }
 }

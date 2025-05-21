@@ -17,6 +17,7 @@ public interface ForumMapper {
     @Mapping(target = "id", source = "id")
     Forum toEntity(ForumUpdateDTO dto);
 
+    @Mapping(target = "forumGroupId", source = "forumGroup.id")
     ForumDTO toForumDTO(Forum forum);
 
     void mergeIntoEntity(ForumUpdateDTO dto, @MappingTarget Forum entity);

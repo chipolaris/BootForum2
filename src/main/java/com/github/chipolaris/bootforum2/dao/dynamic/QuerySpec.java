@@ -1,16 +1,13 @@
 package com.github.chipolaris.bootforum2.dao.dynamic;
 
-
-import com.github.chipolaris.bootforum2.dao.QueryMeta;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class DynamicQuery {
+public class QuerySpec {
 
-    private DynamicQuery(Class targetEntity) {
+    private QuerySpec(Class targetEntity) {
         this.targetEntity = targetEntity;
-        this.filters = new ArrayList<DynamicFilter>();
+        this.filters = new ArrayList<FilterSpec>();
     }
 
     // Target entity is result type (select)
@@ -23,7 +20,7 @@ public class DynamicQuery {
     private Integer maxResult;
     private String sortField;
     private Boolean sortDesc;
-    private List<DynamicFilter> filters;
+    private List<FilterSpec> filters;
 
     public Class getTargetEntity() {
         return targetEntity;
@@ -74,10 +71,10 @@ public class DynamicQuery {
         this.sortDesc = sortDesc;
     }
 
-    public List<DynamicFilter> getFilters() {
+    public List<FilterSpec> getFilters() {
         return filters;
     }
-    public void setFilters(List<DynamicFilter> filters) {
+    public void setFilters(List<FilterSpec> filters) {
         this.filters = filters;
     }
 
@@ -89,60 +86,60 @@ public class DynamicQuery {
 
     public static class Builder<T> {
 
-        private DynamicQuery dynamicQuery;
+        private QuerySpec querySpec;
 
         // make constructor private to prevent instantiation from outside
         private Builder(Class targetEntity) {
-            this.dynamicQuery = new DynamicQuery(targetEntity);
+            this.querySpec = new QuerySpec(targetEntity);
         }
 
         public Builder<T> rootEntityClass(Class rootEntity) {
-            dynamicQuery.rootEntity = rootEntity;
+            querySpec.rootEntity = rootEntity;
             return this;
         }
 
         public Builder<T> targetEntity(Class targetEntity) {
-            dynamicQuery.targetEntity = targetEntity;
+            querySpec.targetEntity = targetEntity;
             return this;
         }
 
         public Builder<T> targetPath(String targetPath) {
-            dynamicQuery.targetPath = targetPath;
+            querySpec.targetPath = targetPath;
             return this;
         }
 
         public Builder<T> startIndex(Integer startIndex) {
-            dynamicQuery.startIndex = startIndex;
+            querySpec.startIndex = startIndex;
             return this;
         }
 
         public Builder<T> maxResult(Integer maxResult) {
-            dynamicQuery.maxResult = maxResult;
+            querySpec.maxResult = maxResult;
             return this;
         }
 
         public Builder<T> sortField(String sortField) {
-            dynamicQuery.sortField = sortField;
+            querySpec.sortField = sortField;
             return this;
         }
 
         public Builder<T> sortDesc(Boolean sortDesc) {
-            dynamicQuery.sortDesc = sortDesc;
+            querySpec.sortDesc = sortDesc;
             return this;
         }
 
-        public Builder<T> filter(DynamicFilter filter) {
-            dynamicQuery.filters.add(filter);
+        public Builder<T> filter(FilterSpec filter) {
+            querySpec.filters.add(filter);
             return this;
         }
 
         //
-        public DynamicQuery build() {
+        public QuerySpec build() {
             // if rootEntity is not set, set it to targetEntity
-            if(dynamicQuery.rootEntity == null) {
-                dynamicQuery.rootEntity = dynamicQuery.targetEntity;
+            if(querySpec.rootEntity == null) {
+                querySpec.rootEntity = querySpec.targetEntity;
             }
-            return this.dynamicQuery;
+            return this.querySpec;
         }
 
     }
