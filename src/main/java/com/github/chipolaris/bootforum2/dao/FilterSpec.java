@@ -1,4 +1,4 @@
-package com.github.chipolaris.bootforum2.dao.dynamic;
+package com.github.chipolaris.bootforum2.dao;
 
 /**
  * @param field: the field name to compare
@@ -15,6 +15,14 @@ public record FilterSpec(
     // factory methods to construct a DynamicFilter object with different parameter configurations
     public static FilterSpec of(String field, Operator operator, Object value) {
         return new FilterSpec(field, operator, value, null);
+    }
+
+    public static FilterSpec eq(String field, Object value) {
+        return new FilterSpec(field, Operator.EQ, value, null);
+    }
+
+    public static FilterSpec ne(String field, Object value) {
+        return new FilterSpec(field, Operator.NE, value, null);
     }
 
     public static FilterSpec between(String field, Object valueFrom, Object valueTo) {

@@ -1,13 +1,13 @@
 package com.github.chipolaris.bootforum2.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.chipolaris.bootforum2.dao.dynamic.DynamicDAO;
-import com.github.chipolaris.bootforum2.dao.dynamic.FilterSpec;
-import com.github.chipolaris.bootforum2.dao.dynamic.QuerySpec;
+import com.github.chipolaris.bootforum2.dao.GenericDAO;
+import com.github.chipolaris.bootforum2.dao.DynamicDAO;
+import com.github.chipolaris.bootforum2.dao.FilterSpec;
+import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.ForumGroup;
 import com.github.chipolaris.bootforum2.domain.Person;
 import com.github.chipolaris.bootforum2.domain.User;
-import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -31,14 +31,14 @@ public class SeedDataInitializer implements ApplicationRunner {
 
     private final ObjectMapper objectMapper;
     private final DynamicDAO dynamicDAO;
-    private final EntityManager entityManager;
+    private final GenericDAO genericDAO;
     private final PasswordEncoder passwordEncoder;
 
     public SeedDataInitializer(ObjectMapper objectMapper, DynamicDAO dynamicDAO,
-                               EntityManager entityManager, PasswordEncoder passwordEncoder) {
+                               GenericDAO genericDAO, PasswordEncoder passwordEncoder) {
         this.objectMapper = objectMapper;
         this.dynamicDAO = dynamicDAO;
-        this.entityManager = entityManager;
+        this.genericDAO = genericDAO;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -91,39 +91,37 @@ public class SeedDataInitializer implements ApplicationRunner {
                             // email will be lowercased by Person's @PrePersist/@PreUpdate
                         }
 
-                        entityManager.persist(newUser); // Persists User and cascaded Person, Preferences, UserStat
+                        genericDAO.persist(newUser); // Persists User and cascaded Person, Preferences, UserStat
                         logger.info("User '{}' seeded successfully.", seedUser.username()); // Use record accessor
                     } else {
                         logger.info("User '{}' already exists. Skipping.", seedUser.username()); // Use record accessor
                     }
                 }
             }
-            // Seed Forum Groups
-            if (seedData.forumGroups() != null) {
-                for (SeedForumGroup seedForumGroup : seedData.forumGroups()) {
-                    QuerySpec forumGroupExistsQuery = QuerySpec.builder(ForumGroup.class)
-                            .filter(FilterSpec.of("title", FilterSpec.Operator.EQ, seedForumGroup.title()))
-                            // For root, parent is null. If seeding sub-groups, you might add a parent filter.
-                            .filter(FilterSpec.of("parent", FilterSpec.Operator.IS_NULL, true))
-                            .build();
+            // Seed Root Forum Groups
+            if (seedData.forumGroups() != null && seedData.forumGroups().size() > 0) {
 
-                    boolean forumGroupExists = dynamicDAO.exists(forumGroupExistsQuery);
+                QuerySpec forumGroupExistsQuery = QuerySpec.builder(ForumGroup.class)
+                        // For root, parent is null
+                        .filter(FilterSpec.eq("parent", true))
+                        .build();
 
-                    if (!forumGroupExists) {
-                        logger.info("Forum Group '{}' not found. Seeding forum group...", seedForumGroup.title());
-                        ForumGroup newForumGroup = new ForumGroup();
-                        newForumGroup.setTitle(seedForumGroup.title());
-                        newForumGroup.setIcon(seedForumGroup.icon());
-                        newForumGroup.setIconColor(seedForumGroup.iconColor());
-                        newForumGroup.setSortOrder(seedForumGroup.sortOrder() != null ? seedForumGroup.sortOrder() : 0); // Default sortOrder if null
-                        // For the root group, parent is null, which is the default for a new ForumGroup.
-                        // createDate and updateDate are handled by @PrePersist/@PreUpdate
+                SeedForumGroup seedForumGroup = seedData.forumGroups().get(0);
 
-                        entityManager.persist(newForumGroup);
-                        logger.info("Forum Group '{}' seeded successfully.", newForumGroup.getTitle());
-                    } else {
-                        logger.info("Root Forum Group '{}' already exists. Skipping.", seedForumGroup.title());
-                    }
+                if (!dynamicDAO.exists(forumGroupExistsQuery)) {
+                    logger.info("Forum Group '{}' not found. Seeding forum group...", seedForumGroup.title());
+
+                    ForumGroup newForumGroup = new ForumGroup();
+                    newForumGroup.setTitle(seedForumGroup.title());
+                    newForumGroup.setIcon(seedForumGroup.icon());
+                    newForumGroup.setIconColor(seedForumGroup.iconColor());
+                    newForumGroup.setSortOrder(seedForumGroup.sortOrder() != null ? seedForumGroup.sortOrder() : 0); // Default sortOrder if null
+
+                    genericDAO.persist(newForumGroup);
+                    logger.info("Forum Group '{}' seeded successfully.", newForumGroup.getTitle());
+                }
+                else {
+                    logger.info("Root Forum Group '{}' already exists. Skipping.", seedForumGroup.title());
                 }
             }
         } catch (Exception e) {

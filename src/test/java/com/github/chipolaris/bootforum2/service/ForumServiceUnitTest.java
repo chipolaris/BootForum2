@@ -1,11 +1,11 @@
 package com.github.chipolaris.bootforum2.service;
 
+import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.domain.Forum;
 import com.github.chipolaris.bootforum2.domain.ForumGroup;
 import com.github.chipolaris.bootforum2.dto.ForumCreateDTO;
 import com.github.chipolaris.bootforum2.dto.ForumDTO;
 import com.github.chipolaris.bootforum2.mapper.ForumMapper;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor; // Import ArgumentCaptor
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 class ForumServiceUnitTest {
 
     @Mock
-    private EntityManager entityManager;
+    private GenericDAO genericDAO;
 
     @Mock
     private ForumMapper forumMapper;
@@ -45,7 +45,7 @@ class ForumServiceUnitTest {
         // This is the DTO that the mapper will return after converting the persisted entity
         ForumDTO expectedForumDTO = new ForumDTO(null, "Test Forum", "Description", "icon", "#fff", true, parentGroupId, null);
 
-        when(entityManager.find(ForumGroup.class, parentGroupId)).thenReturn(mockForumGroup);
+        when(genericDAO.find(ForumGroup.class, parentGroupId)).thenReturn(mockForumGroup);
         when(forumMapper.toEntity(createDTO)).thenReturn(forumEntityFromMapper); // Mapper returns our real Forum object
         when(forumMapper.toForumDTO(any(Forum.class))).thenReturn(expectedForumDTO); // Mapper converts any Forum to the expected DTO
 
@@ -59,12 +59,12 @@ class ForumServiceUnitTest {
         assertTrue(response.getMessages().get(0).contains("Forum created successfully"));
 
         // Verify interactions
-        verify(entityManager).find(ForumGroup.class, parentGroupId);
+        verify(genericDAO).find(ForumGroup.class, parentGroupId);
         verify(forumMapper).toEntity(createDTO);
 
         // Capture the Forum entity passed to persist
         ArgumentCaptor<Forum> forumCaptor = ArgumentCaptor.forClass(Forum.class);
-        verify(entityManager).persist(forumCaptor.capture()); // Verify persist was called and capture the argument
+        verify(genericDAO).persist(forumCaptor.capture()); // Verify persist was called and capture the argument
 
         Forum capturedForum = forumCaptor.getValue();
         assertNotNull(capturedForum.getForumGroup(), "ForumGroup should be set on the persisted Forum entity");
@@ -87,8 +87,8 @@ class ForumServiceUnitTest {
         // Assert
         assertEquals(ServiceResponse.AckCodeType.FAILURE, response.getAckCode());
         assertTrue(response.getMessages().get(0).contains("Forum group is not specified"));
-        verify(entityManager, never()).find(any(), any());
-        verify(entityManager, never()).persist(any());
+        verify(genericDAO, never()).find(any(), any());
+        verify(genericDAO, never()).persist(any());
     }
 
     @Test
@@ -97,7 +97,7 @@ class ForumServiceUnitTest {
         Long parentGroupId = 1L;
         ForumCreateDTO createDTO = new ForumCreateDTO("Test Forum", "Description", "icon", "#fff", true, parentGroupId);
 
-        when(entityManager.find(ForumGroup.class, parentGroupId)).thenReturn(null);
+        when(genericDAO.find(ForumGroup.class, parentGroupId)).thenReturn(null);
 
         // Act
         ServiceResponse<ForumDTO> response = forumService.createForum(createDTO);
@@ -105,7 +105,7 @@ class ForumServiceUnitTest {
         // Assert
         assertEquals(ServiceResponse.AckCodeType.FAILURE, response.getAckCode());
         assertTrue(response.getMessages().get(0).contains("Forum group with id " + parentGroupId + " is not found"));
-        verify(entityManager).find(ForumGroup.class, parentGroupId);
-        verify(entityManager, never()).persist(any());
+        verify(genericDAO).find(ForumGroup.class, parentGroupId);
+        verify(genericDAO, never()).persist(any());
     }
 }

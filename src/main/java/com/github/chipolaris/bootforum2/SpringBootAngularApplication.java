@@ -1,21 +1,12 @@
 package com.github.chipolaris.bootforum2;
 
-import com.github.chipolaris.bootforum2.dao.GenericDAO;
-import com.github.chipolaris.bootforum2.dao.QueryMeta;
-import com.github.chipolaris.bootforum2.domain.Forum;
-import com.github.chipolaris.bootforum2.domain.ForumGroup;
+import com.github.chipolaris.bootforum2.dao.DynamicDAO;
+import com.github.chipolaris.bootforum2.dao.FilterSpec;
+import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.Person;
 import com.github.chipolaris.bootforum2.domain.User;
-import com.github.chipolaris.bootforum2.dto.ForumGroupDTO;
-import com.github.chipolaris.bootforum2.dto.ForumUpdateDTO;
-import com.github.chipolaris.bootforum2.mapper.ForumMapper;
-import com.github.chipolaris.bootforum2.repository.PersonRepository;
-import com.github.chipolaris.bootforum2.repository.UserRepository;
 import com.github.chipolaris.bootforum2.security.JwtAuthenticationFilter;
-import com.github.chipolaris.bootforum2.service.ForumGroupService;
-import com.github.chipolaris.bootforum2.service.GenericService;
-import com.github.chipolaris.bootforum2.service.ServiceResponse;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -45,10 +36,8 @@ import org.springframework.web.servlet.resource.PathResourceResolver;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.Connection;
-import java.time.Period;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 @SpringBootApplication
 public class SpringBootAngularApplication {
@@ -68,7 +57,7 @@ public class SpringBootAngularApplication {
         private static final String API_USER_PROFILE_PATH = "/api/user/profile";
 
         // Inject the custom JWT filter
-        @Resource
+        @Autowired
         private JwtAuthenticationFilter jwtAuthenticationFilter;
 
         @Bean
@@ -194,40 +183,40 @@ public class SpringBootAngularApplication {
     }
 
     @Bean @Order(3)
-    CommandLineRunner validateData(GenericDAO genericDAO) {
+    CommandLineRunner validateData(DynamicDAO dynamicDAO) {
         return args -> {
             System.out.println("Validating data...");
 
-            if(genericDAO.entityExists(User.class,"username","admin")) {
+
+            if(dynamicDAO.exists(QuerySpec.builder(User.class).filter(FilterSpec.eq("username", "admin")).build())) {
                 System.out.println("User 'admin' exists (as expected)");
             }
             else {
                 System.out.println("User 'admin' does not exist (something wrong)");
             }
 
-            if(genericDAO.entityExists(User.class,"username","user1")) {
+            if(dynamicDAO.exists(QuerySpec.builder(User.class).filter(FilterSpec.eq("username", "user1")).build())) {
                 System.out.println("User 'user1' exists (as expected)");
             }
             else {
                 System.out.println("User 'user1' does not exist (something wrong)");
             }
 
-            if(genericDAO.entityExists(Person.class, Map.of("firstName", "Admin", "lastName", "User"))) {
+            if(dynamicDAO.exists(QuerySpec.builder(Person.class).filter(FilterSpec.eq("firstName", "Admin"))
+                    .filter(FilterSpec.eq("lastName", "User")).build())) {
                 System.out.println("Person 'Admin User' exists (as expected)");
             }
             else {
                 System.out.println("Person 'Admin User' does not exist (something wrong)");
             }
 
-            if(genericDAO.entityExists(Person.class, Map.of("firstName", "One", "lastName", "User"))) {
+            if(dynamicDAO.exists(QuerySpec.builder(Person.class).filter(FilterSpec.eq("firstName", "One"))
+                    .filter(FilterSpec.eq("lastName", "User")).build())) {
                 System.out.println("Person 'One User' exists (as expected)");
-
             }
             else {
                 System.out.println("Person 'One User' does not exist (something wrong)");
             }
-
-
         };
     }
 

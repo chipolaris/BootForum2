@@ -6,10 +6,10 @@ import com.github.chipolaris.bootforum2.dto.ApiResponse;
 import com.github.chipolaris.bootforum2.dto.RegistrationRequest;
 import com.github.chipolaris.bootforum2.service.RegistrationService;
 import com.github.chipolaris.bootforum2.service.ServiceResponse;
-import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -20,7 +20,7 @@ public class RegistrationController {
 
     private static final Logger logger = LoggerFactory.getLogger(RegistrationController.class);
 
-    @Resource
+    @Autowired
     private RegistrationService registrationService;
 
     @PostMapping("/public/register") // Place under /public as it doesn't require auth

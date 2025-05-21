@@ -1,4 +1,4 @@
-package com.github.chipolaris.bootforum2.dao.dynamic;
+package com.github.chipolaris.bootforum2.dao;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -20,20 +20,6 @@ public class DynamicDAO {
 
     @PersistenceContext
     protected EntityManager entityManager;
-
-    /**
-     * Method to return all entities of the entityClass
-     * This method is simple and does not have capabilities for paging or sorting
-     * To find all entities with paging/sorting, use the {@link #find(QuerySpec)} method
-     * and specify the paging/sorting specification in the querySpec
-     */
-    public <E> List<E> all(Class<E> entityClass) {
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<E> criteriaQuery = criteriaBuilder.createQuery(entityClass);
-        Root<E> entity = criteriaQuery.from(entityClass);
-
-        return entityManager.createQuery(criteriaQuery).getResultList();
-    }
 
     /**
      * Find entities matching specs from querySpec

@@ -1,15 +1,15 @@
 package com.github.chipolaris.bootforum2.service;
 
-import com.github.chipolaris.bootforum2.dao.GenericDAO;
+import com.github.chipolaris.bootforum2.dao.DynamicDAO;
+import com.github.chipolaris.bootforum2.dao.FilterSpec;
+import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.User;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collections;
 
 /**
  * Note, Spring Boot will detect the existence of this bean (UserDetailsService)
@@ -29,15 +29,17 @@ import java.util.Collections;
 @Transactional
 public class AppUserDetailsService implements UserDetailsService {
 
-	@Resource
-	private GenericDAO genericDAO;
+	@Autowired
+	private DynamicDAO dynamicDAO;
 	
 	@Override
 	@Transactional(readOnly=true)
 	public UserDetails loadUserByUsername(String username)
 			throws UsernameNotFoundException {
-		
-		User user = genericDAO.findOne(User.class, Collections.singletonMap("username", username));
+
+		QuerySpec querySpec = QuerySpec.builder(User.class).filter(FilterSpec.eq("username",username)).build();
+
+		User user = dynamicDAO.<User>findOptional(querySpec).orElse(null);
 		
 		if(user == null) {
 			throw new UsernameNotFoundException("Can't find username: " + username);

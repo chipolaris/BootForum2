@@ -1,18 +1,15 @@
 package com.github.chipolaris.bootforum2.rest;
 
-import com.github.chipolaris.bootforum2.dao.QueryMeta;
-import com.github.chipolaris.bootforum2.domain.ForumGroup;
 import com.github.chipolaris.bootforum2.dto.ApiResponse;
 import com.github.chipolaris.bootforum2.dto.ForumGroupCreateDTO;
 import com.github.chipolaris.bootforum2.dto.ForumGroupDTO;
 import com.github.chipolaris.bootforum2.dto.ForumGroupUpdateDTO;
 import com.github.chipolaris.bootforum2.service.ForumGroupService;
-import com.github.chipolaris.bootforum2.service.GenericService;
 import com.github.chipolaris.bootforum2.service.ServiceResponse;
-import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,10 +21,7 @@ public class ForumGroupController {
 
     private static final Logger logger = LoggerFactory.getLogger(ForumGroupController.class);
 
-    @Resource
-    private GenericService genericService;
-
-    @Resource
+    @Autowired
     private ForumGroupService forumGroupService;
 
     @PostMapping("/admin/create-forum-group")
@@ -77,7 +71,7 @@ public class ForumGroupController {
      * This endpoint is assumed to be admin-protected.
      *
      * @param id The ID of the forum to update.
-     * @param forumGroupDTO The request body containing updated forum data.
+     * @param forumGroupUpdateDTO The request body containing updated forum data.
      * @return ApiResponse containing the updated Forum or an error message.
      */
     @PutMapping("/admin/forum-groups/{id}") // Path for updating a specific forum

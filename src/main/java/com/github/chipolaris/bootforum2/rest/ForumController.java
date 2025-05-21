@@ -1,17 +1,17 @@
 package com.github.chipolaris.bootforum2.rest;
 
-import com.github.chipolaris.bootforum2.domain.Forum;
-import com.github.chipolaris.bootforum2.dto.*;
+import com.github.chipolaris.bootforum2.dto.ApiResponse;
+import com.github.chipolaris.bootforum2.dto.ForumCreateDTO;
+import com.github.chipolaris.bootforum2.dto.ForumDTO;
+import com.github.chipolaris.bootforum2.dto.ForumUpdateDTO;
 import com.github.chipolaris.bootforum2.service.ForumService;
-import com.github.chipolaris.bootforum2.service.GenericService;
 import com.github.chipolaris.bootforum2.service.ServiceResponse;
-import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -21,10 +21,8 @@ public class ForumController {
 
     private static final Logger logger = LoggerFactory.getLogger(ForumController.class);
 
-    @Resource
-    private GenericService genericService;
 
-    @Resource
+    @Autowired
     private ForumService forumService;
 
     @PostMapping("/admin/create-forum")
@@ -95,7 +93,7 @@ public class ForumController {
      * This endpoint is assumed to be admin-protected.
      *
      * @param id The ID of the forum to update.
-     * @param forumDTO The request body containing updated forum data.
+     * @param forumUpdateDTO The request body containing updated forum data.
      * @return ApiResponse containing the updated Forum or an error message.
      */
     @PutMapping("/admin/forums/{id}") // Path for updating a specific forum

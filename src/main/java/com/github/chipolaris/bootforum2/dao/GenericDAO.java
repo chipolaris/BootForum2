@@ -73,98 +73,17 @@ public class GenericDAO {
 	public <E> E find(Class<E> entityClass, Object id) { 
         return entityManager.find(entityClass, id); 
     }
-	
-	/**
-	 * Find one entity of the given entity type with the given filters
-	 * Note: there might be more than one entity that match the filters
-	 * @param <E>
-	 * @param entityClass
-	 * @param filters
-	 * @return
-	 */
-	public <E> E findOne(Class<E> entityClass, Map<String, Object> filters) {
-		
-		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-		CriteriaQuery<E> query = builder.createQuery(entityClass);
 
-		Root<E> root = query.from(entityClass);
-		query.select(root);
-		
-		Predicate[] predicates = buildPredicates(builder, root, filters);
-		query.where(predicates);
-		
-		TypedQuery<E> typedQuery = entityManager.createQuery(query);
-		typedQuery.setMaxResults(1);
-		
-		List<E> resultList = typedQuery.getResultList();
-		
-		if(resultList.isEmpty()) {
-			return null;
-		}
-		
-		return resultList.get(0);
-	}
-    
     /**
      * Find all entities of the given entity type
      * @param entityClass
      * @return
      */
-	public <E> List<E> findAll(Class<E> entityClass) {
+	public <E> List<E> all(Class<E> entityClass) {
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<E> criteriaQuery = criteriaBuilder.createQuery(entityClass);
-		Root<E> entity = criteriaQuery.from(entityClass);
-		criteriaQuery.select(entity);
-		
+		criteriaQuery.select(criteriaQuery.from(entityClass));
 		return entityManager.createQuery(criteriaQuery).getResultList();
-    }
-	
-	/**
-	 * Find all entities of the given entity type
-	 * Also eager fetch the specified properties
-	 * @param <E>
-	 * @param entityClass
-	 * @param joinFetchProperties
-	 * @return
-	 */
-    public <E> List<E> findAll(Class<E> entityClass, List<String> joinFetchProperties) {
-		
-    	CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-    	CriteriaQuery<E> criteriaQuery = criteriaBuilder.createQuery(entityClass);
-    	
-    	Root<E> entity = criteriaQuery.from(entityClass);
-    	
-    	// fetch specified properties
-    	for(String property : joinFetchProperties) {
-    		entity.fetch(property, JoinType.LEFT);
-    	}
-    	
-    	TypedQuery<E> typedQuery = entityManager.createQuery(criteriaQuery);
-    	
-    	return typedQuery.getResultList();
-    }
-    
-    /**
-     * Get entities of the given entityClass and 
-     * within the pagination defined by the startPosition and the maxResult
-     * 
-     * @param <E>
-     * @param entityClass
-     * @param startPosition
-     * @param maxResult
-     * @return
-     * 
-     * TODO: cleanup (the original method name findEntitiesInBatch)
-     */
-    public <E> List<E> findBatch(Class<E> entityClass, int startPosition, int maxResult) {
-    	    	
-		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-		CriteriaQuery<E> criteriaQuery = criteriaBuilder.createQuery(entityClass);
-		Root<E> entity = criteriaQuery.from(entityClass);
-		criteriaQuery.select(entity);
-		
-		return entityManager.createQuery(criteriaQuery).setFirstResult(startPosition)
-				.setMaxResults(maxResult).getResultList();
     }
     
     /**
@@ -172,43 +91,16 @@ public class GenericDAO {
      * @param entityClass
      * @return
      */
-	public <E> long countEntities(Class<E> entityClass) {		
+	public <E> long count(Class<E> entityClass) {
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
 		criteriaQuery.select(criteriaBuilder.count(criteriaQuery.from(entityClass)));
 		return entityManager.createQuery(criteriaQuery).getSingleResult();
     }
 
-	/**
-	 * Similar to the {@link #findOne(Class, Map)}}
-	 * This one expects there is only one entity that match the given filters
-	 * @param entityClass
-	 * @param filters
-	 * @return
-	 * @param <E>
+	/*
+	 * TODO: methods below are to be refactored to another class and/or to be removed
 	 */
-	public <E> E getEntity(Class<E> entityClass, Map<String, Object> filters) {
-
-		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-		CriteriaQuery<E> query = builder.createQuery(entityClass);
-
-		Root<E> root = query.from(entityClass);
-		query.select(root);
-
-		Predicate[] predicates = buildPredicates(builder, root, filters);
-		query.where(predicates);
-
-		TypedQuery<E> typedQuery = entityManager.createQuery(query);
-
-		// For single result, handle NoResultException
-		try {
-			return typedQuery.getSingleResult();
-		}
-		catch (NoResultException e) {
-			return null;
-		}
-	}
-		
 	/**
 	 * @param <E>
 	 * @param entityClass
@@ -483,47 +375,4 @@ public class GenericDAO {
 		
 		return root.<E>get(pathExpression);
 	}
-
-	/**
-	 * New methods go here
-	 */
-
-	/**
-	 * Determine if an instance of the given entity class exists with the given [attributeName=attributeValue]
-	 * @param entityClass
-	 * @param attributeName
-	 * @param attributeValue
-	 * @return
-	 * @param <T>
-	 */
-	public <T> boolean entityExists(Class<T> entityClass, String attributeName, Object attributeValue) {
-		return entityExists(entityClass, Map.of(attributeName, attributeValue));
-	}
-
-	/**
-	 * Determine if an instance of the given entity class exists with the given filters
-	 * Where filters looks like [attribute1=attributeValue1, attribute2=attributeValue2, ...]
-	 * @param entityClass
-	 * @param filters
-	 * @return
-	 * @param <T>
-	 */
-	public <T> boolean entityExists(Class<T> entityClass, Map<String, Object> filters) {
-		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-		CriteriaQuery<Integer> criteriaQuery = builder.createQuery(Integer.class);
-		Root<T> root = criteriaQuery.from(entityClass);
-
-		Predicate[] predicates = buildPredicates(builder, root, filters);
-
-		criteriaQuery.select(builder.literal(1)).where(predicates);
-
-		TypedQuery<Integer> typedQuery = entityManager.createQuery(criteriaQuery);
-		typedQuery.setMaxResults(1); // LIMIT 1 for performance reasons
-
-		return !typedQuery.getResultList().isEmpty();
-	}
-
-	/**
-	 *
-	 */
 }

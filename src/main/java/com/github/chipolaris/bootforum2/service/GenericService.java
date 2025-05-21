@@ -1,10 +1,9 @@
 package com.github.chipolaris.bootforum2.service;
 
 import com.github.chipolaris.bootforum2.dao.GenericDAO;
-import com.github.chipolaris.bootforum2.dao.GenericQuery;
-import com.github.chipolaris.bootforum2.dao.QueryMeta;
+import com.github.chipolaris.bootforum2.dao.DynamicDAO;
 import com.github.chipolaris.bootforum2.domain.BaseEntity;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,11 +12,11 @@ import java.util.List;
 @Service @Transactional
 public class GenericService {
 
-	@Resource
+	@Autowired
 	private GenericDAO genericDAO;
-	
-	@Resource
-	private GenericQuery genericQuery;
+
+	@Autowired
+	private DynamicDAO dynamicDAO;
 	
 	/**
 	 * Save new instance of the given entity
@@ -79,7 +78,7 @@ public class GenericService {
 		
 		ServiceResponse<Void> response = 
 			new ServiceResponse<Void>();
-		
+
 		genericDAO.remove(entity);
 		
 		return response;
@@ -117,7 +116,8 @@ public class GenericService {
 	public <E> ServiceResponse<List<E>> getAllEntities(Class<E> entityClass) {
 		
 		ServiceResponse<List<E>> response = new ServiceResponse<List<E>>();
-		response.setDataObject((List<E>) genericDAO.findAll(entityClass));
+
+		response.setDataObject((List<E>) genericDAO.all(entityClass));
 		
 		return response;
 	}
@@ -133,28 +133,9 @@ public class GenericService {
 	public <E> ServiceResponse<Long> countEntities(Class<E> entityClass) {
 		
 		ServiceResponse<Long> response = new ServiceResponse<Long>();
-		response.setDataObject(genericDAO.countEntities(entityClass));
+
+		response.setDataObject(genericDAO.count(entityClass));
 		
 		return response;
 	}
-	
-	@Transactional(readOnly=true)
-	public <E> ServiceResponse<Long> countEntities(QueryMeta<E> queryMeta) {
-		
-		ServiceResponse<Long> response = new ServiceResponse<Long>();
-		response.setDataObject(genericQuery.countEntities(queryMeta));
-		
-		return response;
-	}
-	
-	@Transactional(readOnly=true)
-	public <E> ServiceResponse<List<E>> findEntities(QueryMeta<E> queryMeta) {
-		
-		ServiceResponse<List<E>> response = new ServiceResponse<List<E>>();
-		
-		response.setDataObject(genericQuery.findEntities(queryMeta));
-		
-		return response;
-	}
-	
 }

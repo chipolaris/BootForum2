@@ -1,4 +1,4 @@
-package com.github.chipolaris.bootforum2.dao.dynamic;
+package com.github.chipolaris.bootforum2.dao;
 
 import com.github.chipolaris.bootforum2.domain.UserEntity;
 import jakarta.persistence.EntityManager;

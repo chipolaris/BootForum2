@@ -1,18 +1,20 @@
 package com.github.chipolaris.bootforum2.service;
 
 import com.github.chipolaris.bootforum2.dao.GenericDAO;
-import com.github.chipolaris.bootforum2.domain.*;
+import com.github.chipolaris.bootforum2.dao.DynamicDAO;
+import com.github.chipolaris.bootforum2.dao.FilterSpec;
+import com.github.chipolaris.bootforum2.dao.QuerySpec;
+import com.github.chipolaris.bootforum2.domain.Person;
+import com.github.chipolaris.bootforum2.domain.Registration;
+import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.dto.RegistrationRequest;
-import com.github.chipolaris.bootforum2.enumeration.AccountStatus;
-import com.github.chipolaris.bootforum2.enumeration.UserRole;
-import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -20,10 +22,13 @@ public class RegistrationService {
 
     private static final Logger logger = LoggerFactory.getLogger(RegistrationService.class);
 
-    @Resource
+    @Autowired
     private GenericDAO genericDAO;
 
-    @Resource
+    @Autowired
+    private DynamicDAO dynamicDAO;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     /**
@@ -39,16 +44,17 @@ public class RegistrationService {
         ServiceResponse<Registration> response = new ServiceResponse<>();
 
         // Check if username exists
-        if (genericDAO.entityExists(User.class, "username", registrationRequest.username())
-                || genericDAO.entityExists(Registration.class, "username", registrationRequest.firstName())) {
+        if(dynamicDAO.exists(QuerySpec.builder(User.class).filter(FilterSpec.eq("username", registrationRequest.username())).build())
+            || dynamicDAO.exists(QuerySpec.builder(Registration.class).filter(FilterSpec.eq("username", registrationRequest.username())).build())) {
             logger.warn("Registration failed: Username '{}' already exists.", registrationRequest.username());
             response.setAckCode(ServiceResponse.AckCodeType.FAILURE);
             response.addMessage("Error: Username is already taken!");
         }
 
         // Check if email exists (assuming Person holds the email)
-        if (genericDAO.entityExists(Person.class, "email", registrationRequest.email())
-                || genericDAO.entityExists(Registration.class, "email", registrationRequest.email())) {
+        if(dynamicDAO.exists(QuerySpec.builder(Person.class).filter(FilterSpec.eq("email", registrationRequest.email())).build())
+                || dynamicDAO.exists(QuerySpec.builder(Registration.class).filter(FilterSpec.eq("email", registrationRequest.email())).build())) {
+
             logger.warn("Registration failed: Email '{}' already exists.", registrationRequest.email());
             response.setAckCode(ServiceResponse.AckCodeType.FAILURE);
             response.addMessage("Error: Email is already in use!");
@@ -78,7 +84,9 @@ public class RegistrationService {
     public ServiceResponse<User> processEmailConfirmation(String registrationKey) {
         ServiceResponse<User> response = new ServiceResponse<>();
 
-        Registration registration = genericDAO.getEntity(Registration.class, Map.of("registrationKey", registrationKey));
+
+        Registration registration = dynamicDAO.<Registration>findOptional(QuerySpec.builder(Registration.class)
+                .filter(FilterSpec.eq("registrationKey", registrationKey)).build()).orElse(null);
 
         if(registration == null) {
             response.setAckCode(ServiceResponse.AckCodeType.FAILURE);
