@@ -74,7 +74,23 @@ public class GenericDAO {
         return entityManager.find(entityClass, id); 
     }
 
-    /**
+	/**
+	 * Check if an object with the given entity type and primary key
+	 * @param entityClass
+	 * @param id
+	 * @return
+	 * @param <E>
+	 */
+	public <E> boolean existsById(Class<E> entityClass, Object id) {
+		/*
+		 * This is a recommended way to check existence if id is the primary key
+		 * This is backed by first level cache.
+		 * And it avoids even a query if the entity is already managed.
+		 */
+		return entityManager.find(entityClass, id) != null;
+	}
+
+	/**
      * Find all entities of the given entity type
      * @param entityClass
      * @return

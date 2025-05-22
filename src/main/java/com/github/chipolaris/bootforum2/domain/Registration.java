@@ -47,6 +47,12 @@ public class Registration extends BaseEntity {
     @Column(name="PASSWORD", length=200)
     private String password;
 
+    @Column(name="FIRST_NAME", length=50) // New field
+    private String firstName;
+
+    @Column(name="LAST_NAME", length=50)  // New field
+    private String lastName;
+
     @Override
     public Long getId() {
         return id;
@@ -85,5 +91,22 @@ public class Registration extends BaseEntity {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    // Getters and setters for new fields
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 }

@@ -7,7 +7,8 @@ import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.Person;
 import com.github.chipolaris.bootforum2.domain.Registration;
 import com.github.chipolaris.bootforum2.domain.User;
-import com.github.chipolaris.bootforum2.dto.RegistrationRequest;
+import com.github.chipolaris.bootforum2.dto.RegistrationDTO;
+import com.github.chipolaris.bootforum2.mapper.RegistrationMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,41 +32,44 @@ public class RegistrationService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private RegistrationMapper registrationMapper;
+
     /**
      * Create a new Registration
-     * @param registrationRequest DTO containing registration data.
+     * @param registrationDTO DTO containing registration data.
      * @return The newly created User object.
      * @throws RuntimeException if username or email already exists.
      */
     @Transactional(readOnly=false)
-    public ServiceResponse<Registration> processRegistrationRequest(RegistrationRequest registrationRequest) {
-        logger.info("Attempting to register new user: {}", registrationRequest.username());
+    public ServiceResponse<Registration> newRegistration(RegistrationDTO registrationDTO) {
+        logger.info("Attempting to register new user: {}", registrationDTO.username());
 
         ServiceResponse<Registration> response = new ServiceResponse<>();
 
         // Check if username exists
-        if(dynamicDAO.exists(QuerySpec.builder(User.class).filter(FilterSpec.eq("username", registrationRequest.username())).build())
-            || dynamicDAO.exists(QuerySpec.builder(Registration.class).filter(FilterSpec.eq("username", registrationRequest.username())).build())) {
-            logger.warn("Registration failed: Username '{}' already exists.", registrationRequest.username());
+        if(dynamicDAO.exists(QuerySpec.builder(User.class).filter(FilterSpec.eq("username", registrationDTO.username())).build())
+            || dynamicDAO.exists(QuerySpec.builder(Registration.class).filter(FilterSpec.eq("username", registrationDTO.username())).build())) {
+            logger.warn("Registration failed: Username '{}' already exists.", registrationDTO.username());
             response.setAckCode(ServiceResponse.AckCodeType.FAILURE);
             response.addMessage("Error: Username is already taken!");
         }
 
         // Check if email exists (assuming Person holds the email)
-        if(dynamicDAO.exists(QuerySpec.builder(Person.class).filter(FilterSpec.eq("email", registrationRequest.email())).build())
-                || dynamicDAO.exists(QuerySpec.builder(Registration.class).filter(FilterSpec.eq("email", registrationRequest.email())).build())) {
+        if(dynamicDAO.exists(QuerySpec.builder(Person.class).filter(FilterSpec.eq("email", registrationDTO.email().toLowerCase())).build())
+                || dynamicDAO.exists(QuerySpec.builder(Registration.class).filter(FilterSpec.eq("email", registrationDTO.email().toLowerCase())).build())) {
 
-            logger.warn("Registration failed: Email '{}' already exists.", registrationRequest.email());
+            logger.warn("Registration failed: Email '{}' already exists.", registrationDTO.email());
             response.setAckCode(ServiceResponse.AckCodeType.FAILURE);
             response.addMessage("Error: Email is already in use!");
         }
 
         if(response.getAckCode() != ServiceResponse.AckCodeType.FAILURE) {
-            // Create new Registration
-            Registration registration = new Registration();
-            registration.setUsername(registrationRequest.username());
-            registration.setPassword(passwordEncoder.encode(registrationRequest.password()));
-            registration.setEmail(registrationRequest.email().toLowerCase()); // Ensure email is lowercase
+            // Use mapper to convert RegistrationDTO to Registration object
+            Registration registration = registrationMapper.toEntity(registrationDTO);
+
+            // Manually set fields not handled by the mapper. Also note the mapper set email to lower case
+            registration.setPassword(passwordEncoder.encode(registrationDTO.password()));
             registration.setRegistrationKey(UUID.randomUUID().toString());
 
             genericDAO.persist(registration);
@@ -81,9 +85,8 @@ public class RegistrationService {
      * @return
      */
     @Transactional(readOnly=false)
-    public ServiceResponse<User> processEmailConfirmation(String registrationKey) {
+    public ServiceResponse<User> emailConfirmation(String registrationKey) {
         ServiceResponse<User> response = new ServiceResponse<>();
-
 
         Registration registration = dynamicDAO.<Registration>findOptional(QuerySpec.builder(Registration.class)
                 .filter(FilterSpec.eq("registrationKey", registrationKey)).build()).orElse(null);
@@ -118,7 +121,11 @@ public class RegistrationService {
         user.setUsername(registration.getUsername());
         // note: no need to encode password as it is already encoded in Registration
         user.setPassword(registration.getPassword());
-        user.getPerson().setEmail(registration.getEmail());
+
+        Person person = user.getPerson(); // person is created in User constructor
+        person.setEmail(registration.getEmail());
+        person.setFirstName(registration.getFirstName());
+        person.setLastName(registration.getLastName());
 
         return user;
     }

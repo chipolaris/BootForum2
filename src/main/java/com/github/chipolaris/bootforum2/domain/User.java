@@ -34,6 +34,8 @@ import com.github.chipolaris.bootforum2.enumeration.UserRole;
 public class User extends BaseEntity {
 
 	public User() {
+		this.setUserRole(UserRole.USER); // default
+		this.setAccountStatus(AccountStatus.ACTIVE); // default
 		this.setPerson(new Person());
 		this.setPreferences(new Preferences());
 		this.setStat(new UserStat());

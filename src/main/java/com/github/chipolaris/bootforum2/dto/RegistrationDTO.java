@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 /**
  * Represents the data required for a user registration attempt.
  */
-public record RegistrationRequest(
+public record RegistrationDTO(
         @NotBlank
         @Size(min = 3, max = 20)
         String username,

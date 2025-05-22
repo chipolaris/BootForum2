@@ -3,7 +3,7 @@ package com.github.chipolaris.bootforum2.rest;
 import com.github.chipolaris.bootforum2.domain.Registration;
 import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.dto.ApiResponse;
-import com.github.chipolaris.bootforum2.dto.RegistrationRequest;
+import com.github.chipolaris.bootforum2.dto.RegistrationDTO;
 import com.github.chipolaris.bootforum2.service.RegistrationService;
 import com.github.chipolaris.bootforum2.service.ServiceResponse;
 import jakarta.validation.Valid;
@@ -24,9 +24,9 @@ public class RegistrationController {
     private RegistrationService registrationService;
 
     @PostMapping("/public/register") // Place under /public as it doesn't require auth
-    public ApiResponse<?> registerUser(@Valid @RequestBody RegistrationRequest registrationRequest) {
+    public ApiResponse<?> registerUser(@Valid @RequestBody RegistrationDTO registrationDTO) {
         try {
-            ServiceResponse<Registration> serviceResponse = registrationService.processRegistrationRequest(registrationRequest);
+            ServiceResponse<Registration> serviceResponse = registrationService.newRegistration(registrationDTO);
 
             if(serviceResponse.getAckCode() == ServiceResponse.AckCodeType.FAILURE) {
                 return ApiResponse.error(serviceResponse.getMessages(), "Registration failed");
@@ -41,7 +41,7 @@ public class RegistrationController {
     @PostMapping("/public/confirm-registration-email")
     public ApiResponse<?> confirmRegistrationEmail(@RequestParam String registrationKey) {
         try {
-            ServiceResponse<User> serviceResponse = registrationService.processEmailConfirmation(registrationKey);
+            ServiceResponse<User> serviceResponse = registrationService.emailConfirmation(registrationKey);
             if(serviceResponse.getAckCode() == ServiceResponse.AckCodeType.FAILURE) {
                 return ApiResponse.error(serviceResponse.getMessages(), "Registration email confirmation failed");
             }
