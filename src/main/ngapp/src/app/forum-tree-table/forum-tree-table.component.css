@@ -1,0 +1,12 @@
+/* forum-group-tree-table.component.css */
+/* Add any component-specific styles here */
+
+/* Example: Ensure toggler is vertically aligned if needed */
+:host ::ng-deep .p-treetable-toggler {
+  vertical-align: middle;
+  margin-right: 0.25rem;
+}
+
+:host ::ng-deep .p-treetable .p-treetable-tbody > tr > td {
+  vertical-align: middle; /* Align cell content vertically */
+}

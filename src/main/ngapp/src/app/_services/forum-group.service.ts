@@ -11,7 +11,7 @@ export class ForumGroupService {
   private http = inject(HttpClient);
   private baseAdminApiUrl = '/api/admin/forum-groups';
   private createApiUrl = '/api/admin/create-forum-group';
-  private rootForumGroupApiUrl = '/api/admin/root-forum-group'; // New URL
+  private rootForumGroupApiUrl = '/api/public/root-forum-group';
 
   createForumGroup(payload: ForumGroupCreateDTO): Observable<ApiResponse<ForumGroupDTO>> {
     return this.http.post<ApiResponse<ForumGroupDTO>>(this.createApiUrl, payload)

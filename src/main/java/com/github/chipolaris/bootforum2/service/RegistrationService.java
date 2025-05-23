@@ -116,6 +116,10 @@ public class RegistrationService {
      */
     private User initializeUser(Registration registration) {
 
+        /*
+         * The followings are created in User constructor:
+         * Person, Preferences, UserStat, accountStatus = 'ACTIVE', userRole=UserRole.USER
+         */
         User user = new User();
 
         user.setUsername(registration.getUsername());

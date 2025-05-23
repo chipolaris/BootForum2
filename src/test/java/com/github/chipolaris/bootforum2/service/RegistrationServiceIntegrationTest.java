@@ -37,7 +37,6 @@ class RegistrationServiceIntegrationTest {
         // Clean up existing data to ensure a fresh state for each test
         entityManager.createQuery("DELETE FROM Comment").executeUpdate(); // If comments are linked and might cause FK issues
         entityManager.createQuery("DELETE FROM Discussion").executeUpdate(); // If discussions are linked
-        //entityManager.createQuery("DELETE FROM UserRole").executeUpdate();
         entityManager.createQuery("DELETE FROM User").executeUpdate();
         entityManager.createQuery("DELETE FROM Person").executeUpdate();
         entityManager.createQuery("DELETE FROM Registration").executeUpdate();

@@ -16,7 +16,32 @@ export interface ForumDTO {
   icon: string;
   iconColor: string;
   active: boolean;
+  stat: ForumStatDTO;
   // TODO: figure with one to add parentGroupId/forumGroupId
+}
+
+// Long id, CommentInfoDTO lastComment, long commentCount, long discussionCount
+export interface ForumStatDTO {
+  id?: number;
+  lastComment: CommentInfoDTO;
+  commentCount: number;
+  discussionCount: number;
+}
+
+// Long id, String title, String contentAbbr, Long commentId, String commentor, LocalDateTime commentDate
+export interface CommentInfoDTO {
+  id?: number;
+  title: string;
+  contentAbbr: string;
+  commentId: number;
+  commentor: string;
+  commentDate: Date;
+}
+
+export interface DiscussionDTO {
+  id?: number;
+  title: string;
+
 }
 
 export interface ForumCreateDTO {

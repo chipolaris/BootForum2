@@ -24,7 +24,7 @@ import { ForumGroupEditComponent } from '../forum-group-edit/forum-group-edit.co
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 
 // Import the shared icon object map
-import { APP_ICONS } from '../../shared/hero-icons'; // Assuming this is APP_ICONS_OUTLINE_MAP or similar
+import { APP_ICONS } from '../../shared/hero-icons';
 
 // Define a more specific TreeNode type for our use case
 interface CustomTreeNode extends TreeNode {

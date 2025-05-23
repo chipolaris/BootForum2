@@ -102,7 +102,7 @@ public class ForumGroupController {
      *
      * @return ApiResponse containing a list of Forums or an error message.
      */
-    @GetMapping("/admin/root-forum-group") // Path for retrieving all forums
+    @GetMapping("/public/root-forum-group") // Path for retrieving all forums
     public ApiResponse<?> getRootForumGroup() {
         try {
             ServiceResponse<ForumGroupDTO> serviceResponse = forumGroupService.getRootForumGroup();
