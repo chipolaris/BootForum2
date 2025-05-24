@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
-import { ForumDTO, ForumCreateDTO, ForumUpdateDTO, ApiResponse } from '../_data/dtos'; // Ensure ApiResponse is imported
+import { ForumDTO, ForumCreateDTO, ForumUpdateDTO, ApiResponse, ForumViewDTO } from '../_data/dtos'; // Ensure ApiResponse is imported
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +12,8 @@ export class ForumService {
   // Base URL for forum operations, adjust if your admin path is different for get/update
   private baseAdminApiUrl = '/api/admin/forums';
   private createApiUrl = '/api/admin/create-forum'; // Kept for createForum
+  private publicForumViewApiUrl = '/api/public/view/forums';
+
 
   createForum(payload: ForumCreateDTO): Observable<ApiResponse<ForumDTO>> {
     return this.http.post<ApiResponse<ForumDTO>>(this.createApiUrl, payload)
@@ -63,6 +65,26 @@ export class ForumService {
             console.log('All forums fetched successfully', response.data);
           } else {
             console.error('Failed to fetch all forums', response.message, response.errors);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Retrieves the view data for a specific forum, including its discussions.
+   * Corresponds to ForumController.getForumView() on the backend.
+   * @param id The ID of the forum to retrieve.
+   * @returns An Observable of ApiResponse containing ForumViewDTO.
+   */
+  getForumView(id: number): Observable<ApiResponse<ForumViewDTO>> {
+    return this.http.get<ApiResponse<ForumViewDTO>>(`${this.publicForumViewApiUrl}/${id}`)
+      .pipe(
+        tap(response => {
+          if (response.success) {
+            console.log(`Forum view for id ${id} fetched successfully`, response.data);
+          } else {
+            console.error(`Failed to fetch forum view for id ${id}`, response.message, response.errors);
           }
         }),
         catchError(this.handleError)

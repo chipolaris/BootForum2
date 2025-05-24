@@ -1,9 +1,6 @@
 package com.github.chipolaris.bootforum2.rest;
 
-import com.github.chipolaris.bootforum2.dto.ApiResponse;
-import com.github.chipolaris.bootforum2.dto.ForumGroupCreateDTO;
-import com.github.chipolaris.bootforum2.dto.ForumGroupDTO;
-import com.github.chipolaris.bootforum2.dto.ForumGroupUpdateDTO;
+import com.github.chipolaris.bootforum2.dto.*;
 import com.github.chipolaris.bootforum2.service.ForumGroupService;
 import com.github.chipolaris.bootforum2.service.ServiceResponse;
 import jakarta.validation.Valid;
@@ -102,7 +99,7 @@ public class ForumGroupController {
      *
      * @return ApiResponse containing a list of Forums or an error message.
      */
-    @GetMapping("/public/root-forum-group") // Path for retrieving all forums
+    @GetMapping("/admin/root-forum-group") // Path for retrieving all forums
     public ApiResponse<?> getRootForumGroup() {
         try {
             ServiceResponse<ForumGroupDTO> serviceResponse = forumGroupService.getRootForumGroup();
@@ -117,6 +114,24 @@ public class ForumGroupController {
         } catch (Exception e) {
             logger.error("Error retrieving the root forum group", e);
             return ApiResponse.error("An unexpected error occurred while retrieving forum groups: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/public/forum-tree-table") // Path for retrieving all forums and forum groups
+    public ApiResponse<?> getForumTreeTable() {
+        try {
+            ServiceResponse<ForumTreeTableDTO> serviceResponse = forumGroupService.getForumTreeTable();
+
+            if(serviceResponse.getAckCode() == ServiceResponse.AckCodeType.FAILURE) {
+                return ApiResponse.error("Error retrieving forum tree table");
+            }
+            else {
+                return ApiResponse.success(serviceResponse.getDataObject(), "Forum tree table retrieved successfully");
+            }
+
+        } catch (Exception e) {
+            logger.error("Error retrieving forum tree table", e);
+            return ApiResponse.error("An unexpected error occurred while retrieving forum tree table: " + e.getMessage());
         }
     }
 }

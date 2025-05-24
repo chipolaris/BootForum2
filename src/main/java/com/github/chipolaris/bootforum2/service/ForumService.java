@@ -7,6 +7,7 @@ import com.github.chipolaris.bootforum2.domain.ForumGroup;
 import com.github.chipolaris.bootforum2.dto.ForumCreateDTO;
 import com.github.chipolaris.bootforum2.dto.ForumDTO;
 import com.github.chipolaris.bootforum2.dto.ForumUpdateDTO;
+import com.github.chipolaris.bootforum2.dto.ForumViewDTO;
 import com.github.chipolaris.bootforum2.mapper.ForumMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -87,12 +88,12 @@ public class ForumService {
         Forum forum = genericDAO.find(Forum.class, id);
 
         if(forum == null) {
-            response.setAckCode(ServiceResponse.AckCodeType.FAILURE).
-                    addMessage(String.format("Forum with id %d is not found", id));
+            response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
+                    .addMessage(String.format("Forum with id %d is not found", id));
         }
         else {
-            response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumMapper.toForumDTO(forum)).
-                    addMessage("Forum fetched successfully");
+            response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumMapper.toForumDTO(forum))
+                    .addMessage("Forum fetched successfully");
         }
 
         return response;
@@ -108,6 +109,25 @@ public class ForumService {
 
         response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).
                 setDataObject(forumDTOs).addMessage("Forums fetched successfully");
+
+        return response;
+    }
+
+    @Transactional(readOnly = true)
+    public ServiceResponse<ForumViewDTO> getForumView(Long id) {
+        ServiceResponse<ForumViewDTO> response = new ServiceResponse<>();
+
+        Forum forum = genericDAO.find(Forum.class, id);
+
+        if(forum == null) {
+            response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
+                    .addMessage(String.format("Forum with id %d is not found", id));
+        }
+        else {
+            response.setAckCode(ServiceResponse.AckCodeType.SUCCESS)
+                    .setDataObject(forumMapper.toForumViewDTO(forum)).
+                    addMessage("Forum fetched successfully");
+        }
 
         return response;
     }

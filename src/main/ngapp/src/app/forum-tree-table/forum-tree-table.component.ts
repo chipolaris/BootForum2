@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router'; // RouterModule for routerLink
 import { TreeNode, MessageService } from 'primeng/api';
 import { TreeTableModule } from 'primeng/treetable';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
@@ -12,7 +13,7 @@ import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { APP_ICONS } from '../shared/hero-icons';
 
 import { ForumGroupService } from '../_services/forum-group.service';
-import { ForumGroupDTO, ForumDTO, ApiResponse } from '../_data/dtos';
+import { ForumTreeTableDTO, ForumGroupDTO, ForumDTO, ApiResponse } from '../_data/dtos';
 
 // Define the structure for the data part of our TreeTable nodes
 interface AppTreeTableNodeData {
@@ -38,6 +39,7 @@ interface AppTreeTableNode extends TreeNode {
   standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
     TreeTableModule,
     ProgressSpinnerModule,
     ToastModule,
@@ -62,35 +64,33 @@ export class ForumTreeTableComponent implements OnInit {
   loadForumStructure(): void {
     this.isLoading = true;
     this.errorMessage = null;
-    this.forumGroupService.getRootForumGroup().subscribe({
-      next: (response: ApiResponse<ForumGroupDTO>) => {
+    this.forumGroupService.getForumTreeTable().subscribe({
+      next: (response: ApiResponse<ForumTreeTableDTO>) => {
         if (response.success && response.data) {
-          const rootGroup = response.data;
-          const firstLevelNodes: AppTreeTableNode[] = [];
+          const forumTreeTable = response.data;
 
-          // Process first-level children: subGroups
-          if (rootGroup.subGroups) {
-            firstLevelNodes.push(
-              ...rootGroup.subGroups.map(sg => this.transformGroupToNode(sg, true)) // Mark as first-level for expansion
+          // forumGroups
+          if (forumTreeTable.forumGroups) {
+            this.treeTableNodes.push(
+              ...forumTreeTable.forumGroups.map(sg => this.transformGroupToNode(sg))
             );
           }
-          // Process first-level children: forums
-          if (rootGroup.forums) {
-            firstLevelNodes.push(
-              ...rootGroup.forums.map(f => this.transformForumToNode(f))
+          // forums
+          if (forumTreeTable.forums) {
+            this.treeTableNodes.push(
+              ...forumTreeTable.forums.map(f => this.transformForumToNode(f))
             );
           }
 
-          // Sort top-level nodes: groups first, then by title
-          firstLevelNodes.sort((a, b) => {
+          // Sort groups first, then by title
+          this.treeTableNodes.sort((a, b) => {
             if (a.data.type === 'forumGroup' && b.data.type === 'forum') return -1;
             if (a.data.type === 'forum' && b.data.type === 'forumGroup') return 1;
             return (a.data.title || '').localeCompare(b.data.title || '');
           });
-          this.treeTableNodes = firstLevelNodes;
 
         } else {
-          this.errorMessage = response.message || 'Root forum group not found or failed to load.';
+          this.errorMessage = response.message || 'Forum tree table failed to load.';
           this.messageService.add({ severity: 'warn', summary: 'Warning', detail: this.errorMessage });
           this.treeTableNodes = []; // Ensure it's empty on failure
         }
@@ -98,7 +98,7 @@ export class ForumTreeTableComponent implements OnInit {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.message || 'An unexpected error occurred while fetching forum structure.';
+        this.errorMessage = err.message || 'An unexpected error occurred while fetching forum tree table.';
         this.messageService.add({ severity: 'error', summary: 'Error', detail: this.errorMessage || 'An unexpected error occurred.' });
         console.error('Error loading forum structure:', err);
         this.treeTableNodes = []; // Ensure it's empty on error
@@ -106,7 +106,7 @@ export class ForumTreeTableComponent implements OnInit {
     });
   }
 
-  private transformGroupToNode(group: ForumGroupDTO, isFirstLevel: boolean = false): AppTreeTableNode {
+  private transformGroupToNode(group: ForumGroupDTO): AppTreeTableNode {
     const nodeData: AppTreeTableNodeData = {
       id: `group-${group.id}`,
       title: group.title,
@@ -116,7 +116,7 @@ export class ForumTreeTableComponent implements OnInit {
 
     const children: AppTreeTableNode[] = [];
     if (group.subGroups) {
-      children.push(...group.subGroups.map(sg => this.transformGroupToNode(sg, false)));
+      children.push(...group.subGroups.map(sg => this.transformGroupToNode(sg)));
     }
     if (group.forums) {
       children.push(...group.forums.map(f => this.transformForumToNode(f)));
@@ -132,7 +132,7 @@ export class ForumTreeTableComponent implements OnInit {
       data: nodeData,
       children: children.length > 0 ? children : undefined,
       leaf: children.length === 0,
-      expanded: isFirstLevel // Expand only the first level groups by default
+      expanded: true
     };
   }
 

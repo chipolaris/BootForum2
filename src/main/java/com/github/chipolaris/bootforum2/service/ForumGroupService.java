@@ -8,6 +8,7 @@ import com.github.chipolaris.bootforum2.domain.ForumGroup;
 import com.github.chipolaris.bootforum2.dto.ForumGroupCreateDTO;
 import com.github.chipolaris.bootforum2.dto.ForumGroupDTO;
 import com.github.chipolaris.bootforum2.dto.ForumGroupUpdateDTO;
+import com.github.chipolaris.bootforum2.dto.ForumTreeTableDTO;
 import com.github.chipolaris.bootforum2.mapper.ForumGroupMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -114,6 +115,27 @@ public class ForumGroupService {
             response.setAckCode(ServiceResponse.AckCodeType.SUCCESS)
                     .setDataObject(forumGroupMapper.toForumGroupDTO(rootForumGroup))
                     .addMessage("Successfully retrieved root forum group");
+        }
+
+        return response;
+    }
+
+    @Transactional(readOnly = true)
+    public ServiceResponse<ForumTreeTableDTO> getForumTreeTable() {
+
+        ServiceResponse<ForumTreeTableDTO> response = new ServiceResponse<>();
+
+        QuerySpec rooForumGroupQuery = QuerySpec.builder(ForumGroup.class).filter(FilterSpec.isNull("parent")).build();
+        ForumGroup rootForumGroup = dynamicDAO.<ForumGroup>findOptional(rooForumGroupQuery).orElse(null);
+
+        if(rootForumGroup == null) {
+            response.setAckCode(ServiceResponse.AckCodeType.FAILURE).
+                    addMessage("No root forum group found");
+        }
+        else {
+            response.setAckCode(ServiceResponse.AckCodeType.SUCCESS)
+                    .setDataObject(forumGroupMapper.toForumTreeTableDTO(rootForumGroup))
+                    .addMessage("Successfully retrieved forum tree table");
         }
 
         return response;

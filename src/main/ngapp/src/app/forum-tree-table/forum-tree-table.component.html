@@ -40,7 +40,14 @@
                   [ngClass]="{'font-semibold': rowData.type === 'forumGroup'}">
               <!-- You can add an icon here based on type if desired -->
                <i [ngClass]="rowData.type === 'forumGroup' ? 'pi pi-fw pi-folder' : 'pi pi-fw pi-comments'"></i>
-              {{ rowData.title }}
+               <ng-container *ngIf="rowData.type === 'forum'; else nonForumTitle">
+                 <a [routerLink]="['/app/forums', rowData.originalDto.id, 'view']" class="text-indigo-600 hover:text-indigo-800 hover:underline">
+                   {{ rowData.title }}
+                 </a>
+              </ng-container>
+              <ng-template #nonForumTitle>
+                {{ rowData.title }}
+              </ng-template>
             </span>
             <ng-container *ngIf="rowData.icon && rowData.iconColor">
               <ng-container *ngIf="rowData.icon as iconName">

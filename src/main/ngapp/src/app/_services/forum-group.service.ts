@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { ForumGroupDTO, ForumGroupCreateDTO, ForumGroupUpdateDTO, ApiResponse } from '../_data/dtos';
+import { ForumGroupDTO, ForumGroupCreateDTO, ForumGroupUpdateDTO, ForumTreeTableDTO, ApiResponse } from '../_data/dtos';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +11,10 @@ export class ForumGroupService {
   private http = inject(HttpClient);
   private baseAdminApiUrl = '/api/admin/forum-groups';
   private createApiUrl = '/api/admin/create-forum-group';
-  private rootForumGroupApiUrl = '/api/public/root-forum-group';
+  private rootForumGroupApiUrl = '/api/admin/root-forum-group';
+  private forumTreeTableApiUrl = '/api/public/forum-tree-table';
+
+  constructor() { }
 
   createForumGroup(payload: ForumGroupCreateDTO): Observable<ApiResponse<ForumGroupDTO>> {
     return this.http.post<ApiResponse<ForumGroupDTO>>(this.createApiUrl, payload)
@@ -59,7 +62,6 @@ export class ForumGroupService {
       );
   }
 
-  // <<< NEW METHOD: Get Root Forum Group >>>
   getRootForumGroup(): Observable<ApiResponse<ForumGroupDTO>> {
     return this.http.get<ApiResponse<ForumGroupDTO>>(this.rootForumGroupApiUrl)
       .pipe(
@@ -68,6 +70,20 @@ export class ForumGroupService {
             console.log('Root Forum Group fetched successfully', response.data);
           } else {
             console.error('Failed to fetch root forum group', response.message, response.errors);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  getForumTreeTable(): Observable<ApiResponse<ForumTreeTableDTO>> {
+    return this.http.get<ApiResponse<ForumTreeTableDTO>>(this.forumTreeTableApiUrl)
+      .pipe(
+        tap(response => {
+          if (response.success) {
+            console.log('Root Forum Tree Table fetched successfully', response.data);
+          } else {
+            console.error('Failed to fetch forum tree table', response.message, response.errors);
           }
         }),
         catchError(this.handleError)

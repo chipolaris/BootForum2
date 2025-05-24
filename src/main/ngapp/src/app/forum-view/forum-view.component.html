@@ -1,0 +1,86 @@
+<div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-10">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+    <p class="ml-3 text-lg text-gray-600">Loading forum details...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage && !isLoading" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md mb-6" role="alert">
+    <p class="font-bold">Error</p>
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <!-- Forum Data Display -->
+  <div *ngIf="forumViewData && !isLoading && !errorMessage">
+    <!-- Forum Banner -->
+    <header class="bg-slate-100 dark:bg-slate-800 p-6 rounded-lg shadow-lg mb-8">
+      <div class="flex items-center">
+        <!-- Icon: Ensure your DTO's icon field contains CSS classes like 'fas fa-comments' or similar -->
+        <span *ngIf="forumViewData.forumDTO.icon"
+              class="text-4xl mr-4"
+              [ngClass]="forumViewData.forumDTO.icon"
+              [style.color]="forumViewData.forumDTO.iconColor || 'inherit'"
+              aria-hidden="true">
+        </span>
+        <div>
+          <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-100">{{ forumViewData.forumDTO.title }}</h1>
+          <p *ngIf="forumViewData.forumDTO.description" class="text-slate-600 dark:text-slate-300 mt-1 text-md">
+            {{ forumViewData.forumDTO.description }}
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Discussions Section -->
+    <section>
+      <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-4">Discussions</h2>
+      <div *ngIf="forumViewData.discussionDTOs && forumViewData.discussionDTOs.length > 0; else noDiscussions"
+           class="overflow-x-auto bg-white dark:bg-slate-700 shadow-md rounded-lg">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-600">
+          <thead class="bg-gray-50 dark:bg-slate-600">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              Title
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              Comments
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              Views
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              Last Comment
+            </th>
+          </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-slate-600">
+          <tr *ngFor="let discussion of forumViewData.discussionDTOs" class="hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors duration-150">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <!-- You might want to make this a link to the discussion view later -->
+              <div class="text-sm font-medium text-gray-900 dark:text-white">{{ discussion.title }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+              {{ discussion.stat?.commentCount ?? 'N/A' }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+              {{ discussion.stat?.viewCount ?? 'N/A' }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+              {{ discussion.stat?.lastComment?.commentDate | date:'mediumDate' }}
+              <span *ngIf="discussion.stat?.lastComment?.commentDate"> at {{ discussion.stat?.lastComment?.commentDate | date:'shortTime' }}</span>
+              <span *ngIf="!discussion.stat?.lastComment?.commentDate">N/A</span>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #noDiscussions>
+        <div class="bg-blue-50 dark:bg-slate-700 border border-blue-200 dark:border-slate-600 text-blue-700 dark:text-blue-300 px-4 py-3 rounded-md shadow" role="status">
+          <p>No discussions have been started in this forum yet.</p>
+        </div>
+      </ng-template>
+    </section>
+  </div>
+
+</div>

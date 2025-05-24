@@ -38,12 +38,6 @@ export interface CommentInfoDTO {
   commentDate: Date;
 }
 
-export interface DiscussionDTO {
-  id?: number;
-  title: string;
-
-}
-
 export interface ForumCreateDTO {
   title: string;
   description: string;
@@ -85,6 +79,47 @@ export interface ForumGroupUpdateDTO {
   iconColor: string;
 }
 
+/*
+ * Used for display in the Forum Tree Table Component
+ * The data is first level children of the root forum group: forums and forumGroups
+ */
+export interface ForumTreeTableDTO {
+    forums?: ForumDTO[] | null;
+    forumGroups?: ForumGroupDTO[] | null;
+}
+
+export interface ForumViewDTO {
+  forumDTO: ForumDTO;
+  discussionDTOs: DiscussionDTO[];
+}
+
+// Model for TagDTO, corresponding to Java's TagDTO
+export interface TagDTO {
+  id?: number;
+  label: string;
+  icon: string;
+  iconColor: string;
+  disabled: boolean;
+}
+
+// Model for DiscussionStatDTO, corresponding to Java's DiscussionStatDTO
+export interface DiscussionStatDTO {
+  commentCount?: number;
+  viewCount?: number;
+  lastViewed?: Date | string | null; // Date for client-side, string if received as ISO string
+  thumbnailCount?: number;
+  attachmentCount?: number;
+  lastComment?: CommentInfoDTO | null;
+  commentors?: { [key: string]: number } | null; // Equivalent to Map<String, Integer>
+}
+
+// Model for DiscussionDTO, corresponding to Java's DiscussionDTO
+export interface DiscussionDTO {
+  id?: number; // Assuming id can be optional
+  title: string;
+  tags?: TagDTO[] | null; // Array of TagDTO
+  stat?: DiscussionStatDTO | null; // Reference to DiscussionStatDTO
+}
 
 // Model for the registration payload (matches SignUpRequest without confirmPassword)
 export interface RegistrationPayload {

@@ -1,9 +1,6 @@
 package com.github.chipolaris.bootforum2.rest;
 
-import com.github.chipolaris.bootforum2.dto.ApiResponse;
-import com.github.chipolaris.bootforum2.dto.ForumCreateDTO;
-import com.github.chipolaris.bootforum2.dto.ForumDTO;
-import com.github.chipolaris.bootforum2.dto.ForumUpdateDTO;
+import com.github.chipolaris.bootforum2.dto.*;
 import com.github.chipolaris.bootforum2.service.ForumService;
 import com.github.chipolaris.bootforum2.service.ServiceResponse;
 import jakarta.validation.Valid;
@@ -116,6 +113,24 @@ public class ForumController {
         catch (Exception e) {
             logger.error(String.format("Unexpected error updating forum with ID %d", id), e);
             return ApiResponse.error(String.format("An unexpected error occurred during updating forum: %s", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/public/view/forums/{id}")
+    public ApiResponse<?> getForumView(@PathVariable Long id) {
+
+        try {
+            ServiceResponse<ForumViewDTO> serviceResponse = forumService.getForumView(id);
+
+            if (serviceResponse.getAckCode() == ServiceResponse.AckCodeType.FAILURE) {
+                return ApiResponse.error(String.format("Forum with ID %d not found.", id));
+            }
+            else {
+                return ApiResponse.success(serviceResponse.getDataObject(), "Forum retrieved successfully");
+            }
+        } catch (Exception e) {
+            logger.error(String.format("Error retrieving forum with ID %d", id), e);
+            return ApiResponse.error(String.format("An unexpected error occurred while retrieving forum: %s", e.getMessage()));
         }
     }
 }

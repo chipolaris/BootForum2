@@ -3,6 +3,7 @@ import { HomeComponent } from './home/home.component';
 import { UnauthorizedComponent } from './unauthorized/unauthorized.component';
 import { ResourceNotFoundComponent } from './resource-not-found/resource-not-found.component';
 import { ForumTreeTableComponent } from './forum-tree-table/forum-tree-table.component';
+import { ForumViewComponent } from './forum-view/forum-view.component';
 import { ForumGroupCreateComponent } from './admin/forum-group-create/forum-group-create.component';
 import { ForumGroupEditComponent } from './admin/forum-group-edit/forum-group-edit.component';
 import { ForumStructureTreeComponent } from './admin/forum-structure-tree/forum-structure-tree.component';
@@ -26,6 +27,7 @@ export const routes: Routes = [
     path: 'app/admin/forum-structure', component: ForumStructureTreeComponent, canActivate: [authGuard],
     data: { roles: ['ADMIN'] }
   },
+  { path: 'app/forums/:id/view', component: ForumViewComponent },
   {
     path: 'app/admin/forum-group-create', component: ForumGroupCreateComponent, canActivate: [authGuard],
     data: { roles: ['ADMIN'] }
