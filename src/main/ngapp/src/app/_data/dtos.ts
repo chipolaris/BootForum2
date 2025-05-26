@@ -3,8 +3,6 @@ export interface DiscussionCreateDTO {
   forumId: number;
   title: string;
   comment: string;
-  //images: FileList | null;
-  //attachments: FileList | null;
 }
 
 // Model for the forum creation payload
@@ -16,10 +14,8 @@ export interface ForumDTO {
   iconColor: string;
   active: boolean;
   stat: ForumStatDTO;
-  // TODO: figure with one to add parentGroupId/forumGroupId
 }
 
-// Long id, CommentInfoDTO lastComment, long commentCount, long discussionCount
 export interface ForumStatDTO {
   id?: number;
   lastComment: CommentInfoDTO;
@@ -27,7 +23,6 @@ export interface ForumStatDTO {
   discussionCount: number;
 }
 
-// Long id, String title, String contentAbbr, Long commentId, String commentor, LocalDateTime commentDate
 export interface CommentInfoDTO {
   id?: number;
   title: string;
@@ -87,9 +82,22 @@ export interface ForumTreeTableDTO {
     forumGroups?: ForumGroupDTO[] | null;
 }
 
+export interface Page<T> {
+  content: T[];          // The actual data for the current page
+  totalElements: number; // Total number of items across all pages
+  totalPages: number;    // Total number of pages
+  number: number;        // Current page number (usually 0-indexed from backend)
+  size: number;          // Number of items per page
+  first: boolean;        // True if this is the first page
+  last: boolean;         // True if this is the last page
+  numberOfElements: number; // Number of elements in the current page
+  empty: boolean;        // True if the content array is empty
+}
+
 export interface ForumViewDTO {
   forumDTO: ForumDTO;
-  discussionDTOs: DiscussionDTO[];
+  // discussionDTOs: DiscussionDTO[]; // Old way
+  discussionsPage: Page<DiscussionDTO>; // New: Paginated discussions
 }
 
 // Model for TagDTO, corresponding to Java's TagDTO
@@ -123,6 +131,8 @@ export interface DiscussionStatDTO {
 // Model for DiscussionDTO, corresponding to Java's DiscussionDTO
 export interface DiscussionDTO {
   id?: number; // Assuming id can be optional
+  createDate: Date;
+  createBy: string;
   title: string;
   tags?: TagDTO[] | null; // Array of TagDTO
   stat?: DiscussionStatDTO | null; // Reference to DiscussionStatDTO

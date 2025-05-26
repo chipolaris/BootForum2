@@ -1,6 +1,6 @@
 package com.github.chipolaris.bootforum2.service;
 
-import com.github.chipolaris.bootforum2.dao.GenericDAO;
+import com.github.chipolaris.bootforum2.dao.*;
 import com.github.chipolaris.bootforum2.domain.*;
 import com.github.chipolaris.bootforum2.dto.DiscussionCreateDTO;
 import com.github.chipolaris.bootforum2.dto.DiscussionDTO;
@@ -9,6 +9,9 @@ import com.github.chipolaris.bootforum2.mapper.DiscussionMapper;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,10 +21,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class DiscussionService {
@@ -29,17 +30,20 @@ public class DiscussionService {
     private static final Logger logger = LoggerFactory.getLogger(DiscussionService.class);
 
     private final GenericDAO genericDAO;
+    private final DynamicDAO dynamicDAO;
     private final DiscussionMapper discussionMapper;
     private final FileStorageService fileStorageService;
     private final FileInfoMapper fileInfoMapper; // To map FileInfoDTO from FileStorageService to FileInfo entity
     private final AuthenticationFacade authenticationFacade;
 
     public DiscussionService(GenericDAO genericDAO,
+                                 DynamicDAO dynamicDAO,
                                  DiscussionMapper discussionMapper,
                                  FileStorageService fileStorageService,
                                  FileInfoMapper fileInfoMapper,
                                  AuthenticationFacade authenticationFacade) {
         this.genericDAO = genericDAO;
+        this.dynamicDAO = dynamicDAO;
         this.discussionMapper = discussionMapper;
         this.fileStorageService = fileStorageService;
         this.fileInfoMapper = fileInfoMapper;
@@ -192,4 +196,50 @@ public class DiscussionService {
         }
         return fileInfos;
     }
+
+    public ServiceResponse<Page<DiscussionDTO>> findPaginatedDiscussions(
+            long forumId, Pageable pageable) {
+
+        ServiceResponse<Page<DiscussionDTO>> response = new ServiceResponse<>();
+
+        try {
+            // Fetch total elements for pagination
+            QuerySpec countQuerySpec = QuerySpec.builder(Discussion.class)
+                    .filter(FilterSpec.eq("forum.id", forumId))
+                    .build();
+
+            long totalElements = dynamicDAO.count(countQuerySpec);
+
+            // Fetch discussions with pagination
+            // Assuming page is 1-indexed from the client, convert to 0-indexed for QuerySpec if needed
+            // Or adjust QuerySpec to handle 1-indexed page directly.
+            int page = pageable.getPageNumber();
+            int size = pageable.getPageSize();
+            int startIndex = page * size;
+
+            QuerySpec querySpec = QuerySpec.builder(Discussion.class)
+                    .filter(FilterSpec.eq("forum.id", forumId))
+                    .startIndex(startIndex).maxResult(size)
+                    .order(OrderSpec.desc("stat.lastComment.commentDate"))
+                    .build();
+
+            List<Discussion> discussions = dynamicDAO.find(querySpec);
+
+            List<DiscussionDTO> discussionDTOs = discussions.stream()
+                    .map(discussionMapper::toDiscussionDTO)
+                    .collect(Collectors.toList());
+
+            Page<DiscussionDTO> pageResult = new PageImpl<>(discussionDTOs, pageable, totalElements);
+
+            response.setDataObject(pageResult).addMessage("Fetched discussions for forum: " + forumId);
+        }
+        catch (Exception e) {
+            logger.error("Error fetching discussions for forum: " + forumId, e);
+            response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
+                .addMessage("An unexpected error occurred while fetching discussions for forum: " + forumId);
+        }
+
+        return response;
+    }
+
 }

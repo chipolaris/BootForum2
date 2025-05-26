@@ -25,6 +25,22 @@ public record FilterSpec(
         return new FilterSpec(field, Operator.NE, value, null);
     }
 
+    public static FilterSpec gt(String field, Object value) {
+        return new FilterSpec(field, Operator.GT, value, null);
+    }
+
+    public static FilterSpec gte(String field, Object value) {
+        return new FilterSpec(field, Operator.GTE, value, null);
+    }
+
+    public static FilterSpec lt(String field, Object value) {
+        return new FilterSpec(field, Operator.LT, value, null);
+    }
+
+    public static FilterSpec lte(String field, Object value) {
+        return new FilterSpec(field, Operator.LTE, value, null);
+    }
+
     public static FilterSpec between(String field, Object valueFrom, Object valueTo) {
         return new FilterSpec(field, Operator.BETWEEN, valueFrom, valueTo);
     }

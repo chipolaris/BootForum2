@@ -1,32 +1,31 @@
 <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-  <!-- Loading State -->
-  <div *ngIf="isLoading" class="flex justify-center items-center py-10">
+  <!-- Loading State for Forum Details -->
+  <div *ngIf="isLoadingForum && !forumDetails" class="flex justify-center items-center py-10">
     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
     <p class="ml-3 text-lg text-gray-600">Loading forum details...</p>
   </div>
 
-  <!-- Error Message -->
-  <div *ngIf="errorMessage && !isLoading" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md mb-6" role="alert">
-    <p class="font-bold">Error</p>
-    <p>{{ errorMessage }}</p>
+  <!-- Error Message for Forum Details -->
+  <div *ngIf="forumErrorMessage && !isLoadingForum" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md mb-6" role="alert">
+    <p class="font-bold">Error Loading Forum</p>
+    <p>{{ forumErrorMessage }}</p>
   </div>
 
-  <!-- Forum Data Display -->
-  <div *ngIf="forumViewData && !isLoading && !errorMessage">
+  <!-- Forum Data Display (Show only if forumDetails are loaded successfully) -->
+  <div *ngIf="forumDetails && !isLoadingForum && !forumErrorMessage">
     <!-- Forum Banner -->
     <header class="bg-slate-100 dark:bg-slate-800 p-6 rounded-lg shadow-lg mb-8">
       <div class="flex items-center">
-        <!-- Icon: Ensure your DTO's icon field contains CSS classes like 'fas fa-comments' or similar -->
-        <span *ngIf="forumViewData.forumDTO.icon"
+        <span *ngIf="forumDetails.icon"
               class="text-4xl mr-4"
-              [ngClass]="forumViewData.forumDTO.icon"
-              [style.color]="forumViewData.forumDTO.iconColor || 'inherit'"
+              [ngClass]="forumDetails.icon"
+              [style.color]="forumDetails.iconColor || 'inherit'"
               aria-hidden="true">
         </span>
         <div>
-          <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-100">{{ forumViewData.forumDTO.title }}</h1>
-          <p *ngIf="forumViewData.forumDTO.description" class="text-slate-600 dark:text-slate-300 mt-1 text-md">
-            {{ forumViewData.forumDTO.description }}
+          <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-100">{{ forumDetails.title }}</h1>
+          <p *ngIf="forumDetails.description" class="text-slate-600 dark:text-slate-300 mt-1 text-md">
+            {{ forumDetails.description }}
           </p>
         </div>
       </div>
@@ -34,13 +33,11 @@
 
     <!-- Discussions Section -->
     <section>
-
-      <!-- Flex container for H2 and Button -->
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-200">Discussions</h2>
-        <!-- Moved Action Button Here -->
-        <a *ngIf="forumViewData.forumDTO.id"
-           [routerLink]="['/app/discussions/create', forumViewData.forumDTO.id]"
+        <!-- Create New Discussion button uses forumDetails.id -->
+        <a *ngIf="forumDetails.id"
+           [routerLink]="['/app/discussions/create', forumDetails.id]"
            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
           <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
@@ -49,29 +46,35 @@
         </a>
       </div>
 
-      <div *ngIf="forumViewData.discussionDTOs && forumViewData.discussionDTOs.length > 0; else noDiscussions"
+      <!-- Loading State for Discussions Page -->
+      <div *ngIf="isLoadingDiscussions" class="flex justify-center items-center py-6">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <p class="ml-2 text-gray-600">Loading discussions...</p>
+      </div>
+
+      <!-- Error Message for Discussions -->
+      <div *ngIf="discussionsErrorMessage && !isLoadingDiscussions" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md my-4" role="alert">
+        <p class="font-bold">Error Loading Discussions</p>
+        <p>{{ discussionsErrorMessage }}</p>
+      </div>
+
+      <!-- Tailwind CSS Table -->
+      <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300 mt-6 mb-3">Tailwind CSS Table</h3>
+      <div *ngIf="!isLoadingDiscussions && !discussionsErrorMessage && discussionsPage && discussionsPage.content.length > 0; else noDiscussionsTailwind"
            class="overflow-x-auto bg-white dark:bg-slate-700 shadow-md rounded-lg">
+        <!-- Table content remains the same, using discussionsPage.content -->
         <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-600">
           <thead class="bg-gray-50 dark:bg-slate-600">
           <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-              Title
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-              Comments
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-              Views
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-              Last Comment
-            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Title</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Comments</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Views</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Last Comment</th>
           </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 dark:divide-slate-600">
-          <tr *ngFor="let discussion of forumViewData.discussionDTOs" class="hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors duration-150">
+          <tr *ngFor="let discussion of discussionsPage.content" class="hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors duration-150">
             <td class="px-6 py-4 whitespace-nowrap">
-              <!-- You might want to make this a link to the discussion view later -->
               <div class="text-sm font-medium text-gray-900 dark:text-white">{{ discussion.title }}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
@@ -89,12 +92,119 @@
           </tbody>
         </table>
       </div>
-      <ng-template #noDiscussions>
-        <div class="bg-blue-50 dark:bg-slate-700 border border-blue-200 dark:border-slate-600 text-blue-700 dark:text-blue-300 px-4 py-3 rounded-md shadow" role="status">
-          <p>No discussions have been started in this forum yet.</p>
+      <ng-template #noDiscussionsTailwind>
+        <div *ngIf="!isLoadingDiscussions && !discussionsErrorMessage" class="bg-blue-50 dark:bg-slate-700 border border-blue-200 dark:border-slate-600 text-blue-700 dark:text-blue-300 px-4 py-3 rounded-md shadow" role="status">
+          <p>No discussions have been started in this forum yet (Tailwind Table).</p>
         </div>
       </ng-template>
+
+      <!-- Spacer -->
+      <hr class="my-8 border-gray-300 dark:border-slate-600">
+
+      <!-- New PrimeNG Table -->
+      <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300 mt-6 mb-3">PrimeNG Table (Styled with Tailwind)</h3>
+      <!-- Apply Tailwind classes to the wrapper div, similar to the other table -->
+      <div *ngIf="!isLoadingDiscussions && !discussionsErrorMessage && discussionsPage && discussionsPage.content.length > 0; else noDiscussionsPrimeNG"
+           class="overflow-x-auto bg-white dark:bg-slate-700 shadow-md rounded-lg">
+        <p-table [value]="discussionsPage.content"
+                 tableStyleClass="min-w-full divide-y divide-gray-200 dark:divide-slate-600"
+                 responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <!-- Apply Tailwind classes to the thead equivalent if PrimeNG allows, or to tr/th directly -->
+            <tr class="bg-gray-50 dark:bg-slate-600">
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Title</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Comments</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Views</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Started On</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Last Comment</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-discussion>
+            <!-- Apply Tailwind classes to tr for hover effects and tbody's divide-y (handled by tableStyleClass on p-table for tbody) -->
+            <tr class="hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors duration-150">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900 dark:text-white">{{ discussion.title }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                {{ discussion.stat?.commentCount ?? 'N/A' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                {{ discussion.stat?.viewCount ?? 'N/A' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                {{ discussion.createDate | date:'mediumDate' }} at {{ discussion.createDate | date:'shortTime' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                <ng-container *ngIf="discussion.stat?.lastComment?.commentDate; else noLastCommentDate">
+                  {{ discussion.stat?.lastComment?.commentDate | date:'mediumDate' }} at {{ discussion.stat?.lastComment?.commentDate | date:'shortTime' }}
+                </ng-container>
+                <ng-template #noLastCommentDate>N/A</ng-template>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-300">
+                No discussions have been started in this forum yet.
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+      <ng-template #noDiscussionsPrimeNG>
+        <div *ngIf="!isLoadingDiscussions && !discussionsErrorMessage" class="bg-blue-50 dark:bg-slate-700 border border-blue-200 dark:border-slate-600 text-blue-700 dark:text-blue-300 px-4 py-3 rounded-md shadow" role="status">
+          <p>No discussions have been started in this forum yet (PrimeNG Table).</p>
+        </div>
+      </ng-template>
+
+      <!-- Pagination Controls -->
+      <nav *ngIf="!isLoadingDiscussions && !discussionsErrorMessage && discussionsPage && discussionsPage.totalPages > 1"
+           class="mt-6 flex items-center justify-between border-t border-gray-200 dark:border-slate-600 px-4 py-3 sm:px-6"
+           aria-label="Pagination">
+        <!-- Pagination controls remain the same, using discussionsPage -->
+        <div class="hidden sm:block">
+          <p class="text-sm text-gray-700 dark:text-gray-300">
+            Showing
+            <span class="font-medium">{{ discussionsPage.number * discussionsPage.size + 1 }}</span>
+            to
+            <span class="font-medium">{{ discussionsPage.number * discussionsPage.size + discussionsPage.numberOfElements }}</span>
+            of
+            <span class="font-medium">{{ discussionsPage.totalElements }}</span>
+            results
+          </p>
+        </div>
+        <div class="flex-1 flex justify-between sm:justify-end items-center space-x-2">
+          <label for="pageSize" class="text-sm text-gray-700 dark:text-gray-300 mr-2">Items per page:</label>
+          <select id="pageSize" [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)" name="pageSizeSelect"
+                  class="px-2 py-1 border border-gray-300 rounded-md text-sm dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+          </select>
+
+          <button (click)="goToPage(currentPage - 1)"
+                  [disabled]="discussionsPage.first || isLoadingDiscussions"
+                  class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 dark:hover:bg-slate-600">
+            Previous
+          </button>
+          <ng-container *ngFor="let pageNum of getPageNumbers()">
+            <button *ngIf="pageNum !== -1"
+                    (click)="goToPage(pageNum)"
+                    [disabled]="isLoadingDiscussions"
+                    [ngClass]="{'z-10 bg-indigo-50 border-indigo-500 text-indigo-600 dark:bg-indigo-600 dark:text-white dark:border-indigo-500': pageNum === currentPage, 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 dark:hover:bg-slate-600': pageNum !== currentPage}"
+                    class="relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+              {{ pageNum + 1 }}
+            </button>
+            <span *ngIf="pageNum === -1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500">...</span>
+          </ng-container>
+          <button (click)="goToPage(currentPage + 1)"
+                  [disabled]="discussionsPage.last || isLoadingDiscussions"
+                  class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 dark:hover:bg-slate-600">
+            Next
+          </button>
+        </div>
+      </nav>
     </section>
   </div>
-
 </div>

@@ -18,8 +18,7 @@ public class QuerySpec {
     private String targetPath;
     private Integer startIndex;
     private Integer maxResult;
-    private String sortField;
-    private Boolean sortDesc;
+    private OrderSpec order;
     private List<FilterSpec> filters;
 
     public Class getTargetEntity() {
@@ -57,18 +56,12 @@ public class QuerySpec {
         this.maxResult = maxResult;
     }
 
-    public String getSortField() {
-        return sortField;
-    }
-    public void setSortField(String sortField) {
-        this.sortField = sortField;
+    public OrderSpec getOrder() {
+        return order;
     }
 
-    public Boolean getSortDesc() {
-        return sortDesc;
-    }
-    public void setSortDesc(Boolean sortDesc) {
-        this.sortDesc = sortDesc;
+    public void setOrder(OrderSpec order) {
+        this.order = order;
     }
 
     public List<FilterSpec> getFilters() {
@@ -118,13 +111,8 @@ public class QuerySpec {
             return this;
         }
 
-        public Builder<T> sortField(String sortField) {
-            querySpec.sortField = sortField;
-            return this;
-        }
-
-        public Builder<T> sortDesc(Boolean sortDesc) {
-            querySpec.sortDesc = sortDesc;
+        public Builder<T> order(OrderSpec order) {
+            querySpec.order = order;
             return this;
         }
 

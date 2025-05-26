@@ -116,8 +116,16 @@ public class ForumController {
         }
     }
 
+    /**
+     * Retrieves the view data for a specific forum, including its discussions, with pagination.
+     *
+     * @param id The ID of the forum to retrieve.
+     * @return ApiResponse containing ForumViewDTO with paginated discussions.
+     */
     @GetMapping("/public/forums/{id}")
     public ApiResponse<?> getForumView(@PathVariable Long id) {
+
+        logger.info(String.format("Fetching forum view for ID %d", id));
 
         try {
             ServiceResponse<ForumViewDTO> serviceResponse = forumService.getForumView(id);

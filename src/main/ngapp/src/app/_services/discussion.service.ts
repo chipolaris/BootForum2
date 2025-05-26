@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'; // Added HttpParams
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { ApiResponse, DiscussionDTO } from '../_data/dtos'; // Adjust path as needed
+import { ApiResponse, DiscussionDTO, Page } from '../_data/dtos'; // Adjust path as needed, Added Page
 
 @Injectable({
   providedIn: 'root'
@@ -26,6 +26,45 @@ export class DiscussionService {
             console.log('Discussion created successfully via service', response.data);
           } else {
             console.error('Discussion creation failed via service', response.message, response.errors);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Fetches a paginated and sorted list of discussions.
+   * @param forumId Optional ID of the forum to filter discussions.
+   * @param page The page number to retrieve (0-indexed).
+   * @param size The number of discussions per page.
+   * @param sortProperty The property to sort by.
+   * @param sortDirection The direction of sorting ('ASC' or 'DESC').
+   * @returns An Observable of ApiResponse containing a Page of DiscussionDTOs.
+   */
+  listDiscussions(
+    forumId?: number | null,
+    page: number = 0,
+    size: number = 10,
+    sortProperty: string = 'stat.lastComment.commentDate', // Default sort
+    sortDirection: string = 'DESC' // Default direction
+  ): Observable<ApiResponse<Page<DiscussionDTO>>> {
+
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', `${sortProperty},${sortDirection}`); // Backend expects 'sort=property,direction'
+
+    if (forumId !== null && forumId !== undefined) {
+      params = params.append('forumId', forumId.toString());
+    }
+
+    return this.http.get<ApiResponse<Page<DiscussionDTO>>>(`${this.baseApiUrl}/list`, { params })
+      .pipe(
+        tap(response => {
+          if (response.success) {
+            console.log('Discussions listed successfully via service', response.data);
+          } else {
+            console.error('Failed to list discussions via service', response.message, response.errors);
           }
         }),
         catchError(this.handleError)

@@ -54,11 +54,11 @@ public class DynamicDAO {
         }
 
         // if sortField is specified, apply sorting to the query
-        String sortField = querySpec.getSortField();
-        if(sortField != null && !sortField.isBlank()) {
-            criteriaQuery.orderBy(Boolean.TRUE.equals(querySpec.getSortDesc()) ?
-                    criteriaBuilder.desc(resolvePath(root, sortField)) :
-                    criteriaBuilder.asc(resolvePath(root, sortField))
+        OrderSpec orderSpec = querySpec.getOrder();
+        if(orderSpec != null) {
+            criteriaQuery.orderBy(orderSpec.ascending() ?
+                    criteriaBuilder.asc(resolvePath(root, orderSpec.field())) :
+                    criteriaBuilder.desc(resolvePath(root, orderSpec.field()))
             );
         }
 
@@ -105,11 +105,11 @@ public class DynamicDAO {
 
         // if sortField is specified, apply sorting to the query
         // Sorting is still relevant as you might want the "first" by a certain order.
-        String sortField = querySpec.getSortField();
-        if (sortField != null && !sortField.isBlank()) {
-            criteriaQuery.orderBy(Boolean.TRUE.equals(querySpec.getSortDesc()) ?
-                    criteriaBuilder.desc(resolvePath(root, sortField)) :
-                    criteriaBuilder.asc(resolvePath(root, sortField))
+        OrderSpec orderSpec = querySpec.getOrder();
+        if(orderSpec != null) {
+            criteriaQuery.orderBy(orderSpec.ascending() ?
+                    criteriaBuilder.asc(resolvePath(root, orderSpec.field())) :
+                    criteriaBuilder.desc(resolvePath(root, orderSpec.field()))
             );
         }
 

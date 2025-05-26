@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { ForumDTO, ForumCreateDTO, ForumUpdateDTO, ApiResponse, ForumViewDTO } from '../_data/dtos'; // Ensure ApiResponse is imported
@@ -12,7 +12,6 @@ export class ForumService {
   // Base URL for forum operations, adjust if your admin path is different for get/update
   private baseAdminApiUrl = '/api/admin/forums';
   private publicForumViewApiUrl = '/api/public/forums';
-
 
   createForum(payload: ForumCreateDTO): Observable<ApiResponse<ForumDTO>> {
     return this.http.post<ApiResponse<ForumDTO>>(`${this.baseAdminApiUrl}/create`, payload)
@@ -71,13 +70,18 @@ export class ForumService {
   }
 
   /**
+   * Deprecated method.
    * Retrieves the view data for a specific forum, including its discussions.
    * Corresponds to ForumController.getForumView() on the backend.
    * @param id The ID of the forum to retrieve.
    * @returns An Observable of ApiResponse containing ForumViewDTO.
    */
-  getForumView(id: number): Observable<ApiResponse<ForumViewDTO>> {
-    return this.http.get<ApiResponse<ForumViewDTO>>(`${this.publicForumViewApiUrl}/${id}`)
+  getForumView(id: number, page: number = 0, size: number = 10): Observable<ApiResponse<ForumViewDTO>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    return this.http.get<ApiResponse<ForumViewDTO>>(`${this.publicForumViewApiUrl}/${id}`, { params })
       .pipe(
         tap(response => {
           if (response.success) {

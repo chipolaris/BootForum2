@@ -2,6 +2,7 @@ package com.github.chipolaris.bootforum2.service;
 
 import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.dao.DynamicDAO;
+import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.Forum;
 import com.github.chipolaris.bootforum2.domain.ForumGroup;
 import com.github.chipolaris.bootforum2.dto.ForumCreateDTO;
@@ -114,7 +115,7 @@ public class ForumService {
     }
 
     @Transactional(readOnly = true)
-    public ServiceResponse<ForumViewDTO> getForumView(Long id) {
+    public ServiceResponse<ForumViewDTO> getForumView(long id) {
         ServiceResponse<ForumViewDTO> response = new ServiceResponse<>();
 
         Forum forum = genericDAO.find(Forum.class, id);

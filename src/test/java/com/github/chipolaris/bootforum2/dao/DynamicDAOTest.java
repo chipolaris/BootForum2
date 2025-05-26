@@ -38,7 +38,7 @@ class DynamicDAOTest {
     void testFind() {
 
         // test single filter
-        var filter = FilterSpec.of("name", FilterSpec.Operator.EQ, "Alice");
+        var filter = FilterSpec.eq("name", "Alice");
         QuerySpec querySpec = QuerySpec.builder(UserEntity.class).filter(filter).build();
 
         var results = dynamicDAO.<UserEntity>find(querySpec);
@@ -47,8 +47,8 @@ class DynamicDAOTest {
         assertEquals(30, results.get(0).getAge());
 
         // test multiple filters
-        var filter2 = FilterSpec.of("name", FilterSpec.Operator.EQ, "Alice");
-        var filter3 = FilterSpec.of("age", FilterSpec.Operator.GT, 30);
+        var filter2 = FilterSpec.eq("name","Alice");
+        var filter3 = FilterSpec.gt("age",30);
 
         querySpec = QuerySpec.builder(UserEntity.class).filter(filter2).filter(filter3).build();
         results = dynamicDAO.<UserEntity>find(querySpec);
@@ -70,7 +70,7 @@ class DynamicDAOTest {
         assertEquals(3, results);
 
         // test single filter
-        var filter = FilterSpec.of("age", FilterSpec.Operator.LTE, 30);
+        var filter = FilterSpec.lte("age", 30);
         querySpec = QuerySpec.builder(UserEntity.class).filter(filter).build();
         results = dynamicDAO.<UserEntity>count(querySpec);
         assertEquals(2, results);
@@ -80,36 +80,36 @@ class DynamicDAOTest {
     void testExists() {
         // Test case: Entity exists
         QuerySpec queryExists = QuerySpec.builder(UserEntity.class)
-                .filter(FilterSpec.of("name", FilterSpec.Operator.EQ, "Alice")).build();
+                .filter(FilterSpec.eq("name", "Alice")).build();
         assertTrue(dynamicDAO.exists(queryExists), "Optimized: Alice should exist");
 
         // Test case: Entity does not exist
         QuerySpec queryNotExists = QuerySpec.builder(UserEntity.class)
-                .filter(FilterSpec.of("name", FilterSpec.Operator.EQ, "Zelda")).build();
+                .filter(FilterSpec.eq("name", "Zelda")).build();
         assertFalse(dynamicDAO.exists(queryNotExists), "Optimized: Zelda should not exist");
 
         // Test case: Multiple filters, entity exists
         QuerySpec queryMultiFilterExists = QuerySpec.builder(UserEntity.class)
-                .filter(FilterSpec.of("name", FilterSpec.Operator.EQ, "Bob"))
-                .filter(FilterSpec.of("age", FilterSpec.Operator.EQ, 40)).build();
+                .filter(FilterSpec.eq("name","Bob"))
+                .filter(FilterSpec.eq("age", 40)).build();
         assertTrue(dynamicDAO.exists(queryMultiFilterExists), "Optimized: Bob with age 40 should exist");
 
         // Test case: Multiple filters, entity does not exist
         QuerySpec queryMultiFilterNotExists = QuerySpec.builder(UserEntity.class)
-                .filter(FilterSpec.of("name", FilterSpec.Operator.EQ, "Bob"))
-                .filter(FilterSpec.of("age", FilterSpec.Operator.EQ, 35)).build();
+                .filter(FilterSpec.eq("name",  "Bob"))
+                .filter(FilterSpec.eq("age", 35)).build();
         assertFalse(dynamicDAO.exists(queryMultiFilterNotExists), "Optimized: Bob with age 35 should not exist");
 
         // Test with targetPath (optimized version will select the targetPath if present, but still limit to 1)
         QuerySpec queryTargetPathExists = QuerySpec.builder(UserEntity.class)
                 .targetPath("status")
-                .filter(FilterSpec.of("name", FilterSpec.Operator.EQ, "Alice")).build();
+                .filter(FilterSpec.eq("name", "Alice")).build();
         assertTrue(dynamicDAO.exists(queryTargetPathExists), "Optimized: Status should exist for Alice");
 
         // Test with targetPath where path value is null
         QuerySpec queryTargetPathIsNull = QuerySpec.builder(UserEntity.class)
                 .targetPath("status")
-                .filter(FilterSpec.of("name", FilterSpec.Operator.EQ, "Charlie")).build();
+                .filter(FilterSpec.eq("name", "Charlie")).build();
         // isExistOptimized will find Charlie, and since status is a path, it will try to select it.
         // If the entity exists, getResultList() will not be empty, even if the selected value is null.
         assertTrue(dynamicDAO.exists(queryTargetPathIsNull),
@@ -172,14 +172,14 @@ class DynamicDAOTest {
 
     @Test
     void testSortingAndPagination() {
-        QuerySpec querySorting = QuerySpec.builder(UserEntity.class).sortField("age").sortDesc(true).build();
+        QuerySpec querySorting = QuerySpec.builder(UserEntity.class).order(OrderSpec.desc("age")).build();
         var results = dynamicDAO.<UserEntity>find(querySorting);
         assertEquals(3, results.size());
         assertEquals(40, results.get(0).getAge());
         assertEquals(30, results.get(1).getAge());
         assertEquals(25, results.get(2).getAge());
 
-        querySorting = QuerySpec.builder(UserEntity.class).sortField("age").sortDesc(false).build();
+        querySorting = QuerySpec.builder(UserEntity.class).order(OrderSpec.asc("age")).build();
         results = dynamicDAO.<UserEntity>find(querySorting);
         assertEquals(3, results.size());
         assertEquals(25, results.get(0).getAge());
@@ -190,13 +190,15 @@ class DynamicDAOTest {
         results = dynamicDAO.<UserEntity>find(queryPagination);
         assertEquals(2, results.size());
 
-        QuerySpec querySortingAndPagination = QuerySpec.builder(UserEntity.class).sortField("age").sortDesc(true).startIndex(0).maxResult(2).build();
+        QuerySpec querySortingAndPagination = QuerySpec.builder(UserEntity.class)
+                .order(OrderSpec.desc("age")).startIndex(0).maxResult(2).build();
         results = dynamicDAO.<UserEntity>find(querySortingAndPagination);
         assertEquals(2, results.size());
         assertEquals(40, results.get(0).getAge());
         assertEquals(30, results.get(1).getAge());
 
-        querySortingAndPagination = QuerySpec.builder(UserEntity.class).sortField("age").sortDesc(true).startIndex(2).maxResult(2).build();
+        querySortingAndPagination = QuerySpec.builder(UserEntity.class)
+                .order(OrderSpec.desc("age")).startIndex(2).maxResult(2).build();
         results = dynamicDAO.<UserEntity>find(querySortingAndPagination);
         assertEquals(1, results.size());
         assertEquals(25, results.get(0).getAge());
