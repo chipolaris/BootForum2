@@ -11,12 +11,11 @@ export class ForumService {
   private http = inject(HttpClient);
   // Base URL for forum operations, adjust if your admin path is different for get/update
   private baseAdminApiUrl = '/api/admin/forums';
-  private createApiUrl = '/api/admin/create-forum'; // Kept for createForum
-  private publicForumViewApiUrl = '/api/public/view/forums';
+  private publicForumViewApiUrl = '/api/public/forums';
 
 
   createForum(payload: ForumCreateDTO): Observable<ApiResponse<ForumDTO>> {
-    return this.http.post<ApiResponse<ForumDTO>>(this.createApiUrl, payload)
+    return this.http.post<ApiResponse<ForumDTO>>(`${this.baseAdminApiUrl}/create`, payload)
       .pipe(
         tap(response => {
           if (response.success) {
@@ -58,7 +57,7 @@ export class ForumService {
   }
 
   getAllForums(): Observable<ApiResponse<ForumDTO[]>> { // Expect an array of Forums
-    return this.http.get<ApiResponse<ForumDTO[]>>(this.baseAdminApiUrl)
+    return this.http.get<ApiResponse<ForumDTO[]>>(`${this.baseAdminApiUrl}/all`)
       .pipe(
         tap(response => {
           if (response.success) {

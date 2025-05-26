@@ -18,8 +18,8 @@ public class FileInfo extends BaseEntity {
     @GeneratedValue(strategy=GenerationType.TABLE, generator="FileInfoIdGenerator")
     private Long id;
 
-    @Column(name="DESCRIPTION", length=200)
-    private String description;
+    @Column(name="ORIGINAL_FILENAME", length=200)
+    private String originalFilename;
 
     @Column(name="MIME_TYPE", length=100)
     private String mimeType;
@@ -35,11 +35,11 @@ public class FileInfo extends BaseEntity {
         this.id = id;
     }
 
-    public String getDescription() {
-        return description;
+    public String getOriginalFilename() {
+        return originalFilename;
     }
-    public void setDescription(String description) {
-        this.description = description;
+    public void setOriginalFilename(String originalFilename) {
+        this.originalFilename = originalFilename;
     }
 
     public String getMimeType() {

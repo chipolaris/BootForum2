@@ -10,14 +10,13 @@ import { ForumGroupDTO, ForumGroupCreateDTO, ForumGroupUpdateDTO, ForumTreeTable
 export class ForumGroupService {
   private http = inject(HttpClient);
   private baseAdminApiUrl = '/api/admin/forum-groups';
-  private createApiUrl = '/api/admin/create-forum-group';
-  private rootForumGroupApiUrl = '/api/admin/root-forum-group';
+  private rootForumGroupApiUrl = '/api/admin/forum-groups/root';
   private forumTreeTableApiUrl = '/api/public/forum-tree-table';
 
   constructor() { }
 
   createForumGroup(payload: ForumGroupCreateDTO): Observable<ApiResponse<ForumGroupDTO>> {
-    return this.http.post<ApiResponse<ForumGroupDTO>>(this.createApiUrl, payload)
+    return this.http.post<ApiResponse<ForumGroupDTO>>(`${this.baseAdminApiUrl}/create`, payload)
       .pipe(
         tap(response => {
           if (response.success) {

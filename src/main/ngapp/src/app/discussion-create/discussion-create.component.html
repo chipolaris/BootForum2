@@ -1,0 +1,114 @@
+<div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+  <!-- Loading State for initial data fetch (forumId, forumTitle) -->
+  <div *ngIf="isLoading && !discussionForm" class="flex justify-center items-center py-10">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+    <p class="ml-3 text-lg text-gray-600">Loading discussion creator...</p>
+  </div>
+
+  <!-- General Error Display (e.g., if forumId is invalid) -->
+  <div *ngIf="generalError && !discussionForm" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md mb-6" role="alert">
+    <p class="font-bold">Error</p>
+    <p>{{ generalError }}</p>
+    <button (click)="onCancel()" class="mt-2 px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+      Go Back
+    </button>
+  </div>
+
+
+  <!-- Form Content (only show if not initial loading and no critical general error) -->
+  <div *ngIf="!isLoading || discussionForm"> <!-- Show form once initial loading is done or form is ready -->
+    <h2 class="text-2xl font-semibold mb-6 text-gray-800">
+      Create New Discussion <ng-container *ngIf="forumTitle">in "{{ forumTitle }}"</ng-container>
+    </h2>
+
+    <form *ngIf="discussionForm" [formGroup]="discussionForm" (ngSubmit)="onSubmit()" novalidate class="space-y-6 bg-white p-6 rounded-lg shadow-md">
+
+      <!-- Title -->
+      <div>
+        <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+        <input
+          type="text"
+          id="title"
+          formControlName="title"
+          required
+          class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          [ngClass]="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': submitted && f['title'].invalid }"
+          placeholder="Enter discussion title"
+        />
+        <div *ngIf="submitted && f['title'].errors" class="mt-1 text-xs text-red-600">
+          <span *ngIf="f['title'].errors['required']">Title is required.</span>
+          <span *ngIf="f['title'].errors['maxlength']">Title cannot exceed 150 characters.</span>
+        </div>
+      </div>
+
+      <!-- Comment / Content using Toast UI Editor -->
+      <div>
+        <label for="comment-editor" class="block text-sm font-medium text-gray-700 mb-1">Comment</label>
+        <div class="mt-1 border border-gray-300 rounded-md"
+             [ngClass]="{ 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500': submitted && commentError }">
+          <div #commentEditorRef></div>
+        </div>
+        <div *ngIf="submitted && commentError" class="mt-1 text-xs text-red-600">
+          <span>{{ commentError }}</span>
+        </div>
+      </div>
+
+      <!-- Image Upload -->
+      <div>
+        <label for="images" class="block text-sm font-medium text-gray-700 mb-1">Images (Optional)</label>
+        <input
+          type="file"
+          id="images"
+          multiple
+          accept="image/*"
+          (change)="onImageChange($event)"
+          class="block w-full text-sm text-gray-500 border border-gray-300 rounded-md cursor-pointer bg-gray-50 focus:outline-none file:bg-gray-100 file:border-0 file:px-3 file:py-2 file:mr-3 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200"
+        />
+        <div *ngIf="selectedImages && selectedImages.length > 0" class="mt-2 text-xs text-gray-600">
+          Selected Images: {{ selectedImages.length }} file(s)
+        </div>
+      </div>
+
+      <!-- Attachment Upload -->
+      <div>
+        <label for="attachments" class="block text-sm font-medium text-gray-700 mb-1">Attachments (Optional)</label>
+        <input
+          type="file"
+          id="attachments"
+          multiple
+          (change)="onAttachmentChange($event)"
+          class="block w-full text-sm text-gray-500 border border-gray-300 rounded-md cursor-pointer bg-gray-50 focus:outline-none file:bg-gray-100 file:border-0 file:px-3 file:py-2 file:mr-3 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200"
+        />
+        <div *ngIf="selectedAttachments && selectedAttachments.length > 0" class="mt-2 text-xs text-gray-600">
+          Selected Attachments: {{ selectedAttachments.length }} file(s)
+        </div>
+      </div>
+
+      <!-- General Error Display for submission errors -->
+      <div *ngIf="generalError && submitted" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 rounded-md text-sm" role="alert">
+        <p>{{ generalError }}</p>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="flex items-center justify-end space-x-4 pt-4">
+        <button type="button" (click)="onCancel()" [disabled]="isLoading"
+                class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer">
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          [disabled]="isLoading"
+          class="group relative flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+          <span class="absolute left-0 inset-y-0 flex items-center pl-3" *ngIf="isLoading">
+            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </span>
+          {{ isLoading ? 'Submitting...' : 'Create Discussion' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -21,7 +21,7 @@ public class ForumGroupController {
     @Autowired
     private ForumGroupService forumGroupService;
 
-    @PostMapping("/admin/create-forum-group")
+    @PostMapping("/admin/forum-groups/create")
     public ApiResponse<?> createForumGroup(@Valid @RequestBody ForumGroupCreateDTO forumGroupCreateDTO) {
         try {
             ServiceResponse<ForumGroupDTO> serviceResponse = forumGroupService.createForumGroup(forumGroupCreateDTO);
@@ -71,7 +71,7 @@ public class ForumGroupController {
      * @param forumGroupUpdateDTO The request body containing updated forum data.
      * @return ApiResponse containing the updated Forum or an error message.
      */
-    @PutMapping("/admin/forum-groups/{id}") // Path for updating a specific forum
+    @PutMapping("/admin/forum-groups/update/{id}") // Path for updating a specific forum
     public ApiResponse<?> updateForumGroup(@PathVariable Long id, @Valid @RequestBody ForumGroupUpdateDTO forumGroupUpdateDTO) {
 
         if(!Objects.equals(id, forumGroupUpdateDTO.id())) {
@@ -99,7 +99,7 @@ public class ForumGroupController {
      *
      * @return ApiResponse containing a list of Forums or an error message.
      */
-    @GetMapping("/admin/root-forum-group") // Path for retrieving all forums
+    @GetMapping("/admin/forum-groups/root") // Path for retrieving all forums
     public ApiResponse<?> getRootForumGroup() {
         try {
             ServiceResponse<ForumGroupDTO> serviceResponse = forumGroupService.getRootForumGroup();

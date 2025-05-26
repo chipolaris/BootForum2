@@ -22,7 +22,7 @@ public class ForumController {
     @Autowired
     private ForumService forumService;
 
-    @PostMapping("/admin/create-forum")
+    @PostMapping("/admin/forums/create")
     public ApiResponse<?> createForum(@Valid @RequestBody ForumCreateDTO forumCreateDTO) {
         try {
 
@@ -68,7 +68,7 @@ public class ForumController {
      *
      * @return ApiResponse containing a list of Forums or an error message.
      */
-    @GetMapping("/admin/forums")
+    @GetMapping("/admin/forums/all")
     public ApiResponse<?> getAllForums() {
         try {
             ServiceResponse<List<ForumDTO>> response = forumService.getAllForums();
@@ -116,7 +116,7 @@ public class ForumController {
         }
     }
 
-    @GetMapping("/public/view/forums/{id}")
+    @GetMapping("/public/forums/{id}")
     public ApiResponse<?> getForumView(@PathVariable Long id) {
 
         try {

@@ -102,6 +102,7 @@ public class SpringBootAngularApplication {
                             // Secure specific API endpoints
                             .requestMatchers(API_USER_PROFILE_PATH).authenticated() // Still requires authentication
                             .requestMatchers("/api/secured/**").hasAnyRole(SECURED_ROLES)
+                            .requestMatchers("/api/user/**").hasAnyRole(SECURED_ROLES)
                             .requestMatchers("/api/admin/**").hasAnyRole(ADMIN_ROLES)
                             // Any other request must be authenticated
                             .anyRequest().authenticated()

@@ -142,7 +142,7 @@ export class ForumCreateComponent implements OnInit {
     if (this.dialogRef) {
       this.dialogRef.close(); // Close dialog without data
     } else {
-      this.router.navigate(['/app/admin/forums']); // Fallback navigation
+      this.router.navigate(['/app/admin/forums/all']); // Fallback navigation
     }
   }
 }

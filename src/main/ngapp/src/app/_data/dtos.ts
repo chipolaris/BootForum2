@@ -1,11 +1,10 @@
 // Model for the create discussion payload
-export interface CreateDiscussionPayload {
+export interface DiscussionCreateDTO {
   forumId: number;
-  discussionId: number | null; // discussionId should be null initially
   title: string;
   comment: string;
-  images: FileList | null;
-  attachments: FileList | null;
+  //images: FileList | null;
+  //attachments: FileList | null;
 }
 
 // Model for the forum creation payload
@@ -100,6 +99,14 @@ export interface TagDTO {
   icon: string;
   iconColor: string;
   disabled: boolean;
+}
+
+// Model for FileInfoDTO, corresponding to Java's FileInfoDTO
+export interface FileInfoDTO {
+  id?: number; // Corresponds to Long id, optional as it might not be present before creation
+  originalFilename: string;
+  mimeType: string;
+  path: string;
 }
 
 // Model for DiscussionStatDTO, corresponding to Java's DiscussionStatDTO

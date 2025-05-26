@@ -101,12 +101,12 @@ public class SeedDataInitializer implements ApplicationRunner {
             // Seed Root Forum Groups
             if (seedData.forumGroups() != null && seedData.forumGroups().size() > 0) {
 
+                SeedForumGroup seedForumGroup = seedData.forumGroups().get(0);
+
                 QuerySpec forumGroupExistsQuery = QuerySpec.builder(ForumGroup.class)
                         // For root, parent is null
-                        .filter(FilterSpec.eq("parent", true))
+                        .filter(FilterSpec.isNull("parent"))
                         .build();
-
-                SeedForumGroup seedForumGroup = seedData.forumGroups().get(0);
 
                 if (!dynamicDAO.exists(forumGroupExistsQuery)) {
                     logger.info("Forum Group '{}' not found. Seeding forum group...", seedForumGroup.title());

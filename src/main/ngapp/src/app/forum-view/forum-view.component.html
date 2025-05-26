@@ -34,7 +34,21 @@
 
     <!-- Discussions Section -->
     <section>
-      <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-4">Discussions</h2>
+
+      <!-- Flex container for H2 and Button -->
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-200">Discussions</h2>
+        <!-- Moved Action Button Here -->
+        <a *ngIf="forumViewData.forumDTO.id"
+           [routerLink]="['/app/discussions/create', forumViewData.forumDTO.id]"
+           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+          Create New Discussion
+        </a>
+      </div>
+
       <div *ngIf="forumViewData.discussionDTOs && forumViewData.discussionDTOs.length > 0; else noDiscussions"
            class="overflow-x-auto bg-white dark:bg-slate-700 shadow-md rounded-lg">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-600">
