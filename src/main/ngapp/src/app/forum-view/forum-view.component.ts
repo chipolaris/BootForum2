@@ -41,6 +41,8 @@
       currentSortOrder: string = 'DESC';
       currentSortOrderNumber: number = -1;
 
+      displayablePageNumbers: number[] = []; // New property
+
       private subscriptions = new Subscription(); // Use a single Subscription to manage all
 
       private route = inject(ActivatedRoute);
@@ -146,21 +148,24 @@
                 }
               } else {
                 console.warn(`ForumViewComponent: Received invalid page number from backend: ${newPageNumber}. Keeping current page: ${this.currentPage}`);
-                // Optionally, reset to 0 if backend provides invalid page number
-                // this.currentPage = 0;
               }
+              // === UPDATE DISPLAYABLE PAGE NUMBERS HERE ===
+              this.displayablePageNumbers = this._calculateDisplayablePageNumbers();
             } else {
               this.discussionsErrorMessage = response.message || 'Failed to load discussions.';
               if (response.errors) {
                 console.error('Error details (discussions):', response.errors);
               }
+              // Also clear displayablePageNumbers on error or no data
+              this.displayablePageNumbers = [];
             }
             this.isLoadingDiscussions = false;
           },
           error: (err) => {
-            console.error(`ForumViewComponent: fetchDiscussions error for forumId: ${forumId}`, err);
-            this.discussionsErrorMessage = err.message || 'An unexpected error occurred while fetching discussions.';
+            // ... (existing error handling) ...
             this.isLoadingDiscussions = false;
+            // Also clear displayablePageNumbers on error
+            this.displayablePageNumbers = [];
           }
         });
         this.subscriptions.add(discussionsSub);
@@ -212,37 +217,35 @@
         }
       }
 
-      getPageNumbers(): number[] {
+      private _calculateDisplayablePageNumbers(): number[] {
+        // This logic is taken directly from your original getPageNumbers()
         if (
           !this.discussionsPage ||
           typeof this.discussionsPage.totalPages !== 'number' ||
           isNaN(this.discussionsPage.totalPages) ||
-          this.discussionsPage.totalPages <= 0 || // Changed from <=1 to <=0 if a single page shouldn't show numbers
+          this.discussionsPage.totalPages <= 0 ||
           typeof this.discussionsPage.number !== 'number' ||
           isNaN(this.discussionsPage.number)
         ) {
-          // If totalPages is 1, we might still want to hide pagination numbers,
-          // so adjust totalPages <= 0 or totalPages < 2 as per your UI preference for a single page.
-          // For now, if totalPages is 1, it will also return [], hiding numbered buttons.
           if (this.discussionsPage && typeof this.discussionsPage.totalPages === 'number' && this.discussionsPage.totalPages === 1) {
-            return []; // Explicitly return empty for a single page if no numbers needed
+            return [];
           }
-// Modify the console.warn line in getPageNumbers:
-console.warn(
-  'getPageNumbers: discussionsPage or its critical properties (totalPages, number) are invalid or indicate no pagination needed. Actual state at time of warning:',
-  JSON.stringify(this.discussionsPage || null) // Log a snapshot
-);          return [];
+          console.warn(
+            'calculateDisplayablePageNumbers: discussionsPage or its critical properties (totalPages, number) are invalid or indicate no pagination needed. Actual state at time of warning:',
+            JSON.stringify(this.discussionsPage || null)
+          );
+          return [];
         }
 
         const totalPages = this.discussionsPage.totalPages;
-        const currentPage = this.discussionsPage.number; // This is 0-indexed and validated above
+        const currentPageForCalc = this.discussionsPage.number; // Use number from discussionsPage
         const maxPagesToShow = 5;
         const pages: number[] = [];
 
         if (totalPages <= maxPagesToShow) {
           for (let i = 0; i < totalPages; i++) pages.push(i);
         } else {
-          let startPage = Math.max(0, currentPage - Math.floor(maxPagesToShow / 2));
+          let startPage = Math.max(0, currentPageForCalc - Math.floor(maxPagesToShow / 2));
           let endPage = Math.min(totalPages - 1, startPage + maxPagesToShow - 1);
 
           if (endPage - startPage + 1 < maxPagesToShow) {
@@ -260,7 +263,6 @@ console.warn(
         }
         return pages;
       }
-
 
       ngOnDestroy(): void {
         console.log('ForumViewComponent: ngOnDestroy called, unsubscribing.');

@@ -58,7 +58,7 @@
         <p>{{ discussionsErrorMessage }}</p>
       </div>
 
-      <div *ngIf="!isLoadingDiscussions && !discussionsErrorMessage && discussionsPage && discussionsPage.content.length > 0; else noDiscussionsPrimeNG"
+      <div *ngIf="!isLoadingDiscussions && !discussionsErrorMessage && discussionsPage && discussionsPage.content.length > 0; else noDiscussions"
            class="overflow-x-auto bg-white dark:bg-slate-700 shadow-md rounded-lg">
         <p-table [value]="discussionsPage.content"
                  tableStyleClass="min-w-full divide-y divide-gray-200 dark:divide-slate-600"
@@ -119,9 +119,9 @@
           </ng-template>
         </p-table>
       </div>
-      <ng-template #noDiscussionsPrimeNG>
+      <ng-template #noDiscussions>
         <div *ngIf="!isLoadingDiscussions && !discussionsErrorMessage" class="bg-blue-50 dark:bg-slate-700 border border-blue-200 dark:border-slate-600 text-blue-700 dark:text-blue-300 px-4 py-3 rounded-md shadow" role="status">
-          <p>No discussions have been started in this forum yet (PrimeNG Table).</p>
+          <p>No discussions have been started in this forum yet.</p>
         </div>
       </ng-template>
 
@@ -155,7 +155,7 @@
                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 dark:hover:bg-slate-600">
             Previous
           </button>
-          <ng-container *ngFor="let pageNum of getPageNumbers()">
+          <ng-container *ngFor="let pageNum of displayablePageNumbers">
             <button *ngIf="pageNum !== -1"
                     (click)="goToPage(pageNum)"
                     [disabled]="isLoadingDiscussions"
