@@ -1,31 +1,30 @@
 <!-- icon-picker.component.html -->
-<div class="inline-block text-left"> <!-- Removed 'relative' as OverlayPanel handles positioning -->
+<div class="inline-block text-left">
   <!-- Button to trigger the picker -->
   <div>
     <button
       type="button"
       (click)="togglePicker($event)"
-    class="inline-flex items-center justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-    aria-expanded="true"
-    aria-haspopup="true"
+      class="inline-flex items-center justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+      aria-expanded="true"
+      aria-haspopup="true"
     >
-    <!-- ... button content (selected icon, color swatch, chevron) ... -->
-    <ng-container *ngIf="selectedIconName; else noIconSelectedText">
-      <ng-icon [name]="selectedIconName" [style.color]="selectedColor" size="20" class="mr-2"></ng-icon>
-    </ng-container>
-    <ng-template #noIconSelectedText>
-      <span class="mr-2">Select Icon</span>
-    </ng-template>
-    <span class="inline-block w-5 h-5 rounded border border-gray-400" [style.backgroundColor]="selectedColor"></span>
-    <ng-icon name="heroChevronDown" size="20" class="ml-2 -mr-1 text-gray-400"></ng-icon>
+      <ng-container *ngIf="selectedIconName; else noIconSelectedText">
+        <ng-icon [name]="selectedIconName" [style.color]="selectedColor" size="20" class="mr-2"></ng-icon>
+      </ng-container>
+      <ng-template #noIconSelectedText>
+        <span class="mr-2">Select Icon</span>
+      </ng-template>
+      <span class="inline-block w-5 h-5 rounded border border-gray-400" [style.backgroundColor]="selectedColor"></span>
+      <ng-icon name="heroChevronDown" size="20" class="ml-2 -mr-1 text-gray-400"></ng-icon>
     </button>
   </div>
 
-  <!-- Picker Dropdown using p-overlayPanel -->
-  <p-overlayPanel #op [appendTo]="'body'" [showCloseIcon]="false" styleClass="p-0">
-    <!-- ^ Add p-0 if you want your padding -->
+  <!-- Picker Dropdown using p-popover -->
+  <!-- <p-overlayPanel #op [appendTo]="'body'" [showCloseIcon]="false" styleClass="p-0"> --> <!-- OLD -->
+  <p-popover #op [appendTo]="'body'" styleClass="p-0"> <!-- NEW, [showCloseIcon] removed -->
     <ng-template pTemplate="content">
-      <!-- This is your previous dropdown content -->
+      <!-- This is your previous dropdown content - IT REMAINS THE SAME -->
       <div
         class="w-72 rounded-md bg-white p-4 space-y-4"
         role="menu"
@@ -80,12 +79,13 @@
           <button
             type="button"
             (click)="closePicker()"
-          class="px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            class="px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-          Done
+            Done
           </button>
         </div>
       </div>
     </ng-template>
-  </p-overlayPanel>
+    <!-- </p-overlayPanel> --> <!-- OLD -->
+  </p-popover> <!-- NEW -->
 </div>

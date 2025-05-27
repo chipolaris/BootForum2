@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // Required for ngModel
 
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
-import { OverlayPanelModule, OverlayPanel } from 'primeng/overlaypanel';
+// import { OverlayPanelModule, OverlayPanel } from 'primeng/overlaypanel'; // REMOVE THIS
+import { PopoverModule, Popover } from 'primeng/popover'; // ADD THIS
 
 import { APP_PICKER_AVAILABLE_ICONS, APP_ICONS, AppIconDefinition } from '../shared/hero-icons';
 
@@ -15,9 +16,10 @@ export interface IconSelection {
 @Component({
   selector: 'app-icon-picker',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgIconComponent,OverlayPanelModule],
+  // imports: [CommonModule, FormsModule, NgIconComponent, OverlayPanelModule], // UPDATE THIS
+  imports: [CommonModule, FormsModule, NgIconComponent, PopoverModule], // UPDATED
   templateUrl: './icon-picker.component.html',
-  styleUrls: ['./icon-picker.component.css'], // Can be empty if all styles are Tailwind in HTML
+  styleUrls: ['./icon-picker.component.css'],
   providers: [
     provideIcons(APP_ICONS)
   ],
@@ -32,22 +34,23 @@ export class IconPickerComponent implements OnInit {
 
   selectedIconName: string | null = null;
   selectedColor: string = '#333333';
-  // isPickerOpen: boolean = false;
-  @ViewChild('op') overlayPanel!: OverlayPanel; // << For programmatic control if needed
+
+  // @ViewChild('op') overlayPanel!: OverlayPanel; // UPDATE THIS
+  @ViewChild('op') popover!: Popover; // UPDATED
 
   ngOnInit(): void {
     this.selectedIconName = this.initialIconName;
     this.selectedColor = this.initialColor;
   }
 
-  togglePicker(event: Event): void { // Event is needed for OverlayPanel toggle
-    // this.isPickerOpen = !this.isPickerOpen; // Old way
-    this.overlayPanel.toggle(event); // New way
+  togglePicker(event: Event): void {
+    // this.overlayPanel.toggle(event); // UPDATE THIS
+    this.popover.toggle(event); // UPDATED (event.target will be the button)
   }
 
   closePicker(): void {
-	  // this.isPickerOpen = false; // Old way
-	  this.overlayPanel.hide(); // New way
+	  // this.overlayPanel.hide(); // UPDATE THIS
+	  this.popover.hide(); // UPDATED
   }
 
   selectIcon(iconName: string): void {
@@ -64,8 +67,6 @@ export class IconPickerComponent implements OnInit {
   clearIcon(): void {
     this.selectedIconName = null;
     this.emitSelection();
-    // Optionally close picker or keep it open for color selection
-    // this.isPickerOpen = false;
   }
 
   emitSelection(): void {
