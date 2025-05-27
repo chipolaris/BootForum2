@@ -53,13 +53,15 @@ public class DynamicDAO {
             }
         }
 
-        // if sortField is specified, apply sorting to the query
-        OrderSpec orderSpec = querySpec.getOrder();
-        if(orderSpec != null) {
-            criteriaQuery.orderBy(orderSpec.ascending() ?
-                    criteriaBuilder.asc(resolvePath(root, orderSpec.field())) :
-                    criteriaBuilder.desc(resolvePath(root, orderSpec.field()))
-            );
+        // if orderSpecs are specified, apply sorting to the query
+        List<OrderSpec> orderSpecs = querySpec.getOrders();
+        if(orderSpecs != null && !orderSpecs.isEmpty()) {
+            List<Order> orders = orderSpecs.stream()
+                    .map(spec -> spec.ascending()
+                            ? criteriaBuilder.asc(resolvePath(root, spec.field()))
+                            : criteriaBuilder.desc(resolvePath(root, spec.field())))
+                    .toList();
+            criteriaQuery.orderBy(orders);
         }
 
         TypedQuery<E> typedQuery = entityManager.createQuery(criteriaQuery);
@@ -105,12 +107,14 @@ public class DynamicDAO {
 
         // if sortField is specified, apply sorting to the query
         // Sorting is still relevant as you might want the "first" by a certain order.
-        OrderSpec orderSpec = querySpec.getOrder();
-        if(orderSpec != null) {
-            criteriaQuery.orderBy(orderSpec.ascending() ?
-                    criteriaBuilder.asc(resolvePath(root, orderSpec.field())) :
-                    criteriaBuilder.desc(resolvePath(root, orderSpec.field()))
-            );
+        List<OrderSpec> orderSpecs = querySpec.getOrders();
+        if(orderSpecs != null && !orderSpecs.isEmpty()) {
+            List<Order> orders = orderSpecs.stream()
+                    .map(spec -> spec.ascending()
+                            ? criteriaBuilder.asc(resolvePath(root, spec.field()))
+                            : criteriaBuilder.desc(resolvePath(root, spec.field())))
+                    .toList();
+            criteriaQuery.orderBy(orders);
         }
 
         TypedQuery<E> typedQuery = entityManager.createQuery(criteriaQuery);

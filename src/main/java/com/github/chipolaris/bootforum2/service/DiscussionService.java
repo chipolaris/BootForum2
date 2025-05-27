@@ -5,6 +5,7 @@ import com.github.chipolaris.bootforum2.domain.*;
 import com.github.chipolaris.bootforum2.dto.DiscussionCreateDTO;
 import com.github.chipolaris.bootforum2.dto.DiscussionDTO;
 import com.github.chipolaris.bootforum2.dto.FileInfoDTO;
+import com.github.chipolaris.bootforum2.dto.PageResponseDTO;
 import com.github.chipolaris.bootforum2.mapper.DiscussionMapper;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
 import org.slf4j.Logger;
@@ -155,7 +156,6 @@ public class DiscussionService {
             }
             genericDAO.merge(forum);
 
-
             logger.info("Successfully created discussion '{}' with ID {}", discussion.getTitle(), discussion.getId());
 
             // 9. Map persisted Discussion to DTO for response
@@ -197,10 +197,10 @@ public class DiscussionService {
         return fileInfos;
     }
 
-    public ServiceResponse<Page<DiscussionDTO>> findPaginatedDiscussions(
+    public ServiceResponse<PageResponseDTO<DiscussionDTO>> findPaginatedDiscussions(
             long forumId, Pageable pageable) {
 
-        ServiceResponse<Page<DiscussionDTO>> response = new ServiceResponse<>();
+        ServiceResponse<PageResponseDTO<DiscussionDTO>> response = new ServiceResponse<>();
 
         try {
             // Fetch total elements for pagination
@@ -215,13 +215,15 @@ public class DiscussionService {
             // Or adjust QuerySpec to handle 1-indexed page directly.
             int page = pageable.getPageNumber();
             int size = pageable.getPageSize();
-            int startIndex = page * size;
+
+            List<OrderSpec> orderSpecs = pageable.getSort().stream().map(
+                    order -> order.getDirection().isAscending() ?
+                            OrderSpec.asc(order.getProperty()) : OrderSpec.desc(order.getProperty()))
+                    .collect(Collectors.toList());
 
             QuerySpec querySpec = QuerySpec.builder(Discussion.class)
                     .filter(FilterSpec.eq("forum.id", forumId))
-                    .startIndex(startIndex).maxResult(size)
-                    .order(OrderSpec.desc("stat.lastComment.commentDate"))
-                    .build();
+                    .startIndex(page * size).maxResult(size).orders(orderSpecs).build();
 
             List<Discussion> discussions = dynamicDAO.find(querySpec);
 
@@ -231,7 +233,8 @@ public class DiscussionService {
 
             Page<DiscussionDTO> pageResult = new PageImpl<>(discussionDTOs, pageable, totalElements);
 
-            response.setDataObject(pageResult).addMessage("Fetched discussions for forum: " + forumId);
+            response.setDataObject(PageResponseDTO.from(pageResult))
+                    .addMessage("Fetched discussions for forum: " + forumId);
         }
         catch (Exception e) {
             logger.error("Error fetching discussions for forum: " + forumId, e);

@@ -9,7 +9,8 @@ import { ApiResponse, DiscussionDTO, Page } from '../_data/dtos'; // Adjust path
 })
 export class DiscussionService {
   private http = inject(HttpClient);
-  private baseApiUrl = '/api/user/discussions'; // Matches your DiscussionController @RequestMapping
+  private baseUserApiUrl = '/api/user/discussions';
+  private basePublicApiUrl = '/api/public/discussions'; // Matches your DiscussionController @RequestMapping
 
   constructor() { }
 
@@ -19,7 +20,7 @@ export class DiscussionService {
    * @returns An Observable of ApiResponse containing the created DiscussionDTO.
    */
   createDiscussion(formData: FormData): Observable<ApiResponse<DiscussionDTO>> {
-    return this.http.post<ApiResponse<DiscussionDTO>>(`${this.baseApiUrl}/create`, formData)
+    return this.http.post<ApiResponse<DiscussionDTO>>(`${this.baseUserApiUrl}/create`, formData)
       .pipe(
         tap(response => {
           if (response.success) {
@@ -58,7 +59,7 @@ export class DiscussionService {
       params = params.append('forumId', forumId.toString());
     }
 
-    return this.http.get<ApiResponse<Page<DiscussionDTO>>>(`${this.baseApiUrl}/list`, { params })
+    return this.http.get<ApiResponse<Page<DiscussionDTO>>>(`${this.basePublicApiUrl}/list`, { params })
       .pipe(
         tap(response => {
           if (response.success) {

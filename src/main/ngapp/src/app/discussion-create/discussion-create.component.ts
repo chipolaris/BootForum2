@@ -76,10 +76,10 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
 
   private fetchForumTitleAndPrepareForm(): void {
     this.isLoading = true;
-    this.forumTitleSubscription = this.forumService.getForumView(this.forumId).subscribe({
+    this.forumTitleSubscription = this.forumService.getForumById(this.forumId).subscribe({
       next: (response) => {
-        if (response.success && response.data && response.data.forumDTO) {
-          this.forumTitle = response.data.forumDTO.title;
+        if (response.success && response.data) {
+          this.forumTitle = response.data.title;
         } else {
           console.warn('Could not fetch forum title or forum data is incomplete.');
         }

@@ -42,7 +42,7 @@
           <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
           </svg>
-          Create New Discussion
+          Start New Discussion
         </a>
       </div>
 
@@ -58,69 +58,35 @@
         <p>{{ discussionsErrorMessage }}</p>
       </div>
 
-      <!-- Tailwind CSS Table -->
-      <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300 mt-6 mb-3">Tailwind CSS Table</h3>
-      <div *ngIf="!isLoadingDiscussions && !discussionsErrorMessage && discussionsPage && discussionsPage.content.length > 0; else noDiscussionsTailwind"
-           class="overflow-x-auto bg-white dark:bg-slate-700 shadow-md rounded-lg">
-        <!-- Table content remains the same, using discussionsPage.content -->
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-600">
-          <thead class="bg-gray-50 dark:bg-slate-600">
-          <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Title</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Comments</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Views</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Last Comment</th>
-          </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200 dark:divide-slate-600">
-          <tr *ngFor="let discussion of discussionsPage.content" class="hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors duration-150">
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm font-medium text-gray-900 dark:text-white">{{ discussion.title }}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-              {{ discussion.stat?.commentCount ?? 'N/A' }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-              {{ discussion.stat?.viewCount ?? 'N/A' }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-              {{ discussion.stat?.lastComment?.commentDate | date:'mediumDate' }}
-              <span *ngIf="discussion.stat?.lastComment?.commentDate"> at {{ discussion.stat?.lastComment?.commentDate | date:'shortTime' }}</span>
-              <span *ngIf="!discussion.stat?.lastComment?.commentDate">N/A</span>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-      <ng-template #noDiscussionsTailwind>
-        <div *ngIf="!isLoadingDiscussions && !discussionsErrorMessage" class="bg-blue-50 dark:bg-slate-700 border border-blue-200 dark:border-slate-600 text-blue-700 dark:text-blue-300 px-4 py-3 rounded-md shadow" role="status">
-          <p>No discussions have been started in this forum yet (Tailwind Table).</p>
-        </div>
-      </ng-template>
-
-      <!-- Spacer -->
-      <hr class="my-8 border-gray-300 dark:border-slate-600">
-
-      <!-- New PrimeNG Table -->
-      <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300 mt-6 mb-3">PrimeNG Table (Styled with Tailwind)</h3>
-      <!-- Apply Tailwind classes to the wrapper div, similar to the other table -->
       <div *ngIf="!isLoadingDiscussions && !discussionsErrorMessage && discussionsPage && discussionsPage.content.length > 0; else noDiscussionsPrimeNG"
            class="overflow-x-auto bg-white dark:bg-slate-700 shadow-md rounded-lg">
         <p-table [value]="discussionsPage.content"
                  tableStyleClass="min-w-full divide-y divide-gray-200 dark:divide-slate-600"
-                 responsiveLayout="scroll">
+                 responsiveLayout="scroll"
+                 (onSort)="onSortChange($event)"
+                 [sortField]="currentSortField"
+                 [sortOrder]="currentSortOrderNumber"
+                 [customSort]="true">
           <ng-template pTemplate="header">
-            <!-- Apply Tailwind classes to the thead equivalent if PrimeNG allows, or to tr/th directly -->
             <tr class="bg-gray-50 dark:bg-slate-600">
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Title</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Comments</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Views</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Started On</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Last Comment</th>
+              <th scope="col" pSortableColumn="title" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                Title <p-sortIcon field="title"></p-sortIcon>
+              </th>
+              <th scope="col" pSortableColumn="stat.commentCount" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                Comments <p-sortIcon field="stat.commentCount"></p-sortIcon>
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                Views
+              </th>
+              <th scope="col" pSortableColumn="createDate" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                Started On <p-sortIcon field="createDate"></p-sortIcon>
+              </th>
+              <th scope="col" pSortableColumn="stat.lastComment.commentDate" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                Last Comment <p-sortIcon field="stat.lastComment.commentDate"></p-sortIcon>
+              </th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-discussion>
-            <!-- Apply Tailwind classes to tr for hover effects and tbody's divide-y (handled by tableStyleClass on p-table for tbody) -->
             <tr class="hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors duration-150">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm font-medium text-gray-900 dark:text-white">{{ discussion.title }}</div>
@@ -132,11 +98,13 @@
                 {{ discussion.stat?.viewCount ?? 'N/A' }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                {{ discussion.createDate | date:'mediumDate' }} at {{ discussion.createDate | date:'shortTime' }}
+                {{ discussion.createDate | date:'mediumDate' }}
+                <span *ngIf="discussion.createDate"> at {{ discussion.createDate | date:'shortTime' }}</span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                 <ng-container *ngIf="discussion.stat?.lastComment?.commentDate; else noLastCommentDate">
-                  {{ discussion.stat?.lastComment?.commentDate | date:'mediumDate' }} at {{ discussion.stat?.lastComment?.commentDate | date:'shortTime' }}
+                  {{ discussion.stat?.lastComment?.commentDate | date:'mediumDate' }}
+                  <span *ngIf="discussion.stat?.lastComment?.commentDate"> at {{ discussion.stat?.lastComment?.commentDate | date:'shortTime' }}</span>
                 </ng-container>
                 <ng-template #noLastCommentDate>N/A</ng-template>
               </td>
@@ -144,7 +112,7 @@
           </ng-template>
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-300">
+              <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-300">
                 No discussions have been started in this forum yet.
               </td>
             </tr>
@@ -158,7 +126,7 @@
       </ng-template>
 
       <!-- Pagination Controls -->
-      <nav *ngIf="!isLoadingDiscussions && !discussionsErrorMessage && discussionsPage && discussionsPage.totalPages > 1"
+      <nav *ngIf="!isLoadingDiscussions && !discussionsErrorMessage && discussionsPage"
            class="mt-6 flex items-center justify-between border-t border-gray-200 dark:border-slate-600 px-4 py-3 sm:px-6"
            aria-label="Pagination">
         <!-- Pagination controls remain the same, using discussionsPage -->
@@ -177,10 +145,9 @@
           <label for="pageSize" class="text-sm text-gray-700 dark:text-gray-300 mr-2">Items per page:</label>
           <select id="pageSize" [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)" name="pageSizeSelect"
                   class="px-2 py-1 border border-gray-300 rounded-md text-sm dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500">
+            <option [value]="2">2</option>
             <option [value]="5">5</option>
             <option [value]="10">10</option>
-            <option [value]="20">20</option>
-            <option [value]="50">50</option>
           </select>
 
           <button (click)="goToPage(currentPage - 1)"

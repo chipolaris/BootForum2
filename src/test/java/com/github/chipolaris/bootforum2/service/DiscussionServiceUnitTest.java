@@ -7,6 +7,7 @@ import com.github.chipolaris.bootforum2.domain.*;
 import com.github.chipolaris.bootforum2.dto.DiscussionCreateDTO;
 import com.github.chipolaris.bootforum2.dto.DiscussionDTO;
 import com.github.chipolaris.bootforum2.dto.FileInfoDTO;
+import com.github.chipolaris.bootforum2.dto.PageResponseDTO;
 import com.github.chipolaris.bootforum2.mapper.DiscussionMapper;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -209,18 +210,18 @@ class DiscussionServiceUnitTest {
         when(discussionMapper.toDiscussionDTO(eq(testDiscussion))).thenReturn(testDiscussionDTO);
 
         // Act
-        ServiceResponse<Page<DiscussionDTO>> response = discussionService.findPaginatedDiscussions(forumId, pageable);
+        ServiceResponse<PageResponseDTO<DiscussionDTO>> response = discussionService.findPaginatedDiscussions(forumId, pageable);
 
         // Assert
         assertNotNull(response);
         assertEquals(ServiceResponse.AckCodeType.SUCCESS, response.getAckCode());
         assertNotNull(response.getDataObject());
-        Page<DiscussionDTO> resultPage = response.getDataObject();
-        assertEquals(1, resultPage.getContent().size());
-        assertEquals(testDiscussionDTO, resultPage.getContent().get(0));
-        assertEquals(totalElements, resultPage.getTotalElements());
-        assertEquals(0, resultPage.getNumber()); // Page number should match request
-        assertEquals(10, resultPage.getSize());  // Page size should match request
+        PageResponseDTO<DiscussionDTO> resultPage = response.getDataObject();
+        assertEquals(1, resultPage.content().size());
+        assertEquals(testDiscussionDTO, resultPage.content().get(0));
+        assertEquals(totalElements, resultPage.totalElements());
+        assertEquals(0, resultPage.number()); // Page number should match request
+        assertEquals(10, resultPage.size());  // Page size should match request
 
         verify(dynamicDAO).count(any(QuerySpec.class));
         verify(dynamicDAO).find(any(QuerySpec.class));
@@ -241,17 +242,17 @@ class DiscussionServiceUnitTest {
         when(discussionMapper.toDiscussionDTO(eq(testDiscussion))).thenReturn(testDiscussionDTO);
 
         // Act
-        ServiceResponse<Page<DiscussionDTO>> response = discussionService.findPaginatedDiscussions(forumId, pageable);
+        ServiceResponse<PageResponseDTO<DiscussionDTO>> response = discussionService.findPaginatedDiscussions(forumId, pageable);
 
         // Assert
         assertNotNull(response);
         assertEquals(ServiceResponse.AckCodeType.SUCCESS, response.getAckCode());
-        Page<DiscussionDTO> resultPage = response.getDataObject();
+        PageResponseDTO<DiscussionDTO> resultPage = response.getDataObject();
         assertNotNull(resultPage);
-        assertEquals(1, resultPage.getContent().size()); // Assuming mock returns 1 for this page
-        assertEquals(totalElements, resultPage.getTotalElements());
-        assertEquals(1, resultPage.getNumber()); // Asserting the page number in the response
-        assertEquals(5, resultPage.getSize());   // Asserting the page size in the response
+        assertEquals(1, resultPage.content().size()); // Assuming mock returns 1 for this page
+        assertEquals(totalElements, resultPage.totalElements());
+        assertEquals(1, resultPage.number()); // Asserting the page number in the response
+        assertEquals(5, resultPage.size());   // Asserting the page size in the response
 
         // Verify QuerySpec startIndex was calculated correctly for page 1 (0-indexed)
         ArgumentCaptor<QuerySpec> querySpecCaptor = ArgumentCaptor.forClass(QuerySpec.class);
@@ -276,7 +277,7 @@ class DiscussionServiceUnitTest {
         when(dynamicDAO.count(any(QuerySpec.class))).thenThrow(new RuntimeException("DAO count error"));
 
         // Act
-        ServiceResponse<Page<DiscussionDTO>> response = discussionService.findPaginatedDiscussions(forumId, pageable);
+        ServiceResponse<PageResponseDTO<DiscussionDTO>> response = discussionService.findPaginatedDiscussions(forumId, pageable);
 
         // Assert
         assertNotNull(response);

@@ -11,7 +11,7 @@ export class ForumService {
   private http = inject(HttpClient);
   // Base URL for forum operations, adjust if your admin path is different for get/update
   private baseAdminApiUrl = '/api/admin/forums';
-  private publicForumViewApiUrl = '/api/public/forums';
+  private publicForumApiUrl = '/api/public/forums';
 
   createForum(payload: ForumCreateDTO): Observable<ApiResponse<ForumDTO>> {
     return this.http.post<ApiResponse<ForumDTO>>(`${this.baseAdminApiUrl}/create`, payload)
@@ -28,7 +28,7 @@ export class ForumService {
   }
 
   getForumById(id: number): Observable<ApiResponse<ForumDTO>> {
-    return this.http.get<ApiResponse<ForumDTO>>(`${this.baseAdminApiUrl}/${id}`)
+    return this.http.get<ApiResponse<ForumDTO>>(`${this.publicForumApiUrl}/${id}`)
       .pipe(
         tap(response => {
           if (response.success) {
@@ -63,31 +63,6 @@ export class ForumService {
             console.log('All forums fetched successfully', response.data);
           } else {
             console.error('Failed to fetch all forums', response.message, response.errors);
-          }
-        }),
-        catchError(this.handleError)
-      );
-  }
-
-  /**
-   * Deprecated method.
-   * Retrieves the view data for a specific forum, including its discussions.
-   * Corresponds to ForumController.getForumView() on the backend.
-   * @param id The ID of the forum to retrieve.
-   * @returns An Observable of ApiResponse containing ForumViewDTO.
-   */
-  getForumView(id: number, page: number = 0, size: number = 10): Observable<ApiResponse<ForumViewDTO>> {
-    let params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
-
-    return this.http.get<ApiResponse<ForumViewDTO>>(`${this.publicForumViewApiUrl}/${id}`, { params })
-      .pipe(
-        tap(response => {
-          if (response.success) {
-            console.log(`Forum view for id ${id} fetched successfully`, response.data);
-          } else {
-            console.error(`Failed to fetch forum view for id ${id}`, response.message, response.errors);
           }
         }),
         catchError(this.handleError)

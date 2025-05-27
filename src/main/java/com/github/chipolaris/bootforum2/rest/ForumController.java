@@ -18,7 +18,6 @@ public class ForumController {
 
     private static final Logger logger = LoggerFactory.getLogger(ForumController.class);
 
-
     @Autowired
     private ForumService forumService;
 
@@ -45,7 +44,7 @@ public class ForumController {
      * @param id The ID of the forum to retrieve.
      * @return ApiResponse containing the Forum or an error message.
      */
-    @GetMapping("/admin/forums/{id}") // Path for retrieving a specific forum
+    @GetMapping("/public/forums/{id}") // Path for retrieving a specific forum
     public ApiResponse<?> getForum(@PathVariable Long id) {
         try {
             ServiceResponse<ForumDTO> serviceResponse = forumService.getForum(id);
@@ -113,32 +112,6 @@ public class ForumController {
         catch (Exception e) {
             logger.error(String.format("Unexpected error updating forum with ID %d", id), e);
             return ApiResponse.error(String.format("An unexpected error occurred during updating forum: %s", e.getMessage()));
-        }
-    }
-
-    /**
-     * Retrieves the view data for a specific forum, including its discussions, with pagination.
-     *
-     * @param id The ID of the forum to retrieve.
-     * @return ApiResponse containing ForumViewDTO with paginated discussions.
-     */
-    @GetMapping("/public/forums/{id}")
-    public ApiResponse<?> getForumView(@PathVariable Long id) {
-
-        logger.info(String.format("Fetching forum view for ID %d", id));
-
-        try {
-            ServiceResponse<ForumViewDTO> serviceResponse = forumService.getForumView(id);
-
-            if (serviceResponse.getAckCode() == ServiceResponse.AckCodeType.FAILURE) {
-                return ApiResponse.error(String.format("Forum with ID %d not found.", id));
-            }
-            else {
-                return ApiResponse.success(serviceResponse.getDataObject(), "Forum retrieved successfully");
-            }
-        } catch (Exception e) {
-            logger.error(String.format("Error retrieving forum with ID %d", id), e);
-            return ApiResponse.error(String.format("An unexpected error occurred while retrieving forum: %s", e.getMessage()));
         }
     }
 }

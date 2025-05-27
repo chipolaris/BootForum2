@@ -2,25 +2,22 @@ package com.github.chipolaris.bootforum2.rest;
 
 import com.github.chipolaris.bootforum2.dto.ApiResponse;
 import com.github.chipolaris.bootforum2.dto.DiscussionCreateDTO;
-import com.github.chipolaris.bootforum2.dto.DiscussionDTO; // Assuming this is the DTO returned after creation
+import com.github.chipolaris.bootforum2.dto.DiscussionDTO;
+import com.github.chipolaris.bootforum2.dto.PageResponseDTO;
 import com.github.chipolaris.bootforum2.service.DiscussionService;
-import com.github.chipolaris.bootforum2.service.ServiceResponse; // Using the existing ServiceResponse pattern
+import com.github.chipolaris.bootforum2.service.ServiceResponse;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/user/discussions")
+@RequestMapping("/api")
 public class DiscussionController {
 
     private static final Logger logger = LoggerFactory.getLogger(DiscussionController.class);
@@ -40,7 +37,7 @@ public class DiscussionController {
      * @param attachments         Optional array of attachment files.
      * @return ResponseEntity containing the ServiceResponse with the created DiscussionDTO or error details.
      */
-    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/user/discussions/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<?> createDiscussion(
             @Valid @ModelAttribute DiscussionCreateDTO discussionCreateDTO,
             @RequestParam(value = "images", required = false) MultipartFile[] images,
@@ -80,7 +77,7 @@ public class DiscussionController {
      * @param pageable  Spring Data Pageable object automatically resolved from request parameters.
      * @return ApiResponse containing a Page of DiscussionDTOs or error details.
      */
-    @GetMapping("/list") // New endpoint for listing discussions
+    @GetMapping("/public/discussions/list") // New endpoint for listing discussions
     public ApiResponse<?> listDiscussions(
             @RequestParam(required = false) Long forumId,
             @PageableDefault(size = 10, sort = "stat.lastComment.commentDate", direction = Sort.Direction.DESC) Pageable pageable) {
@@ -90,7 +87,7 @@ public class DiscussionController {
 
         try {
 
-            ServiceResponse<Page<DiscussionDTO>> serviceResponse = discussionService.findPaginatedDiscussions(
+            ServiceResponse<PageResponseDTO<DiscussionDTO>> serviceResponse = discussionService.findPaginatedDiscussions(
                     forumId, pageable);
 
             if (serviceResponse.getAckCode() == ServiceResponse.AckCodeType.SUCCESS) {

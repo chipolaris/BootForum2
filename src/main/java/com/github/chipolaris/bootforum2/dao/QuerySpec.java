@@ -8,6 +8,7 @@ public class QuerySpec {
     private QuerySpec(Class targetEntity) {
         this.targetEntity = targetEntity;
         this.filters = new ArrayList<FilterSpec>();
+        this.orders = new ArrayList<OrderSpec>();
     }
 
     // Target entity is result type (select)
@@ -18,7 +19,7 @@ public class QuerySpec {
     private String targetPath;
     private Integer startIndex;
     private Integer maxResult;
-    private OrderSpec order;
+    private List<OrderSpec> orders;
     private List<FilterSpec> filters;
 
     public Class getTargetEntity() {
@@ -56,12 +57,11 @@ public class QuerySpec {
         this.maxResult = maxResult;
     }
 
-    public OrderSpec getOrder() {
-        return order;
+    public List<OrderSpec> getOrders() {
+        return orders;
     }
-
-    public void setOrder(OrderSpec order) {
-        this.order = order;
+    public void setOrder(List<OrderSpec> orders) {
+        this.orders = orders;
     }
 
     public List<FilterSpec> getFilters() {
@@ -112,12 +112,22 @@ public class QuerySpec {
         }
 
         public Builder<T> order(OrderSpec order) {
-            querySpec.order = order;
+            querySpec.orders.add(order);
+            return this;
+        }
+
+        public Builder<T> orders(List<OrderSpec> orders) {
+            querySpec.orders.addAll(orders);
             return this;
         }
 
         public Builder<T> filter(FilterSpec filter) {
             querySpec.filters.add(filter);
+            return this;
+        }
+
+        public Builder<T> filters(List<FilterSpec> filters) {
+            querySpec.filters.addAll(filters);
             return this;
         }
 
