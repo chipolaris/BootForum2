@@ -1,7 +1,5 @@
 package com.github.chipolaris.bootforum2.service;
 
-import com.github.chipolaris.bootforum2.dao.GenericDAO;
-import com.github.chipolaris.bootforum2.domain.FileInfo;
 import com.github.chipolaris.bootforum2.dto.FileInfoDTO;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
 import jakarta.annotation.PostConstruct;
@@ -33,14 +31,11 @@ public class FileStorageService {
     private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
 
     private final Path fileStorageLocation;
-    private final GenericDAO genericDAO;
     private final FileInfoMapper fileInfoMapper;
 
     @Autowired
-    public FileStorageService(@Value("${file.storage.base-path}") String storagePath,
-                              GenericDAO genericDAO, FileInfoMapper fileInfoMapper) {
+    public FileStorageService(@Value("${file.storage.base-path}") String storagePath, FileInfoMapper fileInfoMapper) {
         this.fileStorageLocation = Paths.get(storagePath).toAbsolutePath().normalize();
-        this.genericDAO = genericDAO;
         this.fileInfoMapper = fileInfoMapper;
     }
 
@@ -55,7 +50,6 @@ public class FileStorageService {
         }
     }
 
-    @Transactional
     public ServiceResponse<FileInfoDTO> storeFile(MultipartFile multipartFile) {
         ServiceResponse<FileInfoDTO> response = new ServiceResponse<>();
 
@@ -89,18 +83,13 @@ public class FileStorageService {
                 Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
             }
 
-            // Save FileInfo entity
-            FileInfo fileInfo = new FileInfo();
-            fileInfo.setOriginalFilename(originalFilename);
-            fileInfo.setMimeType(multipartFile.getContentType());
-            // Store the relative path from the base storage location, including date partitions
-            fileInfo.setPath(datePartitionPath.resolve(uniqueFilename).toString().replace("\\", "/")); // Ensure consistent path separators
+            // Create FileInfoDTO
+            FileInfoDTO fileInfo = new FileInfoDTO(null, originalFilename, multipartFile.getContentType(),
+                    datePartitionPath.resolve(uniqueFilename).toString().replace("\\", "/"));
 
-            genericDAO.persist(fileInfo);
+            logger.info("Stored file '{}' as '{}' with relative path '{}'", originalFilename, uniqueFilename, fileInfo.path());
 
-            logger.info("Stored file '{}' as '{}' with relative path '{}'", originalFilename, uniqueFilename, fileInfo.getPath());
-
-            return response.setDataObject(fileInfoMapper.toDTO(fileInfo))
+            return response.setDataObject(fileInfo)
                     .addMessage("File stored successfully: " + originalFilename);
 
         } catch (IOException ex) {
@@ -110,56 +99,41 @@ public class FileStorageService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public ServiceResponse<Resource> loadFileAsResource(Long fileId) {
+    public ServiceResponse<Resource> loadFileAsResource(FileInfoDTO fileInfo) {
         ServiceResponse<Resource> response = new ServiceResponse<>();
 
-        FileInfo fileInfo = genericDAO.find(FileInfo.class, fileId);
-
-        if (fileInfo == null) {
-            return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("File not found with ID: " + fileId);
-        }
-
         try {
-            Path filePath = this.fileStorageLocation.resolve(fileInfo.getPath()).normalize();
+            Path filePath = this.fileStorageLocation.resolve(fileInfo.path()).normalize();
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() && resource.isReadable()) {
-                logger.debug("Loading resource for file ID {}: {}", fileId, filePath);
+                logger.debug("Loading resource for file ID {}: {}", fileInfo.id(), filePath);
                 return response.setDataObject(resource)
                         .addMessage("File resource loaded successfully.");
             } else {
                 logger.warn("File resource not found or not readable at path: {}", filePath);
                 return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                        .addMessage("File not found or is not readable: " + fileInfo.getOriginalFilename());
+                        .addMessage("File not found or is not readable: " + fileInfo.originalFilename());
             }
         } catch (MalformedURLException ex) {
-            logger.error("Error creating URL resource for file ID {}: {}", fileId, fileInfo.getPath(), ex);
+            logger.error("Error creating URL resource for file ID {}: {}", fileInfo.id(), fileInfo.path(), ex);
             return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("Error reading file: " + fileInfo.getOriginalFilename() + ". Invalid path.");
+                    .addMessage("Error reading file: " + fileInfo.originalFilename() + ". Invalid path.");
         }
     }
 
     /**
-     * Optional: Method to delete a file and its metadata.
+     * Delete a file
      *
-     * @param fileId The ID of the file to delete.
+     * @param fileInfo The file to delete.
      * @return ServiceResponse indicating the outcome.
      */
-    @Transactional
-    public ServiceResponse<Void> deleteFile(Long fileId) {
+
+    public ServiceResponse<Void> deleteFile(FileInfoDTO fileInfo) {
         ServiceResponse<Void> response = new ServiceResponse<>();
 
-        FileInfo fileInfo = genericDAO.find(FileInfo.class, fileId);
-
-        if (fileInfo == null) {
-            return response.setAckCode(ServiceResponse.AckCodeType.WARNING) // Warning as file metadata doesn't exist
-                    .addMessage("File metadata not found with ID: " + fileId + ". No action taken.");
-        }
-
         try {
-            Path filePath = this.fileStorageLocation.resolve(fileInfo.getPath()).normalize();
+            Path filePath = this.fileStorageLocation.resolve(fileInfo.path()).normalize();
             boolean deleted = Files.deleteIfExists(filePath);
 
             if (deleted) {
@@ -169,15 +143,12 @@ public class FileStorageService {
                 // Proceed to delete metadata anyway or handle as an inconsistency
             }
 
-            genericDAO.remove(fileInfo);
-            logger.info("Successfully deleted file metadata for ID: {}", fileId);
-
-            return response.addMessage("File and its metadata deleted successfully: " + fileInfo.getOriginalFilename());
+            return response.addMessage("File and its metadata deleted successfully: " + fileInfo.originalFilename());
 
         } catch (IOException ex) {
-            logger.error("Could not delete file with ID {}: {}", fileId, fileInfo.getPath(), ex);
+            logger.error("Could not delete file with ID {}: {}", fileInfo.id(), fileInfo.path(), ex);
             return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("Could not delete file " + fileInfo.getOriginalFilename() + ". Error: " + ex.getMessage());
+                    .addMessage("Could not delete file " + fileInfo.originalFilename() + ". Error: " + ex.getMessage());
         }
     }
 }

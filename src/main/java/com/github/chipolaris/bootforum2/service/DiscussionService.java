@@ -18,11 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,110 +48,49 @@ public class DiscussionService {
         this.authenticationFacade = authenticationFacade;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class, readOnly = false)
     public ServiceResponse<DiscussionDTO> createDiscussion(
             DiscussionCreateDTO discussionCreateDTO,
             MultipartFile[] images,
             MultipartFile[] attachments) {
 
         ServiceResponse<DiscussionDTO> response = new ServiceResponse<>();
-
-        Optional<String> currentUsernameOpt = authenticationFacade.getCurrentUsername();
-        // Use a default or handle if no user is found, though for creating discussions, a user should typically be logged in.
-        String username = currentUsernameOpt.orElse("system"); // Or throw an exception if user must be present
+        String username = authenticationFacade.getCurrentUsername().orElse("system");
 
         try {
             // 1. Fetch Forum
             Forum forum = genericDAO.find(Forum.class, discussionCreateDTO.forumId());
             if (forum == null) {
-                logger.warn("Forum with ID {} not found.", discussionCreateDTO.forumId());
+                // ... error handling ...
                 return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
                         .addMessage("Forum not found. Cannot create discussion.");
             }
 
-            // 2. Map DTO to Discussion entity (partially)
+            // 2. Map DTO to Discussion entity
             Discussion discussion = discussionMapper.toEntity(discussionCreateDTO);
             discussion.setForum(forum);
-            // createDate and updateDate are handled by @PrePersist in Discussion entity
+            discussion.setCreateBy(username); // Set creator here
 
-            // 3. Create the initial Comment
-            Comment initialComment = new Comment();
-            initialComment.setContent(discussionCreateDTO.comment());
-            initialComment.setDiscussion(discussion);
-            initialComment.setCreateBy(username);
-            initialComment.setCreateDate(LocalDateTime.now());
-            initialComment.setUpdateDate(LocalDateTime.now());
-            initialComment.setReplyTo(null); // First comment doesn't reply to anything
-            // TODO: fix this
-            //// initialComment.setDeleted(false);
-
-            // 4. Handle file uploads for the initial comment
-            List<FileInfo> imageInfos = processFiles(images, initialComment, "image");
-            // TODO: fix this
-            //// initialComment.setImages(imageInfos);
-
-            List<FileInfo> attachmentInfos = processFiles(attachments, initialComment, "attachment");
-            initialComment.setAttachments(attachmentInfos);
-
-            // 5. Add initial comment to discussion's comment list
+            // 3 & 4. Create Initial Comment and Process Files
+            Comment initialComment = createInitialCommentAndProcessFiles(discussion, discussionCreateDTO.comment(), username, images, attachments);
             discussion.setComments(new ArrayList<>(Collections.singletonList(initialComment)));
 
-            // 6. Create DiscussionStat
-            DiscussionStat discussionStat = new DiscussionStat();
-            discussionStat.setCommentCount(1); // Initial comment
-            discussionStat.setViewCount(0); // Initial view count
-            discussionStat.setThumbnailCount(imageInfos.size());
-            discussionStat.setAttachmentCount(attachmentInfos.size());
-
-            // Create CommentInfo for lastComment in DiscussionStat
-            CommentInfo lastCommentInfo = new CommentInfo();
-            lastCommentInfo.setCommentId(null); // Will be set after comment is persisted if needed, or keep null
-            lastCommentInfo.setTitle(discussion.getTitle()); // Or some snippet of comment
-            lastCommentInfo.setCommentor(username); // Or a display name
-            lastCommentInfo.setCommentDate(initialComment.getCreateDate());
-            discussionStat.setLastComment(lastCommentInfo);
-
-            // Add current user to commentors map (if tracking)
-            // discussionStat.getCommentors().put(initialComment.getCreateUser(), 1);
-
+            // 6. Initialize Discussion Statistics
+            DiscussionStat discussionStat = initializeDiscussionStatistics(discussion, initialComment, username);
             discussion.setStat(discussionStat);
 
-            // 7. Persist Discussion (CascadeType.ALL should handle Comment and DiscussionStat)
+            // 7. Persist Discussion
             genericDAO.persist(discussion);
-            // At this point, discussion, initialComment, and discussionStat should have IDs.
-            // If you need the comment ID for CommentInfo:
-            if (initialComment.getId() != null) {
+
+            // Update CommentInfo with persisted comment ID if necessary
+            if (initialComment.getId() != null && discussionStat.getLastComment() != null) {
                 discussionStat.getLastComment().setCommentId(initialComment.getId());
                 // If CommentInfo is an entity and needs to be persisted/merged:
-                // genericDAO.merge(discussionStat.getLastComment());
+                // genericDAO.merge(discussionStat.getLastComment()); // Or handle via cascade if appropriate
             }
 
-
-            // 8. Update Forum statistics (this might be better handled by an event/listener or a separate scheduled task for accuracy at scale)
-            // For simplicity, updating directly here.
-            // Be mindful of potential concurrency issues if not handled carefully.
-            ForumStat forumStat = forum.getStat();
-            if (forumStat == null) { // Should not happen due to @PrePersist in Forum
-                forumStat = new ForumStat();
-                forum.setStat(forumStat);
-            }
-            forumStat.setDiscussionCount(forumStat.getDiscussionCount() + 1);
-            forumStat.setCommentCount(forumStat.getCommentCount() + 1); // For the initial comment
-
-            // Update last comment in forumStat
-            CommentInfo forumLastComment = forumStat.getLastComment();
-            if (forumLastComment == null) { // Should not happen due to @PrePersist in Forum
-                forumLastComment = new CommentInfo();
-                forumStat.setLastComment(forumLastComment);
-            }
-            // Assuming initialComment.getCreateDate() is more recent or if it's the first
-            if (forumLastComment.getCommentDate() == null || initialComment.getCreateDate().isAfter(forumLastComment.getCommentDate())) {
-                forumLastComment.setCommentId(initialComment.getId());
-                forumLastComment.setTitle(discussion.getTitle()); // Or a snippet
-                forumLastComment.setCommentor(username);
-                forumLastComment.setCommentDate(initialComment.getCreateDate());
-            }
-            genericDAO.merge(forum);
+            // 8. Update Forum Statistics (Candidate for Spring Event)
+            updateForumStatistics(forum, initialComment, username); // Or publish an event here
 
             logger.info("Successfully created discussion '{}' with ID {}", discussion.getTitle(), discussion.getId());
 
@@ -167,11 +103,81 @@ public class DiscussionService {
             logger.error("Error creating discussion: " + discussionCreateDTO.title(), e);
             response.setAckCode(ServiceResponse.AckCodeType.FAILURE);
             response.addMessage("An unexpected error occurred while creating the discussion: " + e.getMessage());
-            // Consider re-throwing a custom exception if you have global exception handling
-            // that can translate it to a proper HTTP response.
+        }
+        return response;
+    }
+
+    private Comment createInitialCommentAndProcessFiles(Discussion discussion, String commentContent, String username, MultipartFile[] images, MultipartFile[] attachments) {
+        Comment initialComment = new Comment();
+        initialComment.setContent(commentContent);
+        initialComment.setDiscussion(discussion);
+        initialComment.setCreateBy(username);
+        // createDate and updateDate are handled by @PrePersist/@PreUpdate in Comment entity
+        initialComment.setReplyTo(null);
+        initialComment.setCommentVote(new CommentVote()); // Initialize votes
+
+        List<FileInfo> imageInfos = processFiles(images, initialComment, "image");
+        initialComment.setThumbnails(imageInfos); // Assuming 'thumbnails' is the correct field for images
+
+        List<FileInfo> attachmentInfos = processFiles(attachments, initialComment, "attachment");
+        initialComment.setAttachments(attachmentInfos);
+
+        return initialComment;
+    }
+
+    private DiscussionStat initializeDiscussionStatistics(Discussion discussion, Comment initialComment, String username) {
+        DiscussionStat discussionStat = new DiscussionStat();
+        discussionStat.setCommentCount(1);
+        discussionStat.setViewCount(0);
+        discussionStat.setCommentors(Map.of(username, 1)); // Map: (username: commentCount)
+
+        if (initialComment.getThumbnails() != null) {
+            discussionStat.setThumbnailCount(initialComment.getThumbnails().size());
+        }
+        if (initialComment.getAttachments() != null) {
+            discussionStat.setAttachmentCount(initialComment.getAttachments().size());
         }
 
-        return response;
+        CommentInfo lastCommentInfo = new CommentInfo();
+        // lastCommentInfo.setCommentId(initialComment.getId()); // Set after initialComment is persisted
+        lastCommentInfo.setTitle(discussion.getTitle());
+        lastCommentInfo.setCommentor(username);
+        lastCommentInfo.setCommentDate(initialComment.getCreateDate() != null ? initialComment.getCreateDate() : LocalDateTime.now());
+        discussionStat.setLastComment(lastCommentInfo);
+
+        return discussionStat;
+    }
+
+    // Method to update forum statistics - can be refactored further or handled by an event listener
+    private void updateForumStatistics(Forum forum, Comment initialComment, String username) {
+        // Be mindful of potential concurrency issues if not handled carefully.
+        // This logic might be better in ForumService or handled by an event listener.
+        ForumStat forumStat = forum.getStat();
+        // ForumStat should be initialized by @PrePersist in Forum, but defensive check is fine
+        if (forumStat == null) {
+            logger.warn("ForumStat was null for Forum ID {}. Initializing.", forum.getId());
+            forumStat = new ForumStat();
+            forum.setStat(forumStat);
+        }
+
+        forumStat.addDiscussionCount(1);
+        forumStat.addCommentCount(1); // For the initial comment
+
+        CommentInfo forumLastComment = forumStat.getLastComment();
+        if (forumLastComment == null) {
+            logger.warn("ForumStat.lastComment was null for Forum ID {}. Initializing.", forum.getId());
+            forumLastComment = new CommentInfo();
+            forumStat.setLastComment(forumLastComment);
+        }
+
+        LocalDateTime initialCommentDate = initialComment.getCreateDate() != null ? initialComment.getCreateDate() : LocalDateTime.now();
+        if (forumLastComment.getCommentDate() == null || initialCommentDate.isAfter(forumLastComment.getCommentDate())) {
+            forumLastComment.setCommentId(initialComment.getId()); // Requires initialComment to have an ID
+            forumLastComment.setTitle(initialComment.getDiscussion().getTitle());
+            forumLastComment.setCommentor(username);
+            forumLastComment.setCommentDate(initialCommentDate);
+        }
+        genericDAO.merge(forum); // Persist changes to the forum and its stat
     }
 
     private List<FileInfo> processFiles(MultipartFile[] files, Comment comment, String fileType) {
@@ -182,14 +188,15 @@ public class DiscussionService {
                     ServiceResponse<FileInfoDTO> fileResponse = fileStorageService.storeFile(file);
                     if (fileResponse.getAckCode() == ServiceResponse.AckCodeType.SUCCESS && fileResponse.getDataObject() != null) {
                         FileInfo fileInfo = fileInfoMapper.toEntity(fileResponse.getDataObject());
-                        // fileInfo.setComment(comment); // If FileInfo has a direct back-reference to Comment
+
+                        genericDAO.persist(fileInfo);
+
                         fileInfos.add(fileInfo);
                         logger.info("Stored {} '{}' for comment.", fileType, fileInfo.getOriginalFilename());
                     } else {
+                        // Log and continue, not adding the failed file.
                         logger.warn("Failed to store {} file: {}. Reason: {}",
                                 fileType, file.getOriginalFilename(), fileResponse.getMessages());
-                        // Decide if this should be a critical failure for the whole discussion creation
-                        // For now, we'll log and continue, not adding the failed file.
                     }
                 }
             }
@@ -197,6 +204,7 @@ public class DiscussionService {
         return fileInfos;
     }
 
+    @Transactional(readOnly = true)
     public ServiceResponse<PageResponseDTO<DiscussionDTO>> findPaginatedDiscussions(
             long forumId, Pageable pageable) {
 
