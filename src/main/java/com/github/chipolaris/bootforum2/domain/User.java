@@ -1,10 +1,14 @@
 package com.github.chipolaris.bootforum2.domain;
 
 import java.time.LocalDateTime;
+import java.util.HashSet; // Import HashSet
 import java.util.List;
+import java.util.Set; // Import Set
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable; // Import CollectionTable
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection; // Import ElementCollection
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -13,7 +17,7 @@ import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinColumn; // Import JoinColumn for @CollectionTable
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.OrderBy;
@@ -34,7 +38,8 @@ import com.github.chipolaris.bootforum2.enumeration.UserRole;
 public class User extends BaseEntity {
 
 	public User() {
-		this.setUserRole(UserRole.USER); // default
+		this.userRoles = new HashSet<>(); // Initialize as HashSet
+		this.userRoles.add(UserRole.USER); // default role
 		this.setAccountStatus(AccountStatus.ACTIVE); // default
 		this.setPerson(new Person());
 		this.setPreferences(new Preferences());
@@ -44,6 +49,10 @@ public class User extends BaseEntity {
 	@PrePersist
 	public void prePersist() {
 		this.setCreateDate(LocalDateTime.now());
+		// updateDate will be set by BaseEntity's preUpdate if it exists, or manually here if needed
+		if (this.getUpdateDate() == null) {
+			this.setUpdateDate(LocalDateTime.now());
+		}
 	}
 
 	@PreUpdate
@@ -61,9 +70,12 @@ public class User extends BaseEntity {
 	@Column(name="PASSWORD", length=200, nullable=false)
 	private String password;
 
+	// Changed from single UserRole to a Set of UserRoles
+	@ElementCollection(targetClass = UserRole.class, fetch = FetchType.EAGER)
+	@CollectionTable(name = "USER_ROLES_T", joinColumns = @JoinColumn(name = "USER_ID", foreignKey = @ForeignKey(name="FK_USER_ROLES_USER")))
 	@Enumerated(EnumType.STRING)
 	@Column(name = "USER_ROLE", length=50, nullable = false)
-	private UserRole userRole;
+	private Set<UserRole> userRoles; // Renamed for clarity (plural)
 
 	@OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
 	@JoinColumn(name="PERSON_ID", foreignKey = @ForeignKey(name="FK_USER_PERS"))
@@ -107,12 +119,29 @@ public class User extends BaseEntity {
 		this.password = password;
 	}
 
-	public UserRole getUserRole() {
-		return userRole;
+	// Getter and Setter for the collection of roles
+	public Set<UserRole> getUserRoles() {
+		return userRoles;
 	}
-	public void setUserRole(UserRole userRole) {
-		this.userRole = userRole;
+	public void setUserRoles(Set<UserRole> userRoles) {
+		this.userRoles = userRoles;
 	}
+
+	// Convenience method to add a single role
+	public void addUserRole(UserRole role) {
+		if (this.userRoles == null) {
+			this.userRoles = new HashSet<>();
+		}
+		this.userRoles.add(role);
+	}
+
+	// Convenience method to remove a single role
+	public void removeUserRole(UserRole role) {
+		if (this.userRoles != null) {
+			this.userRoles.remove(role);
+		}
+	}
+
 
 	public Person getPerson() {
 		return person;

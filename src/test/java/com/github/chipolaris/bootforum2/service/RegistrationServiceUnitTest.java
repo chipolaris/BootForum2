@@ -7,13 +7,16 @@ import com.github.chipolaris.bootforum2.domain.Person;
 import com.github.chipolaris.bootforum2.domain.Registration;
 import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.dto.RegistrationDTO;
+import com.github.chipolaris.bootforum2.event.UserCreatedEvent;
 import com.github.chipolaris.bootforum2.mapper.RegistrationMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -38,10 +41,12 @@ class RegistrationServiceUnitTest {
     @Mock
     private RegistrationMapper registrationMapper;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     @InjectMocks
     private RegistrationService registrationService;
 
-    // region newRegistration Tests
     @Test
     void newRegistration_whenUsernameAndEmailAreNew_shouldSucceed() {
         // Arrange
@@ -54,7 +59,6 @@ class RegistrationServiceUnitTest {
 
         String encodedPassword = "encodedPassword";
         String registrationKeyRegex = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
-
 
         when(dynamicDAO.exists(any(QuerySpec.class))).thenReturn(false); // No existing user/email
         when(registrationMapper.toEntity(dto)).thenReturn(mappedRegistration);
@@ -281,24 +285,27 @@ class RegistrationServiceUnitTest {
     }
     // endregion
 
-    // region emailConfirmation Tests
+    // region confirmRegistrationEmail Tests
     @Test
-    void emailConfirmation_whenKeyIsValid_shouldSucceedAndCreateUser() {
+    void confirmRegistrationEmail_whenKeyIsValid_shouldSucceedAndCreateUserAndPublishEvent() {
         // Arrange
-        String registrationKey = UUID.randomUUID().toString();
-        Registration mockRegistration = new Registration();
-        mockRegistration.setUsername("confirmedUser");
-        mockRegistration.setPassword("encodedPasswordFromReg");
-        mockRegistration.setEmail("confirmed@example.com");
-        mockRegistration.setFirstName("Confirmed");
-        mockRegistration.setLastName("User");
+        String validKey = UUID.randomUUID().toString();
+        Registration foundRegistration = new Registration();
+        foundRegistration.setUsername("confirmNewUser");
+        foundRegistration.setPassword("encodedPasswordConfirm");
+        foundRegistration.setEmail("confirmnew@example.com");
+        foundRegistration.setFirstName("ConfirmNew");
+        foundRegistration.setLastName("UserNew");
+        foundRegistration.setRegistrationKey(validKey); // Ensure the key matches
 
-        when(dynamicDAO.<Registration>findOptional(any(QuerySpec.class))).thenReturn(Optional.of(mockRegistration));
-        // doNothing().when(genericDAO).persist(any(User.class)); // Not strictly needed if capturing
-        // doNothing().when(genericDAO).remove(any(Registration.class)); // Not strictly needed if capturing
+        when(dynamicDAO.<Registration>findOptional(argThat(qs -> qs != null
+                && Registration.class.equals(qs.getRootEntity())
+                && qs.getFilters().get(0).field().equals("registrationKey")
+                && qs.getFilters().get(0).value().equals(validKey))))
+                .thenReturn(Optional.of(foundRegistration));
 
         // Act
-        ServiceResponse<User> response = registrationService.emailConfirmation(registrationKey);
+        ServiceResponse<User> response = registrationService.confirmRegistrationEmail(validKey);
 
         // Assert
         assertEquals(ServiceResponse.AckCodeType.SUCCESS, response.getAckCode());
@@ -308,35 +315,39 @@ class RegistrationServiceUnitTest {
         verify(genericDAO).persist(userCaptor.capture());
         User persistedUser = userCaptor.getValue();
 
-        assertEquals(mockRegistration.getUsername(), persistedUser.getUsername());
-        assertEquals(mockRegistration.getPassword(), persistedUser.getPassword()); // Password should be carried over
+        assertEquals(foundRegistration.getUsername(), persistedUser.getUsername());
+        assertEquals(foundRegistration.getPassword(), persistedUser.getPassword());
         assertNotNull(persistedUser.getPerson());
-        assertEquals(mockRegistration.getEmail(), persistedUser.getPerson().getEmail());
-        assertEquals(mockRegistration.getFirstName(), persistedUser.getPerson().getFirstName());
-        assertEquals(mockRegistration.getLastName(), persistedUser.getPerson().getLastName());
+        assertEquals(foundRegistration.getEmail(), persistedUser.getPerson().getEmail());
+        assertEquals(foundRegistration.getFirstName(), persistedUser.getPerson().getFirstName());
+        assertEquals(foundRegistration.getLastName(), persistedUser.getPerson().getLastName());
 
         ArgumentCaptor<Registration> registrationCaptor = ArgumentCaptor.forClass(Registration.class);
         verify(genericDAO).remove(registrationCaptor.capture());
-        assertEquals(mockRegistration, registrationCaptor.getValue());
+        assertEquals(foundRegistration, registrationCaptor.getValue());
 
         // Verify dynamicDAO.findOptional was called once
         verify(dynamicDAO, times(1)).findOptional(any(QuerySpec.class));
+
+        verify(genericDAO).remove(eq(foundRegistration));
+        verify(eventPublisher).publishEvent(any(UserCreatedEvent.class)); // Verify event publication
     }
 
     @Test
-    void emailConfirmation_whenKeyIsInvalid_shouldFail() {
+    void confirmRegistrationEmail_whenKeyIsInvalid_shouldFail() {
         // Arrange
-        String invalidKey = "invalid-key";
+        String invalidKey = "invalid-key-new";
         when(dynamicDAO.<Registration>findOptional(any(QuerySpec.class))).thenReturn(Optional.empty());
 
         // Act
-        ServiceResponse<User> response = registrationService.emailConfirmation(invalidKey);
+        ServiceResponse<User> response = registrationService.confirmRegistrationEmail(invalidKey);
 
         // Assert
         assertEquals(ServiceResponse.AckCodeType.FAILURE, response.getAckCode());
         assertTrue(response.getMessages().contains("Error: Invalid registration key"));
         verify(genericDAO, never()).persist(any(User.class));
         verify(genericDAO, never()).remove(any(Registration.class));
+        verify(eventPublisher, never()).publishEvent(any());
     }
     // endregion
 }

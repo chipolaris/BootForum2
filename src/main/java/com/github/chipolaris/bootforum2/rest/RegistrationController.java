@@ -41,7 +41,7 @@ public class RegistrationController {
     @PostMapping("/public/confirm-registration-email")
     public ApiResponse<?> confirmRegistrationEmail(@RequestParam String registrationKey) {
         try {
-            ServiceResponse<User> serviceResponse = registrationService.emailConfirmation(registrationKey);
+            ServiceResponse<User> serviceResponse = registrationService.confirmRegistrationEmail(registrationKey);
             if(serviceResponse.getAckCode() == ServiceResponse.AckCodeType.FAILURE) {
                 return ApiResponse.error(serviceResponse.getMessages(), "Registration email confirmation failed");
             }

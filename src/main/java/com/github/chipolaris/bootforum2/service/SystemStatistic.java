@@ -6,6 +6,9 @@ import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.*; // Assuming your domain entities are here
 import com.github.chipolaris.bootforum2.event.DiscussionCreatedEvent;
+import com.github.chipolaris.bootforum2.event.ForumCreatedEvent;
+import com.github.chipolaris.bootforum2.event.ForumGroupCreatedEvent;
+import com.github.chipolaris.bootforum2.event.UserCreatedEvent;
 import com.github.chipolaris.bootforum2.mapper.CommentInfoMapper;
 import io.micrometer.common.util.StringUtils;
 import jakarta.annotation.PostConstruct;
@@ -233,5 +236,36 @@ public class SystemStatistic {
 
         logger.info("New discussion created. Discussion count: {}, Comment count: {}",
                 discussionCount.get(), commentCount.get());
+    }
+
+    @EventListener
+    @Async
+    public void handleForumCreatedEvent(ForumCreatedEvent event) {
+
+        Forum forum = event.getForum();
+        logger.info("Handling ForumCreatedEvent for Forum: {}", forum.getTitle());
+        this.incrementForumCount();
+    }
+
+    @EventListener
+    @Async
+    public void handleForumGroupCreatedEvent(ForumGroupCreatedEvent event) {
+
+        ForumGroup forumGroup = event.getForumGroup();
+        logger.info("Handling ForumGroupCreatedEvent for Forum: {}", forumGroup.getTitle());
+        this.incrementForumGroupCount();
+    }
+
+    public void handleUserCreatedEvent(UserCreatedEvent event) {
+
+        /*
+         * When a user is created:
+         *  - increase user count
+         *  - update last registered user info
+         */
+        User user = event.getUser();
+        logger.info("Handling UserCreatedEvent for User: {}", user.getUsername());
+        this.incrementUserCount();
+        this.updateUserRegistration(user.getUsername(), user.getCreateDate());
     }
 }

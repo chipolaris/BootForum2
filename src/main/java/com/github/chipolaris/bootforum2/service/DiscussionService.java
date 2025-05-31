@@ -37,6 +37,7 @@ public class DiscussionService {
     private final AuthenticationFacade authenticationFacade;
     private final ApplicationEventPublisher eventPublisher;
 
+    // Note: in Spring Boot version >= 4.3, @AutoWired is implied for beans with single constructor
     public DiscussionService(GenericDAO genericDAO,
                                  DynamicDAO dynamicDAO,
                                  DiscussionMapper discussionMapper,

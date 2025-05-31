@@ -13,20 +13,11 @@ export interface User {
   id?: number;
   username: string;
   password?: string;
-  userRole?: string;
+  userRoles?: string[];
   accountStatus?: string;
   person: Person;
   createDate?: Date;
   updateDate?: Date;
   createdBy?: string;
   updatedBy?: string;
-}
-
-export interface ForumNotUsed {
-  id?: number;
-  title: string;
-  description: string;
-  icon: string | null;
-  iconColor: string | null;
-  active: boolean;
 }

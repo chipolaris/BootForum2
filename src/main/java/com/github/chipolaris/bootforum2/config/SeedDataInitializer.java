@@ -71,7 +71,7 @@ public class SeedDataInitializer implements ApplicationRunner {
                         User newUser = new User(); // User constructor initializes Person, Preferences, UserStat
                         newUser.setUsername(seedUser.username()); // Use record accessor
                         newUser.setPassword(passwordEncoder.encode(seedUser.password())); // Use record accessor
-                        newUser.setUserRole(seedUser.userRole()); // Use record accessor
+                        newUser.addUserRole(seedUser.userRole()); // Use record accessor
                         newUser.setAccountStatus(seedUser.accountStatus()); // Use record accessor
 
                         // createDate will be set by @PrePersist in User entity

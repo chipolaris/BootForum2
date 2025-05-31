@@ -5,7 +5,6 @@ import com.github.chipolaris.bootforum2.domain.Registration;
 import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.dto.RegistrationDTO;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -160,9 +159,9 @@ class RegistrationServiceIntegrationTest {
     }
     // endregion
 
-    // region emailConfirmation Tests
+    // region confirmRegistrationEmail Tests
     @Test
-    void emailConfirmation_whenKeyIsValid_shouldSucceedCreateUserAndDeleteRegistration() {
+    void confirmRegistrationEmail_whenKeyIsValid_shouldSucceedCreateUserAndDeleteRegistration() {
         // Arrange
         String registrationKey = UUID.randomUUID().toString();
         Registration registration = new Registration();
@@ -178,7 +177,7 @@ class RegistrationServiceIntegrationTest {
         Long registrationId = registration.getId();
 
         // Act
-        ServiceResponse<User> response = registrationService.emailConfirmation(registrationKey);
+        ServiceResponse<User> response = registrationService.confirmRegistrationEmail(registrationKey);
 
         // Assert
         assertEquals(ServiceResponse.AckCodeType.SUCCESS, response.getAckCode());
@@ -201,12 +200,12 @@ class RegistrationServiceIntegrationTest {
     }
 
     @Test
-    void emailConfirmation_whenKeyIsInvalid_shouldFail() {
+    void confirmRegistrationEmail_whenKeyIsInvalid_shouldFail() {
         // Arrange
         String invalidKey = "this-key-does-not-exist";
 
         // Act
-        ServiceResponse<User> response = registrationService.emailConfirmation(invalidKey);
+        ServiceResponse<User> response = registrationService.confirmRegistrationEmail(invalidKey);
 
         // Assert
         assertEquals(ServiceResponse.AckCodeType.FAILURE, response.getAckCode());
@@ -218,7 +217,7 @@ class RegistrationServiceIntegrationTest {
     }
 
     @Test
-    void emailConfirmation_whenKeyIsValidButUserAlreadyExists_shouldStillCreateUserAndRemoveRegistration() {
+    void confirmRegistrationEmail_whenKeyIsValidButUserAlreadyExists_shouldStillCreateUserAndRemoveRegistration() {
         // This scenario tests if the service correctly handles the registration removal
         // even if, hypothetically, a user with the same username was created by another process
         // between registration and confirmation. The current service logic doesn't explicitly
@@ -251,7 +250,7 @@ class RegistrationServiceIntegrationTest {
 
 
         // Act
-        ServiceResponse<User> response = registrationService.emailConfirmation(registrationKey);
+        ServiceResponse<User> response = registrationService.confirmRegistrationEmail(registrationKey);
 
         // Assert
         assertEquals(ServiceResponse.AckCodeType.SUCCESS, response.getAckCode());

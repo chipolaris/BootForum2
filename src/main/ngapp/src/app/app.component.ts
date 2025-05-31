@@ -29,8 +29,11 @@ export class AppComponent implements OnInit { // Removed 'implements OnInit' if 
   ) {
 	 this.isLoggedIn$ = this.authService.currentUser.pipe(map(user => !!user));
 	 this.isAdmin$ = this.authService.currentUser.pipe(
-	   map((user: User | null) => !!(user && user.userRole === 'ADMIN'))
-	 );
+     map((user: User | null) => {
+       // Check if user exists, has userRoles array, and if 'ADMIN' is one of the roles
+       return !!(user && user.userRoles && user.userRoles.includes('ADMIN'));
+     })
+   );
   }
 
   ngOnInit(): void {

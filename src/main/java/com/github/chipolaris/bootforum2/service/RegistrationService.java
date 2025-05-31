@@ -8,10 +8,11 @@ import com.github.chipolaris.bootforum2.domain.Person;
 import com.github.chipolaris.bootforum2.domain.Registration;
 import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.dto.RegistrationDTO;
+import com.github.chipolaris.bootforum2.event.UserCreatedEvent;
 import com.github.chipolaris.bootforum2.mapper.RegistrationMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,17 +24,21 @@ public class RegistrationService {
 
     private static final Logger logger = LoggerFactory.getLogger(RegistrationService.class);
 
-    @Autowired
-    private GenericDAO genericDAO;
+    private final GenericDAO genericDAO;
+    private final DynamicDAO dynamicDAO;
+    private final PasswordEncoder passwordEncoder;
+    private final RegistrationMapper registrationMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
-    @Autowired
-    private DynamicDAO dynamicDAO;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private RegistrationMapper registrationMapper;
+    // Note: in Spring Boot version >= 4.3, @AutoWired is implied for beans with single constructor
+    public RegistrationService(GenericDAO genericDAO, DynamicDAO dynamicDAO, PasswordEncoder passwordEncoder,
+                               RegistrationMapper registrationMapper, ApplicationEventPublisher eventPublisher) {
+        this.genericDAO = genericDAO;
+        this.dynamicDAO = dynamicDAO;
+        this.passwordEncoder = passwordEncoder;
+        this.registrationMapper = registrationMapper;
+        this.eventPublisher = eventPublisher;
+    }
 
     /**
      * Create a new Registration
@@ -85,7 +90,7 @@ public class RegistrationService {
      * @return
      */
     @Transactional(readOnly=false)
-    public ServiceResponse<User> emailConfirmation(String registrationKey) {
+    public ServiceResponse<User> confirmRegistrationEmail(String registrationKey) {
         ServiceResponse<User> response = new ServiceResponse<>();
 
         Registration registration = dynamicDAO.<Registration>findOptional(QuerySpec.builder(Registration.class)
@@ -104,6 +109,8 @@ public class RegistrationService {
             logger.info("Successfully registered user: {}", user.getUsername());
 
             response.setDataObject(user);
+
+            eventPublisher.publishEvent(new UserCreatedEvent(this, user));
         }
 
         return response;

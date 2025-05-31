@@ -9,22 +9,33 @@ import com.github.chipolaris.bootforum2.dto.ForumGroupCreateDTO;
 import com.github.chipolaris.bootforum2.dto.ForumGroupDTO;
 import com.github.chipolaris.bootforum2.dto.ForumGroupUpdateDTO;
 import com.github.chipolaris.bootforum2.dto.ForumTreeTableDTO;
+import com.github.chipolaris.bootforum2.event.ForumGroupCreatedEvent;
 import com.github.chipolaris.bootforum2.mapper.ForumGroupMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ForumGroupService {
 
-    @Autowired
-    private ForumGroupMapper forumGroupMapper;
+    private static final Logger logger = LoggerFactory.getLogger(ForumGroupService.class);
 
-    @Autowired
-    private DynamicDAO dynamicDAO;
+    private final ForumGroupMapper forumGroupMapper;
+    private final DynamicDAO dynamicDAO;
+    private final GenericDAO genericDAO;
+    private final ApplicationEventPublisher eventPublisher;
 
-    @Autowired
-    private GenericDAO genericDAO;
+    // Note: in Spring Boot version >= 4.3, @AutoWired is implied for beans with single constructor
+    public ForumGroupService(GenericDAO genericDAO,  DynamicDAO dynamicDAO, ForumGroupMapper forumGroupMapper,
+                             ApplicationEventPublisher eventPublisher) {
+        this.genericDAO = genericDAO;
+        this.eventPublisher = eventPublisher;
+        this.forumGroupMapper = forumGroupMapper;
+        this.dynamicDAO = dynamicDAO;
+    }
 
     @Transactional(readOnly=false)
     public ServiceResponse<ForumGroupDTO> createForumGroup(ForumGroupCreateDTO forumCreateDTO) {
@@ -46,12 +57,16 @@ public class ForumGroupService {
                         .addMessage(String.format("Parent forum group with id %d is not found", parentId));
             }
             else {
-                ForumGroup forum = forumGroupMapper.toEntity(forumCreateDTO);
-                forum.setParent(parentForumGroup);
-                genericDAO.persist(forum);
+                ForumGroup forumGroup = forumGroupMapper.toEntity(forumCreateDTO);
+                forumGroup.setParent(parentForumGroup);
+                genericDAO.persist(forumGroup);
 
-                response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumGroupMapper.toForumGroupDTO(forum))
+                response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumGroupMapper.toForumGroupDTO(forumGroup))
                         .addMessage("Forum group created successfully");
+
+                eventPublisher.publishEvent(new ForumGroupCreatedEvent(this, forumGroup));
+
+                logger.info("Forum group {} created successfully", forumGroup.getTitle());
             }
         }
 
@@ -75,7 +90,9 @@ public class ForumGroupService {
             forumGroup = genericDAO.merge(forumGroup);
 
             response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumGroupMapper.toForumGroupDTO(forumGroup))
-                    .addMessage("Forum updated successfully");
+                    .addMessage("Forum group updated successfully");
+
+            logger.info("Forum group {} updated successfully", forumGroup.getTitle());
         }
         return response;
     }

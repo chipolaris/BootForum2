@@ -6,22 +6,31 @@ import com.github.chipolaris.bootforum2.dao.FilterSpec;
 import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.service.ServiceResponse.AckCodeType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service @Transactional
 public class UserService {
-	
-	@Autowired
-	private PasswordEncoder passwordEncoder;
-	
-	@Autowired
-	private GenericDAO genericDAO;
 
-	@Autowired
-	private DynamicDAO dynamicDAO;
+	private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
+	private final PasswordEncoder passwordEncoder;
+	private final GenericDAO genericDAO;
+	private final DynamicDAO dynamicDAO;
+	private final ApplicationEventPublisher eventPublisher;
+
+	// Note: in Spring Boot version >= 4.3, @AutoWired is implied for beans with single constructor
+	public UserService(GenericDAO genericDAO, DynamicDAO dynamicDAO, PasswordEncoder passwordEncoder,
+					   ApplicationEventPublisher eventPublisher) {
+		this.genericDAO = genericDAO;
+		this.dynamicDAO = dynamicDAO;
+		this.passwordEncoder = passwordEncoder;
+		this.eventPublisher = eventPublisher;
+	}
 
 	@Transactional(readOnly = true)
 	public ServiceResponse<User> getUser(String username) {
@@ -30,7 +39,6 @@ public class UserService {
 
 		QuerySpec userNameQuery = QuerySpec.builder(User.class).filter(FilterSpec.eq("username", username)).build();
 		User user =	dynamicDAO.<User>findOptional(userNameQuery).orElse(null);
-			//genericDAO.findOne(User.class, Collections.singletonMap("username", username));
 
 		if(user == null) {
 			response.setAckCode(AckCodeType.FAILURE).addMessage("User not found");

@@ -2,15 +2,17 @@ package com.github.chipolaris.bootforum2.service;
 
 import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.dao.DynamicDAO;
-import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.Forum;
 import com.github.chipolaris.bootforum2.domain.ForumGroup;
 import com.github.chipolaris.bootforum2.dto.ForumCreateDTO;
 import com.github.chipolaris.bootforum2.dto.ForumDTO;
 import com.github.chipolaris.bootforum2.dto.ForumUpdateDTO;
 import com.github.chipolaris.bootforum2.dto.ForumViewDTO;
+import com.github.chipolaris.bootforum2.event.ForumCreatedEvent;
 import com.github.chipolaris.bootforum2.mapper.ForumMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,14 +21,21 @@ import java.util.List;
 @Service
 public class ForumService {
 
-    @Autowired
-    private ForumMapper forumMapper;
+    private static final Logger logger = LoggerFactory.getLogger(ForumService.class);
 
-    @Autowired
-    private DynamicDAO dynamicDAO;
+    private final ForumMapper forumMapper;
+    private final DynamicDAO dynamicDAO;
+    private final GenericDAO genericDAO;
+    private final ApplicationEventPublisher eventPublisher;
 
-    @Autowired
-    private GenericDAO genericDAO;
+    // Note: in Spring Boot version >= 4.3, @AutoWired is implied for beans with single constructor
+    public ForumService(GenericDAO genericDAO, ForumMapper forumMapper, DynamicDAO dynamicDAO,
+                        ApplicationEventPublisher eventPublisher) {
+        this.genericDAO = genericDAO;
+        this.forumMapper = forumMapper;
+        this.dynamicDAO = dynamicDAO;
+        this.eventPublisher = eventPublisher;
+    }
 
     @Transactional(readOnly=false)
     public ServiceResponse<ForumDTO> createForum(ForumCreateDTO forumCreateDTO) {
@@ -53,6 +62,10 @@ public class ForumService {
 
                 response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumMapper.toForumDTO(forum))
                         .addMessage("Forum created successfully");
+
+                eventPublisher.publishEvent(new ForumCreatedEvent(this, forum));
+
+                logger.info("Forum {} created successfully", forum.getTitle());
             }
         }
 
@@ -77,6 +90,8 @@ public class ForumService {
 
             response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumMapper.toForumDTO(forum))
                     .addMessage("Forum updated successfully");
+
+            logger.info("Forum {} updated successfully", forum.getTitle());
         }
         return response;
     }
