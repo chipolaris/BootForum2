@@ -16,13 +16,21 @@
     <!-- Forum Banner -->
     <header class="bg-slate-100 dark:bg-slate-800 p-6 rounded-lg shadow-lg mb-8">
       <div class="flex items-center">
-        <span *ngIf="forumDetails.icon"
+        <!--<span *ngIf="forumDetails.icon"
               class="text-4xl mr-4"
               [ngClass]="forumDetails.icon"
               [style.color]="forumDetails.iconColor || 'inherit'"
               aria-hidden="true">
-        </span>
-        <div>
+        </span>-->
+        <ng-container *ngIf="forumDetails.icon as iconName">
+          <ng-icon
+            [name]="iconName"
+            [style.color]="forumDetails.iconColor"
+            size="48"
+            >
+          </ng-icon>
+        </ng-container>
+        <div class="m-8 flex-1">
           <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-100">{{ forumDetails.title }}</h1>
           <p *ngIf="forumDetails.description" class="text-slate-600 dark:text-slate-300 mt-1 text-md">
             {{ forumDetails.description }}

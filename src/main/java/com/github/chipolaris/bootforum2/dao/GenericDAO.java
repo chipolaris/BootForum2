@@ -114,6 +114,84 @@ public class GenericDAO {
 		return entityManager.createQuery(criteriaQuery).getSingleResult();
     }
 
+	/**
+	 * Generic method to return the entity with the maximum value of a specified field.
+	 *
+	 * @param entityClass   The entity class
+	 * @param fieldName     The field to compute max on
+	 * @param <T>           The entity type
+	 * @param <V>           The field type (must be Comparable)
+	 * @return              The entity instance with the max field value
+	 */
+	public <T, V extends Comparable<? super V>> T greatest(
+			Class<T> entityClass,
+			String fieldName
+	) {
+		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+		CriteriaQuery<T> cq = cb.createQuery(entityClass);
+		Root<T> root = cq.from(entityClass);
+
+		// Determine the class of the field V
+		Path<V> fieldPathForType = getPathGeneric(root, fieldName);
+		@SuppressWarnings("unchecked") // Safe cast due to V extends Comparable and path resolution
+		Class<V> fieldClass = (Class<V>) fieldPathForType.getJavaType();
+
+		// Subquery to find the max value of the field
+		Subquery<V> subquery = cq.subquery(fieldClass);
+		Root<T> subRoot = subquery.from(entityClass);
+		subquery.select(cb.greatest(this.<V>getPathGeneric(subRoot, fieldName)));
+
+		// Main query where field = max(field)
+		cq.select(root).where(cb.equal(fieldPathForType, subquery));
+
+		try {
+			return entityManager.createQuery(cq)
+					.setMaxResults(1) // In case of multiple entities with the same max value
+					.getSingleResult();
+		} catch (NoResultException e) {
+			return null; // Return null if no entity is found (e.g., empty table)
+		}
+	}
+
+	/**
+	 * Generic method to return the entity with the minimum value of a specified field.
+	 *
+	 * @param entityClass   The entity class
+	 * @param fieldName     The field to compute max on
+	 * @param <T>           The entity type
+	 * @param <V>           The field type (must be Comparable)
+	 * @return              The entity instance with the max field value
+	 */
+	public <T, V extends Comparable<? super V>> T least(
+			Class<T> entityClass,
+			String fieldName
+	) {
+		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+		CriteriaQuery<T> cq = cb.createQuery(entityClass);
+		Root<T> root = cq.from(entityClass);
+
+		// Determine the class of the field V
+		Path<V> fieldPathForType = getPathGeneric(root, fieldName);
+		@SuppressWarnings("unchecked") // Safe cast due to V extends Comparable and path resolution
+		Class<V> fieldClass = (Class<V>) fieldPathForType.getJavaType();
+
+		// Subquery to find the min value of the field
+		Subquery<V> subquery = cq.subquery(fieldClass);
+		Root<T> subRoot = subquery.from(entityClass);
+		subquery.select(cb.least(this.<V>getPathGeneric(subRoot, fieldName)));
+
+		// Main query where field = min(field)
+		cq.select(root).where(cb.equal(fieldPathForType, subquery));
+
+		try {
+			return entityManager.createQuery(cq)
+					.setMaxResults(1) // In case of multiple entities with the same min value
+					.getSingleResult();
+		} catch (NoResultException e) {
+			return null; // Return null if no entity is found
+		}
+	}
+
 	/*
 	 * TODO: methods below are to be refactored to another class and/or to be removed
 	 */

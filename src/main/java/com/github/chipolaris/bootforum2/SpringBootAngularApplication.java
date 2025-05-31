@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -40,6 +41,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @SpringBootApplication
+@EnableAsync
 public class SpringBootAngularApplication {
 
     public static void main(String[] args) {
@@ -167,8 +169,6 @@ public class SpringBootAngularApplication {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-
 
     @Bean @Order(2)
     CommandLineRunner validateSchema(DataSource dataSource) {

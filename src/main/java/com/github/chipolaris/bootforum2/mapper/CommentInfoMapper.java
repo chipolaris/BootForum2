@@ -8,4 +8,6 @@ import org.mapstruct.Mapper;
 public interface CommentInfoMapper {
 
     CommentInfoDTO toDTO(CommentInfo commentInfo);
+
+    CommentInfo toEntity(CommentInfoDTO commentInfoDTO);
 }

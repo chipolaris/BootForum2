@@ -11,6 +11,10 @@
     import { TableModule } from 'primeng/table';
     import { SortEvent } from 'primeng/api'; // Import SortEvent
 
+    // Import NgIconComponent and provideIcons
+    import { NgIconComponent, provideIcons } from '@ng-icons/core';
+    import { APP_ICONS } from '../shared/hero-icons';
+
     @Component({
       selector: 'app-forum-view',
       standalone: true,
@@ -18,8 +22,10 @@
         CommonModule,
         RouterModule,
         TableModule,
-        FormsModule
+        FormsModule,
+        NgIconComponent
       ],
+      providers: [provideIcons(APP_ICONS)],
       templateUrl: './forum-view.component.html',
       styleUrls: ['./forum-view.component.css']
     })

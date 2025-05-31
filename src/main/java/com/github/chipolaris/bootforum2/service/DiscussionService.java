@@ -6,10 +6,12 @@ import com.github.chipolaris.bootforum2.dto.DiscussionCreateDTO;
 import com.github.chipolaris.bootforum2.dto.DiscussionDTO;
 import com.github.chipolaris.bootforum2.dto.FileInfoDTO;
 import com.github.chipolaris.bootforum2.dto.PageResponseDTO;
+import com.github.chipolaris.bootforum2.event.DiscussionCreatedEvent;
 import com.github.chipolaris.bootforum2.mapper.DiscussionMapper;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -33,19 +35,22 @@ public class DiscussionService {
     private final FileStorageService fileStorageService;
     private final FileInfoMapper fileInfoMapper; // To map FileInfoDTO from FileStorageService to FileInfo entity
     private final AuthenticationFacade authenticationFacade;
+    private final ApplicationEventPublisher eventPublisher;
 
     public DiscussionService(GenericDAO genericDAO,
                                  DynamicDAO dynamicDAO,
                                  DiscussionMapper discussionMapper,
                                  FileStorageService fileStorageService,
                                  FileInfoMapper fileInfoMapper,
-                                 AuthenticationFacade authenticationFacade) {
+                                 AuthenticationFacade authenticationFacade,
+                                 ApplicationEventPublisher eventPublisher) {
         this.genericDAO = genericDAO;
         this.dynamicDAO = dynamicDAO;
         this.discussionMapper = discussionMapper;
         this.fileStorageService = fileStorageService;
         this.fileInfoMapper = fileInfoMapper;
         this.authenticationFacade = authenticationFacade;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional(rollbackFor = Exception.class, readOnly = false)
@@ -90,9 +95,10 @@ public class DiscussionService {
             }
 
             // 8. Update Forum Statistics (Candidate for Spring Event)
-            updateForumStatistics(forum, initialComment, username); // Or publish an event here
-
+            //updateForumStatistics(forum, initialComment, username); // Or publish an event here
             logger.info("Successfully created discussion '{}' with ID {}", discussion.getTitle(), discussion.getId());
+
+            eventPublisher.publishEvent(new DiscussionCreatedEvent(this, discussion, username));
 
             // 9. Map persisted Discussion to DTO for response
             DiscussionDTO discussionDTO = discussionMapper.toDiscussionDTO(discussion);
@@ -109,6 +115,7 @@ public class DiscussionService {
 
     private Comment createInitialCommentAndProcessFiles(Discussion discussion, String commentContent, String username, MultipartFile[] images, MultipartFile[] attachments) {
         Comment initialComment = new Comment();
+        initialComment.setTitle(discussion.getTitle()); // first comment share title field with discussion
         initialComment.setContent(commentContent);
         initialComment.setDiscussion(discussion);
         initialComment.setCreateBy(username);
@@ -149,6 +156,7 @@ public class DiscussionService {
     }
 
     // Method to update forum statistics - can be refactored further or handled by an event listener
+    @Deprecated // not used in current implementation, handled by Spring Event
     private void updateForumStatistics(Forum forum, Comment initialComment, String username) {
         // Be mindful of potential concurrency issues if not handled carefully.
         // This logic might be better in ForumService or handled by an event listener.

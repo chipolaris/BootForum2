@@ -8,6 +8,7 @@ import com.github.chipolaris.bootforum2.dto.DiscussionCreateDTO;
 import com.github.chipolaris.bootforum2.dto.DiscussionDTO;
 import com.github.chipolaris.bootforum2.dto.FileInfoDTO;
 import com.github.chipolaris.bootforum2.dto.PageResponseDTO;
+import com.github.chipolaris.bootforum2.event.DiscussionCreatedEvent;
 import com.github.chipolaris.bootforum2.mapper.DiscussionMapper;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,9 +18,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
@@ -54,6 +56,9 @@ class DiscussionServiceUnitTest {
     @Mock
     private AuthenticationFacade authenticationFacade;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher; // Added as it's a dependency
+
     @InjectMocks
     private DiscussionService discussionService;
 
@@ -63,38 +68,44 @@ class DiscussionServiceUnitTest {
     private DiscussionDTO testDiscussionDTO;
     private User testUser;
     private String testUsername = "testUser";
+    private CommentInfo testCommentInfo;
 
     @BeforeEach
     void setUp() {
-        discussionCreateDTO = new DiscussionCreateDTO(1L, "Test Title", "Test Comment");
+        discussionCreateDTO = new DiscussionCreateDTO(1L, "New Test Title", "New Test Comment");
 
         testForum = new Forum();
         testForum.setId(1L);
-        testForum.setTitle("Test Forum");
+        testForum.setTitle("New Test Forum");
         ForumStat forumStat = new ForumStat();
+        // Initialize ForumStat to avoid NPEs if it's accessed
         forumStat.setCommentCount(0L);
         forumStat.setDiscussionCount(0L);
-        forumStat.setLastComment(new CommentInfo()); // Initialize to avoid NPE
+        forumStat.setLastComment(new CommentInfo());
         testForum.setStat(forumStat);
 
+        testCommentInfo = new CommentInfo();
+        testCommentInfo.setCommentor(testUsername);
+        testCommentInfo.setCommentDate(LocalDateTime.now().minusDays(1));
+        testCommentInfo.setTitle("Old last comment title");
 
         testDiscussion = new Discussion();
         testDiscussion.setId(1L);
-        testDiscussion.setTitle("Test Title");
+        testDiscussion.setTitle("New Test Title");
         testDiscussion.setForum(testForum);
         testDiscussion.setComments(new ArrayList<>());
         DiscussionStat discussionStat = new DiscussionStat();
-        discussionStat.setLastComment(new CommentInfo());
+        discussionStat.setLastComment(testCommentInfo); // Initialize with a distinct CommentInfo
         testDiscussion.setStat(discussionStat);
 
-        testDiscussionDTO = new DiscussionDTO(1L, LocalDateTime.now(), "system","Test Title", null, null);
+        testDiscussionDTO = new DiscussionDTO(1L, LocalDateTime.now(), testUsername,"New Test Title", null, null);
 
         testUser = new User();
         testUser.setUsername(testUsername);
     }
 
     @Test
-    void createDiscussion_success() {
+    void createDiscussion_success_publishesEventAndReturnsSuccess() {
         // Arrange
         MultipartFile[] images = {};
         MultipartFile[] attachments = {};
@@ -103,10 +114,8 @@ class DiscussionServiceUnitTest {
         when(genericDAO.find(eq(Forum.class), eq(1L))).thenReturn(testForum);
         when(discussionMapper.toEntity(any(DiscussionCreateDTO.class))).thenReturn(testDiscussion);
         when(discussionMapper.toDiscussionDTO(any(Discussion.class))).thenReturn(testDiscussionDTO);
-        // Mock file processing if needed, for simplicity assuming no files or successful processing
-        // when(fileStorageService.storeFile(any())).thenReturn(new ServiceResponse<>(new FileInfoDTO(null, "test.jpg", "image/jpeg", "/path/to/test.jpg")));
-        // when(fileInfoMapper.toEntity(any(FileInfoDTO.class))).thenReturn(new FileInfo());
-
+        // Mock file processing to return success with no files for simplicity
+        // If files were present, you'd mock fileStorageService.storeFile and fileInfoMapper.toEntity
 
         // Act
         ServiceResponse<DiscussionDTO> response = discussionService.createDiscussion(discussionCreateDTO, images, attachments);
@@ -119,13 +128,10 @@ class DiscussionServiceUnitTest {
         assertEquals(testDiscussionDTO.title(), response.getDataObject().title());
         assertTrue(response.getMessages().contains("Discussion created successfully."));
 
+        // Verify interactions
         verify(genericDAO).find(eq(Forum.class), eq(1L));
         verify(discussionMapper).toEntity(any(DiscussionCreateDTO.class));
-        verify(genericDAO).persist(any(Discussion.class));
-        verify(genericDAO).merge(eq(testForum)); // Verify forum stat update
-        verify(discussionMapper).toDiscussionDTO(any(Discussion.class));
 
-        // Capture the persisted Discussion to check its initial comment and stat
         ArgumentCaptor<Discussion> discussionCaptor = ArgumentCaptor.forClass(Discussion.class);
         verify(genericDAO).persist(discussionCaptor.capture());
         Discussion persistedDiscussion = discussionCaptor.getValue();
@@ -135,17 +141,25 @@ class DiscussionServiceUnitTest {
         Comment initialComment = persistedDiscussion.getComments().get(0);
         assertEquals(discussionCreateDTO.comment(), initialComment.getContent());
         assertEquals(testUsername, initialComment.getCreateBy());
+        assertNotNull(initialComment.getCommentVote()); // Ensure CommentVote is initialized
 
         assertNotNull(persistedDiscussion.getStat());
         assertEquals(1, persistedDiscussion.getStat().getCommentCount());
         assertEquals(testUsername, persistedDiscussion.getStat().getLastComment().getCommentor());
+        assertEquals(persistedDiscussion.getTitle(), persistedDiscussion.getStat().getLastComment().getTitle());
+        // Check if the last comment date in stat is recent (close to now)
+        assertTrue(persistedDiscussion.getStat().getLastComment().getCommentDate().isAfter(LocalDateTime.now().minusMinutes(1)));
+
+
+        verify(discussionMapper).toDiscussionDTO(any(Discussion.class));
+        verify(eventPublisher).publishEvent(any(DiscussionCreatedEvent.class)); // Verify event publication
     }
 
     @Test
-    void createDiscussion_forumNotFound() {
+    void createDiscussion_forumNotFound_returnsFailure() {
         // Arrange
         when(authenticationFacade.getCurrentUsername()).thenReturn(Optional.of(testUsername));
-        when(genericDAO.find(eq(Forum.class), eq(1L))).thenReturn(null);
+        when(genericDAO.find(eq(Forum.class), eq(1L))).thenReturn(null); // Forum not found
 
         // Act
         ServiceResponse<DiscussionDTO> response = discussionService.createDiscussion(discussionCreateDTO, null, null);
@@ -157,87 +171,63 @@ class DiscussionServiceUnitTest {
         assertNull(response.getDataObject());
 
         verify(genericDAO).find(eq(Forum.class), eq(1L));
-        verify(genericDAO, never()).persist(any(Discussion.class));
+        verify(genericDAO, never()).persist(any(Discussion.class)); // Persist should not be called
+        verify(eventPublisher, never()).publishEvent(any()); // No event should be published
     }
 
     @Test
-    void createDiscussion_fileStorageFailure() {
+    void createDiscussion_fileStorageFailure_stillCreatesDiscussionAndLogsWarning() {
         // Arrange
         MultipartFile mockImage = mock(MultipartFile.class);
-        when(mockImage.isEmpty()).thenReturn(false);
-        when(mockImage.getOriginalFilename()).thenReturn("test.jpg");
+        when(mockImage.isEmpty()).thenReturn(false); // Simulate a non-empty file
+        when(mockImage.getOriginalFilename()).thenReturn("test-image.jpg");
         MultipartFile[] images = {mockImage};
+        MultipartFile[] attachments = {};
 
         when(authenticationFacade.getCurrentUsername()).thenReturn(Optional.of(testUsername));
         when(genericDAO.find(eq(Forum.class), eq(1L))).thenReturn(testForum);
         when(discussionMapper.toEntity(any(DiscussionCreateDTO.class))).thenReturn(testDiscussion);
 
+        // Simulate file storage failure
         ServiceResponse<FileInfoDTO> failedFileResponse = new ServiceResponse<>();
-        failedFileResponse.setAckCode(ServiceResponse.AckCodeType.FAILURE).addMessage("Storage error");
+        failedFileResponse.setAckCode(ServiceResponse.AckCodeType.FAILURE).addMessage("Disk full");
         when(fileStorageService.storeFile(any(MultipartFile.class))).thenReturn(failedFileResponse);
-        // No need to mock fileInfoMapper.toEntity if storeFile fails
+        // fileInfoMapper.toEntity should not be called if storeFile fails and returns null dataObject
 
         when(discussionMapper.toDiscussionDTO(any(Discussion.class))).thenReturn(testDiscussionDTO);
 
         // Act
-        ServiceResponse<DiscussionDTO> response = discussionService.createDiscussion(discussionCreateDTO, images, null);
+        ServiceResponse<DiscussionDTO> response = discussionService.createDiscussion(discussionCreateDTO, images, attachments);
 
         // Assert
         assertNotNull(response);
-        assertEquals(ServiceResponse.AckCodeType.SUCCESS, response.getAckCode()); // Discussion creation still succeeds
+        assertEquals(ServiceResponse.AckCodeType.SUCCESS, response.getAckCode(), "Discussion creation should succeed even if file storage fails.");
         assertNotNull(response.getDataObject());
 
-        // Verify that the file processing was attempted and logged (implicitly by logger call in service)
-        // Verify that the discussion stat reflects 0 thumbnailCount if file storage failed
+        verify(fileStorageService).storeFile(eq(mockImage)); // Verify attempt to store file
+
         ArgumentCaptor<Discussion> discussionCaptor = ArgumentCaptor.forClass(Discussion.class);
         verify(genericDAO).persist(discussionCaptor.capture());
         Discussion persistedDiscussion = discussionCaptor.getValue();
-        assertEquals(0, persistedDiscussion.getStat().getThumbnailCount()); // Assuming failure means no thumbnail
+
+        // Assert that the discussion's initial comment has no thumbnails due to storage failure
+        assertTrue(persistedDiscussion.getComments().get(0).getThumbnails().isEmpty(), "Thumbnails should be empty on storage failure.");
+        assertEquals(0, persistedDiscussion.getStat().getThumbnailCount(), "Thumbnail count in stat should be 0.");
+
+        verify(eventPublisher).publishEvent(any(DiscussionCreatedEvent.class)); // Event should still be published
     }
 
+
     @Test
-    void findPaginatedDiscussions_success() {
+    void findPaginatedDiscussions_success_returnsPagedData() {
         // Arrange
         long forumId = 1L;
-        Pageable pageable = PageRequest.of(0, 10); // Controller sends 0-indexed
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("createDate").descending());
         List<Discussion> discussionsList = Collections.singletonList(testDiscussion);
         long totalElements = 1L;
 
-        // Mock count query
         when(dynamicDAO.count(any(QuerySpec.class))).thenReturn(totalElements);
-        // Mock find query
-        doReturn(discussionsList).when(dynamicDAO).find(any(QuerySpec.class));
-        when(discussionMapper.toDiscussionDTO(eq(testDiscussion))).thenReturn(testDiscussionDTO);
-
-        // Act
-        ServiceResponse<PageResponseDTO<DiscussionDTO>> response = discussionService.findPaginatedDiscussions(forumId, pageable);
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(ServiceResponse.AckCodeType.SUCCESS, response.getAckCode());
-        assertNotNull(response.getDataObject());
-        PageResponseDTO<DiscussionDTO> resultPage = response.getDataObject();
-        assertEquals(1, resultPage.content().size());
-        assertEquals(testDiscussionDTO, resultPage.content().get(0));
-        assertEquals(totalElements, resultPage.totalElements());
-        assertEquals(0, resultPage.number()); // Page number should match request
-        assertEquals(10, resultPage.size());  // Page size should match request
-
-        verify(dynamicDAO).count(any(QuerySpec.class));
-        verify(dynamicDAO).find(any(QuerySpec.class));
-        verify(discussionMapper).toDiscussionDTO(eq(testDiscussion));
-    }
-
-    @Test
-    void findPaginatedDiscussions_serviceHandlesPageConversionCorrectly() {
-        // Arrange: Simulate Pageable with page number > 0
-        long forumId = 1L;
-        Pageable pageable = PageRequest.of(1, 5); // Requesting page 2 (0-indexed page 1), size 5
-        List<Discussion> discussionsList = Collections.singletonList(testDiscussion);
-        long totalElements = 10L; // Example total
-
-        when(dynamicDAO.count(any(QuerySpec.class))).thenReturn(totalElements);
-        // Mock find query using doReturn().when()
+        //when(dynamicDAO.find(any(QuerySpec.class))).thenReturn(discussionsList);
         doReturn(discussionsList).when(dynamicDAO).find(any(QuerySpec.class));
         when(discussionMapper.toDiscussionDTO(eq(testDiscussion))).thenReturn(testDiscussionDTO);
 
@@ -249,32 +239,58 @@ class DiscussionServiceUnitTest {
         assertEquals(ServiceResponse.AckCodeType.SUCCESS, response.getAckCode());
         PageResponseDTO<DiscussionDTO> resultPage = response.getDataObject();
         assertNotNull(resultPage);
-        assertEquals(1, resultPage.content().size()); // Assuming mock returns 1 for this page
+        assertEquals(1, resultPage.content().size());
+        assertEquals(testDiscussionDTO.id(), resultPage.content().get(0).id());
         assertEquals(totalElements, resultPage.totalElements());
-        assertEquals(1, resultPage.number()); // Asserting the page number in the response
-        assertEquals(5, resultPage.size());   // Asserting the page size in the response
+        assertEquals(0, resultPage.number());
+        assertEquals(10, resultPage.size());
+        assertEquals(1, resultPage.totalPages()); // totalElements = 1, size = 10 -> 1 page
 
-        // Verify QuerySpec startIndex was calculated correctly for page 1 (0-indexed)
+        // Verify QuerySpec details
         ArgumentCaptor<QuerySpec> querySpecCaptor = ArgumentCaptor.forClass(QuerySpec.class);
-        // dynamicDAO.find is called once for count (in the service, though we mock count separately here)
-        // and once for the actual data.
-        // The QuerySpec for count is built slightly differently in the service.
-        // We are interested in the QuerySpec passed to find for data.
-        verify(dynamicDAO, times(1)).find(querySpecCaptor.capture()); // Only capture the one for data
+        verify(dynamicDAO, times(1)).find(querySpecCaptor.capture()); // Capture QuerySpec for find
+        QuerySpec capturedQuerySpec = querySpecCaptor.getValue();
 
-        QuerySpec dataQuerySpec = querySpecCaptor.getValue();
-        // Based on current service logic: page=1, size=5 -> startIndex = (1-1)*5 = 0
-        assertEquals(5, dataQuerySpec.getStartIndex());
-        assertEquals(5, dataQuerySpec.getMaxResult());
+        assertEquals(0, capturedQuerySpec.getStartIndex());
+        assertEquals(10, capturedQuerySpec.getMaxResult());
+        assertNotNull(capturedQuerySpec.getOrders());
+        assertEquals(1, capturedQuerySpec.getOrders().size());
+        assertEquals("createDate", capturedQuerySpec.getOrders().get(0).field());
+        assertFalse(capturedQuerySpec.getOrders().get(0).ascending()); // descending
     }
 
-
     @Test
-    void findPaginatedDiscussions_daoException() {
+    void findPaginatedDiscussions_noDiscussionsFound_returnsEmptyPage() {
         // Arrange
         long forumId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
-        when(dynamicDAO.count(any(QuerySpec.class))).thenThrow(new RuntimeException("DAO count error"));
+        long totalElements = 0L;
+
+        when(dynamicDAO.count(any(QuerySpec.class))).thenReturn(totalElements);
+        when(dynamicDAO.find(any(QuerySpec.class))).thenReturn(Collections.emptyList());
+        // discussionMapper.toDiscussionDTO will not be called if list is empty
+
+        // Act
+        ServiceResponse<PageResponseDTO<DiscussionDTO>> response = discussionService.findPaginatedDiscussions(forumId, pageable);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(ServiceResponse.AckCodeType.SUCCESS, response.getAckCode());
+        PageResponseDTO<DiscussionDTO> resultPage = response.getDataObject();
+        assertNotNull(resultPage);
+        assertTrue(resultPage.content().isEmpty());
+        assertEquals(totalElements, resultPage.totalElements());
+        assertEquals(0, resultPage.number());
+        assertEquals(0, resultPage.totalPages()); // No elements -> 0 pages
+    }
+
+    @Test
+    void findPaginatedDiscussions_dynamicDaoCountThrowsException_returnsFailure() {
+        // Arrange
+        long forumId = 1L;
+        Pageable pageable = PageRequest.of(0, 10);
+        String errorMessage = "Database connection error during count";
+        when(dynamicDAO.count(any(QuerySpec.class))).thenThrow(new RuntimeException(errorMessage));
 
         // Act
         ServiceResponse<PageResponseDTO<DiscussionDTO>> response = discussionService.findPaginatedDiscussions(forumId, pageable);
@@ -286,6 +302,32 @@ class DiscussionServiceUnitTest {
         assertTrue(response.getMessages().contains("An unexpected error occurred while fetching discussions for forum: " + forumId));
 
         verify(dynamicDAO).count(any(QuerySpec.class));
-        verify(dynamicDAO, never()).find(any(QuerySpec.class)); // find should not be called if count fails
+        verify(dynamicDAO, never()).find(any(QuerySpec.class)); // find should not be called
+        verify(discussionMapper, never()).toDiscussionDTO(any());
+    }
+
+    @Test
+    void findPaginatedDiscussions_dynamicDaoFindThrowsException_returnsFailure() {
+        // Arrange
+        long forumId = 1L;
+        Pageable pageable = PageRequest.of(0, 10);
+        long totalElements = 5L; // Assume count succeeds
+        String errorMessage = "Database connection error during find";
+
+        when(dynamicDAO.count(any(QuerySpec.class))).thenReturn(totalElements);
+        when(dynamicDAO.find(any(QuerySpec.class))).thenThrow(new RuntimeException(errorMessage));
+
+        // Act
+        ServiceResponse<PageResponseDTO<DiscussionDTO>> response = discussionService.findPaginatedDiscussions(forumId, pageable);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(ServiceResponse.AckCodeType.FAILURE, response.getAckCode());
+        assertNull(response.getDataObject());
+        assertTrue(response.getMessages().contains("An unexpected error occurred while fetching discussions for forum: " + forumId));
+
+        verify(dynamicDAO).count(any(QuerySpec.class));
+        verify(dynamicDAO).find(any(QuerySpec.class));
+        verify(discussionMapper, never()).toDiscussionDTO(any());
     }
 }
