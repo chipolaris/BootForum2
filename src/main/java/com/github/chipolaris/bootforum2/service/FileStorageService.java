@@ -33,7 +33,7 @@ public class FileStorageService {
     private final Path fileStorageLocation;
     private final FileInfoMapper fileInfoMapper;
 
-    @Autowired
+    // Note: in Spring version >= 4.3, @AutoWired is implied for beans with single constructor
     public FileStorageService(@Value("${file.storage.base-path}") String storagePath, FileInfoMapper fileInfoMapper) {
         this.fileStorageLocation = Paths.get(storagePath).toAbsolutePath().normalize();
         this.fileInfoMapper = fileInfoMapper;

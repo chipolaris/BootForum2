@@ -29,8 +29,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class AppUserDetailsService implements UserDetailsService {
 
-	@Autowired
-	private DynamicDAO dynamicDAO;
+	private final DynamicDAO dynamicDAO;
+
+	// Note: in Spring version >= 4.3, @AutoWired is implied for beans with single constructor
+	public AppUserDetailsService(DynamicDAO dynamicDAO) {
+		this.dynamicDAO = dynamicDAO;
+	}
 	
 	@Override
 	@Transactional(readOnly=true)

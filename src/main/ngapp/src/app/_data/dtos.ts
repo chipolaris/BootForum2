@@ -117,6 +117,29 @@ export interface FileInfoDTO {
   path: string;
 }
 
+// You would also need CommentVoteDTO, for example:
+export interface CommentVoteDTO {
+  // Define fields for CommentVoteDTO based on Java DTO
+  voteUpCount?: number;
+  voteDownCount?: number;
+}
+
+export interface CommentDTO {
+  id?: number; // Corresponds to Long id, optional as it might not be present before creation
+  createDate: Date | string; // Date for client-side, string if received as ISO string
+  createBy: string;
+  updateDate?: Date | string | null; // Optional and nullable
+  updateBy?: string | null;        // Optional and nullable
+  title: string;
+  content: string;
+  replyToId?: number | null;     // Corresponds to Long replyToId, can be null
+  ipAddress?: string | null;       // Optional and nullable
+  attachments?: FileInfoDTO[] | null; // List of FileInfoDTO
+  thumbnails?: FileInfoDTO[] | null;  // List of FileInfoDTO
+  hidden: boolean;
+  commentVote?: CommentVoteDTO | null; // Reference to CommentVoteDTO
+}
+
 // Model for DiscussionStatDTO, corresponding to Java's DiscussionStatDTO
 export interface DiscussionStatDTO {
   commentCount?: number;

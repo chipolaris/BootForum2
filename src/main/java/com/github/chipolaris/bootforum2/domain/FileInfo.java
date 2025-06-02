@@ -7,6 +7,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
+// Experimental Hibernate Search
+//import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 
 @Entity
 @Table(name="FILE_INFO_T")
@@ -18,6 +20,8 @@ public class FileInfo extends BaseEntity {
     @GeneratedValue(strategy=GenerationType.TABLE, generator="FileInfoIdGenerator")
     private Long id;
 
+    // Experimental Hibernate Search
+    //@FullTextField
     @Column(name="ORIGINAL_FILENAME", length=200)
     private String originalFilename;
 

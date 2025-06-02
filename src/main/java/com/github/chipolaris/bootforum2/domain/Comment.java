@@ -1,6 +1,5 @@
 package com.github.chipolaris.bootforum2.domain;
 
-import java.util.Calendar;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,10 +26,18 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
 
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+// Experimental Hibernate Search
+//import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+//import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+//import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
+
 @Entity
 @Table(name="COMMENT_T")
 @TableGenerator(name="CommentIdGenerator", table="ENTITY_ID_T", pkColumnName="GEN_KEY",
         pkColumnValue="COMMENT_ID", valueColumnName="GEN_VALUE", initialValue = 1000, allocationSize=10)
+@Indexed
 public class Comment extends BaseEntity {
 
     @PrePersist
@@ -52,9 +59,11 @@ public class Comment extends BaseEntity {
     @JoinColumn(name="DISCUSSION_ID", foreignKey = @ForeignKey(name="FK_COMMEN_DISCUS"))
     private Discussion discussion;
 
+    @FullTextField
     @Column(name="TITLE", length=255)
     private String title;
 
+    @FullTextField
     @Lob @Basic(fetch=FetchType.LAZY)
     @Column(name="CONTENT")
     private String content; // content of the comment
@@ -79,6 +88,9 @@ public class Comment extends BaseEntity {
             inverseJoinColumns={@JoinColumn(name="FILE_INFO_ID", foreignKey = @ForeignKey(name="FK_COMMEN_ATTACH_FILE_INFO"))},
             indexes = {@Index(name="IDX_COMMEN_ATTACH", columnList = "COMMENT_ID,FILE_INFO_ID")})
     @OrderColumn(name="SORT_ORDER")
+    // Experimental
+    //@IndexedEmbedded(includePaths = {"originalFilename"})
+    //@IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     private List<FileInfo> attachments;
 
     /**
@@ -90,6 +102,9 @@ public class Comment extends BaseEntity {
             inverseJoinColumns={@JoinColumn(name="FILE_INFO_ID", foreignKey = @ForeignKey(name="FK_COMMEN_ATTACH_FILE_INFO"))},
             indexes = {@Index(name="IDX_COMMEN_THUMBN", columnList = "COMMENT_ID,FILE_INFO_ID")})
     @OrderColumn(name="SORT_ORDER")
+    // Experimental
+    //@IndexedEmbedded(includePaths = {"originalFilename"})
+    //@IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     private List<FileInfo> thumbnails;
 
     @Column(name="HIDDEN")

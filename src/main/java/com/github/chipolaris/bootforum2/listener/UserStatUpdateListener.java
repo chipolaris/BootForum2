@@ -9,6 +9,7 @@ import com.github.chipolaris.bootforum2.domain.CommentInfo;
 import com.github.chipolaris.bootforum2.domain.Discussion;
 import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.domain.UserStat;
+import com.github.chipolaris.bootforum2.event.CommentVotedEvent;
 import com.github.chipolaris.bootforum2.event.DiscussionCreatedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,5 +106,55 @@ public class UserStatUpdateListener {
         // You can continue using GenericDAO for merge, or if DynamicDAO had a merge method, use that.
         genericDAO.merge(user);
         logger.info("User stats updated for user: {}", creatorUsername);
+    }
+
+    @EventListener
+    @Transactional
+    @Async
+    public void handleCommentVotedEvent(CommentVotedEvent event) {
+        Comment comment = event.getComment();
+        short voteValue = event.getVoteValue();
+        // String voterUsername = event.getVoterUsername(); // User who cast the vote
+
+        if (comment == null || comment.getCreateBy() == null) {
+            logger.warn("Comment or comment creator is null in CommentVotedEvent. Cannot update reputation.");
+            return;
+        }
+
+        String commentCreatorUsername = comment.getCreateBy();
+
+        // Find the user who created the comment
+        QuerySpec userQuery = QuerySpec.builder(User.class)
+                .filter(FilterSpec.eq("username", commentCreatorUsername))
+                .build();
+        Optional<User> userOptional = dynamicDAO.findOptional(userQuery);
+
+        if (userOptional.isEmpty()) {
+            logger.warn("User (comment creator) '{}' not found. Cannot update reputation for comment ID {}.",
+                    commentCreatorUsername, comment.getId());
+            return;
+        }
+
+        User commentCreator = userOptional.get();
+        UserStat userStat = commentCreator.getStat();
+
+        if (userStat == null) {
+            // This should ideally not happen if User entity initializes UserStat
+            logger.warn("UserStat was null for comment creator '{}'. Initializing for reputation update.", commentCreatorUsername);
+            userStat = new UserStat();
+            commentCreator.setStat(userStat);
+        }
+
+        // Update reputation
+        userStat.addReputation(voteValue);
+
+        try {
+            genericDAO.merge(commentCreator); // Persist changes to the User (and cascaded UserStat)
+            logger.info("Updated reputation for user '{}' by {} due to vote on comment ID {}. New reputation: {}",
+                    commentCreatorUsername, voteValue, comment.getId(), userStat.getReputation());
+        } catch (Exception e) {
+            logger.error(String.format("Failed to update reputation for user '%s' (comment ID %d)",
+                    commentCreatorUsername, comment.getId()), e);
+        }
     }
 }

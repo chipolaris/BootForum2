@@ -2,11 +2,9 @@ package com.github.chipolaris.bootforum2.service;
 
 import com.github.chipolaris.bootforum2.dao.*;
 import com.github.chipolaris.bootforum2.domain.*;
-import com.github.chipolaris.bootforum2.dto.DiscussionCreateDTO;
-import com.github.chipolaris.bootforum2.dto.DiscussionDTO;
-import com.github.chipolaris.bootforum2.dto.FileInfoDTO;
-import com.github.chipolaris.bootforum2.dto.PageResponseDTO;
+import com.github.chipolaris.bootforum2.dto.*;
 import com.github.chipolaris.bootforum2.event.DiscussionCreatedEvent;
+import com.github.chipolaris.bootforum2.event.DiscussionViewedEvent;
 import com.github.chipolaris.bootforum2.mapper.DiscussionMapper;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
 import org.slf4j.Logger;
@@ -37,7 +35,7 @@ public class DiscussionService {
     private final AuthenticationFacade authenticationFacade;
     private final ApplicationEventPublisher eventPublisher;
 
-    // Note: in Spring Boot version >= 4.3, @AutoWired is implied for beans with single constructor
+    // Note: in Spring version >= 4.3, @AutoWired is implied for beans with single constructor
     public DiscussionService(GenericDAO genericDAO,
                                  DynamicDAO dynamicDAO,
                                  DiscussionMapper discussionMapper,
@@ -156,39 +154,6 @@ public class DiscussionService {
         return discussionStat;
     }
 
-    // Method to update forum statistics - can be refactored further or handled by an event listener
-    @Deprecated // not used in current implementation, handled by Spring Event
-    private void updateForumStatistics(Forum forum, Comment initialComment, String username) {
-        // Be mindful of potential concurrency issues if not handled carefully.
-        // This logic might be better in ForumService or handled by an event listener.
-        ForumStat forumStat = forum.getStat();
-        // ForumStat should be initialized by @PrePersist in Forum, but defensive check is fine
-        if (forumStat == null) {
-            logger.warn("ForumStat was null for Forum ID {}. Initializing.", forum.getId());
-            forumStat = new ForumStat();
-            forum.setStat(forumStat);
-        }
-
-        forumStat.addDiscussionCount(1);
-        forumStat.addCommentCount(1); // For the initial comment
-
-        CommentInfo forumLastComment = forumStat.getLastComment();
-        if (forumLastComment == null) {
-            logger.warn("ForumStat.lastComment was null for Forum ID {}. Initializing.", forum.getId());
-            forumLastComment = new CommentInfo();
-            forumStat.setLastComment(forumLastComment);
-        }
-
-        LocalDateTime initialCommentDate = initialComment.getCreateDate() != null ? initialComment.getCreateDate() : LocalDateTime.now();
-        if (forumLastComment.getCommentDate() == null || initialCommentDate.isAfter(forumLastComment.getCommentDate())) {
-            forumLastComment.setCommentId(initialComment.getId()); // Requires initialComment to have an ID
-            forumLastComment.setTitle(initialComment.getDiscussion().getTitle());
-            forumLastComment.setCommentor(username);
-            forumLastComment.setCommentDate(initialCommentDate);
-        }
-        genericDAO.merge(forum); // Persist changes to the forum and its stat
-    }
-
     private List<FileInfo> processFiles(MultipartFile[] files, Comment comment, String fileType) {
         List<FileInfo> fileInfos = new ArrayList<>();
         if (files != null) {
@@ -262,4 +227,53 @@ public class DiscussionService {
         return response;
     }
 
+    /**
+     * Retrieves a single discussion by its ID for a detailed view,
+     * including its comments.
+     *
+     * @param discussionId The ID of the discussion to retrieve.
+     * @return ServiceResponse containing the DiscussionViewDTO or error details.
+     */
+    @Transactional(readOnly = true)
+    public ServiceResponse<DiscussionDTO> findDiscussion(Long discussionId) {
+        ServiceResponse<DiscussionDTO> response = new ServiceResponse<>();
+
+        if (discussionId == null) {
+            logger.warn("Attempted to fetch discussion view with null ID.");
+            return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
+                    .addMessage("Discussion ID cannot be null.");
+        }
+
+        try {
+            Discussion discussion = genericDAO.find(Discussion.class, discussionId);
+
+            if (discussion == null) {
+                logger.warn("No discussion found with ID: {}", discussionId);
+                return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
+                        .addMessage(String.format("Discussion with ID %d not found.", discussionId));
+            }
+
+            // Ensure comments are loaded if they are lazy.
+            // If your Discussion.comments mapping is EAGER, this explicit call might not be strictly necessary
+            // but doesn't hurt. If it's LAZY, this is crucial.
+            // Hibernate.initialize(discussion.getComments()); // Example if using Hibernate directly
+
+            // The DiscussionMapper should handle mapping to DiscussionViewDTO,
+            // including mapping the comments list using CommentMapper.
+            DiscussionDTO discussionDTO = discussionMapper.toDiscussionDTO(discussion);
+            response.setDataObject(discussionDTO);
+            response.addMessage("Discussion view retrieved successfully.");
+
+            // Publish an event to update view count and last viewed time asynchronously
+            eventPublisher.publishEvent(new DiscussionViewedEvent(this, discussion));
+            logger.debug("Published DiscussionViewedEvent for discussion ID: {}", discussionId);
+
+        } catch (Exception e) {
+            logger.error(String.format("Error retrieving discussion view for ID %d: ", discussionId), e);
+            response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
+                    .addMessage("An unexpected error occurred while retrieving the discussion: " + e.getMessage());
+        }
+
+        return response;
+    }
 }

@@ -19,11 +19,14 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 @Entity
 @Table(name="FORUM_T")
 @TableGenerator(name="ForumIdGenerator", table="ENTITY_ID_T", pkColumnName="GEN_KEY",
         pkColumnValue="FORUM_ID", valueColumnName="GEN_VALUE", initialValue = 1000, allocationSize=10)
+@Indexed
 public class Forum extends BaseEntity {
 
     @PrePersist
@@ -49,9 +52,11 @@ public class Forum extends BaseEntity {
     @GeneratedValue(strategy=GenerationType.TABLE, generator="ForumIdGenerator")
     private Long id;
 
+    @FullTextField
     @Column(name="TITLE", length=100)
     private String title;
 
+    @FullTextField
     @Column(name="description", length=255)
     private String description;
 

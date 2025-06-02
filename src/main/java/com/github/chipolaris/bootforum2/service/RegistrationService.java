@@ -30,7 +30,7 @@ public class RegistrationService {
     private final RegistrationMapper registrationMapper;
     private final ApplicationEventPublisher eventPublisher;
 
-    // Note: in Spring Boot version >= 4.3, @AutoWired is implied for beans with single constructor
+    // Note: in Spring version >= 4.3, @AutoWired is implied for beans with single constructor
     public RegistrationService(GenericDAO genericDAO, DynamicDAO dynamicDAO, PasswordEncoder passwordEncoder,
                                RegistrationMapper registrationMapper, ApplicationEventPublisher eventPublisher) {
         this.genericDAO = genericDAO;

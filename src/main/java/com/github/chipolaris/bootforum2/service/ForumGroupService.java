@@ -28,7 +28,7 @@ public class ForumGroupService {
     private final GenericDAO genericDAO;
     private final ApplicationEventPublisher eventPublisher;
 
-    // Note: in Spring Boot version >= 4.3, @AutoWired is implied for beans with single constructor
+    // Note: in Spring version >= 4.3, @AutoWired is implied for beans with single constructor
     public ForumGroupService(GenericDAO genericDAO,  DynamicDAO dynamicDAO, ForumGroupMapper forumGroupMapper,
                              ApplicationEventPublisher eventPublisher) {
         this.genericDAO = genericDAO;

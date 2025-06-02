@@ -23,7 +23,7 @@ public class UserService {
 	private final DynamicDAO dynamicDAO;
 	private final ApplicationEventPublisher eventPublisher;
 
-	// Note: in Spring Boot version >= 4.3, @AutoWired is implied for beans with single constructor
+	// Note: in Spring version >= 4.3, @AutoWired is implied for beans with single constructor
 	public UserService(GenericDAO genericDAO, DynamicDAO dynamicDAO, PasswordEncoder passwordEncoder,
 					   ApplicationEventPublisher eventPublisher) {
 		this.genericDAO = genericDAO;

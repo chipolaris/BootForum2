@@ -8,6 +8,5 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface TagMapper {
 
-    @Mapping(source = "color", target = "iconColor")
     TagDTO toDTO(Tag tag);
 }

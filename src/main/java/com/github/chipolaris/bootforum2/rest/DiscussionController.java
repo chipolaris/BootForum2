@@ -73,13 +73,13 @@ public class DiscussionController {
      * size: page size
      * sort: property,direction (e.g., sort=title,asc or sort=title,asc&sort=author,desc)
      *
-     * @param forumId   Optional ID of the forum to filter discussions.
+     * @param forumId  ID of the forum to filter discussions.
      * @param pageable  Spring Data Pageable object automatically resolved from request parameters.
      * @return ApiResponse containing a Page of DiscussionDTOs or error details.
      */
-    @GetMapping("/public/discussions/list") // New endpoint for listing discussions
+    @GetMapping("/public/discussions/list")
     public ApiResponse<?> listDiscussions(
-            @RequestParam(required = false) Long forumId,
+            @RequestParam(required = true) Long forumId,
             @PageableDefault(size = 10, sort = "stat.lastComment.commentDate", direction = Sort.Direction.DESC) Pageable pageable) {
 
         logger.info("Received request to list discussions. ForumId: {}, Pageable: {}",
@@ -98,6 +98,37 @@ public class DiscussionController {
         } catch (Exception e) {
             logger.error("Unexpected error while listing discussions", e);
             return ApiResponse.error("An unexpected error occurred while retrieving discussions.");
+        }
+    }
+
+    /**
+     * Retrieves a single discussion by its ID.
+     *
+     * @param id The ID of the discussion to retrieve.
+     * @return ApiResponse containing the DiscussionDTO or error details.
+     */
+    @GetMapping("/public/discussions/{id}")
+    public ApiResponse<?> getDiscussion(@PathVariable Long id) {
+        logger.info("Received request to get discussion with ID: {}", id);
+
+        if (id == null) {
+            // This check is somewhat redundant due to @PathVariable being required,
+            // but kept for explicit clarity if the path variable was optional.
+            logger.warn("ID is null in path.");
+            return ApiResponse.error("ID cannot be null.");
+        }
+
+        try {
+            ServiceResponse<DiscussionDTO> serviceResponse = discussionService.findDiscussion(id);
+
+            if (serviceResponse.getAckCode() == ServiceResponse.AckCodeType.SUCCESS) {
+                return ApiResponse.success(serviceResponse.getDataObject(), "Discussion retrieved successfully.");
+            } else {
+                return ApiResponse.error(serviceResponse.getMessages(), String.format("Failed to retrieve discussion with ID %d.", id));
+            }
+        } catch (Exception e) {
+            logger.error(String.format("Unexpected error while retrieving discussion with ID %d", id), e);
+            return ApiResponse.error(String.format("An unexpected error occurred while retrieving discussion with ID %d.", id));
         }
     }
 }
