@@ -32,18 +32,16 @@ public class CommentController {
      *                     Defaults: size=10, sort='createDate' ASC.
      * @return ApiResponse containing a PageResponseDTO of CommentDTOs or error details.
      */
-    @GetMapping("/discussions/{discussionId}/comments")
+    @GetMapping("/comments")
     public ApiResponse<?> listCommentsByDiscussion(
-            @PathVariable Long discussionId,
+            @RequestParam(required = true) Long discussionId,
             @PageableDefault(size = 10, sort = "createDate", direction = Sort.Direction.ASC) Pageable pageable) {
 
         logger.info("Received request to list comments for discussion ID: {}. Pageable: {}", discussionId, pageable);
 
         if (discussionId == null) {
-            // This check is somewhat redundant due to @PathVariable being required,
-            // but kept for explicit clarity if the path variable was optional.
-            logger.warn("Discussion ID is null in path.");
-            return ApiResponse.error("Discussion ID cannot be null.");
+            logger.warn("discussionId is not provided in request parameters.");
+            return ApiResponse.error("discussionId parameter cannot be null.");
         }
 
         try {

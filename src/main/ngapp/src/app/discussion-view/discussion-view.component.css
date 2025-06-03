@@ -1,0 +1,12 @@
+/* discussion-view.component.css */
+
+/* If using [innerHTML] and you want to style content within it,
+   you might need to use ::ng-deep or ensure your Tailwind prose plugin handles it.
+   For example, to ensure paragraphs within the prose have some margin: */
+:host ::ng-deep .prose p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+/* You can add custom styles for the jumbotron effect if needed,
+   but Tailwind classes in the HTML should cover most of it. */

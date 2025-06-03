@@ -97,7 +97,10 @@
           <ng-template pTemplate="body" let-discussion>
             <tr class="hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors duration-150">
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900 dark:text-white">{{ discussion.title }}</div>
+                <a [routerLink]="['/app/discussions', discussion.id, 'view']"
+                   class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                  {{ discussion.title }}
+                </a>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                 {{ discussion.stat?.commentCount ?? 'N/A' }}

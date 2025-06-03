@@ -8,6 +8,7 @@ import com.github.chipolaris.bootforum2.domain.Comment;
 import com.github.chipolaris.bootforum2.domain.CommentVote;
 import com.github.chipolaris.bootforum2.domain.Vote;
 import com.github.chipolaris.bootforum2.event.CommentVotedEvent;
+import com.github.chipolaris.bootforum2.repository.CommentVoteRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -23,14 +24,14 @@ public class VoteService {
     private static final Logger logger = LoggerFactory.getLogger(VoteService.class);
 
     private final GenericDAO genericDAO;
-    private final DynamicDAO dynamicDAO;
+    private final CommentVoteRepository commentVoteRepository;
     private final AuthenticationFacade authenticationFacade;
     private final ApplicationEventPublisher eventPublisher;
 
-    public VoteService(GenericDAO genericDAO, DynamicDAO dynamicDAO,
+    public VoteService(GenericDAO genericDAO, CommentVoteRepository commentVoteRepository,
                        AuthenticationFacade authenticationFacade, ApplicationEventPublisher eventPublisher) {
         this.genericDAO = genericDAO;
-        this.dynamicDAO = dynamicDAO;
+        this.commentVoteRepository = commentVoteRepository;
         this.authenticationFacade = authenticationFacade;
         this.eventPublisher = eventPublisher;
     }
@@ -76,15 +77,8 @@ public class VoteService {
             commentVote.setVotes(new HashSet<>());
         }
 
-        // Check if user has already voted
-        boolean alreadyVoted = commentVote.getVotes().stream()
-                .anyMatch(v -> v.getVoterName().equals(currentUsername));
-
-        // Check if user has already voted - new version is not working... Work in Progress
-        /*QuerySpec voteExistQuerySpec = QuerySpec.builder(Vote.class).rootEntityClass(CommentVote.class)
-                .filter(FilterSpec.eq("votes.voterName", currentUsername)).build();
-        boolean alreadyVoted = dynamicDAO.exists(voteExistQuerySpec);*/
-
+        // Check if the user has already voted
+        boolean alreadyVoted = commentVoteRepository.hasUserVotedOnCommentVote(commentVote.getId(), currentUsername);
         if (alreadyVoted) {
             return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
                     .addMessage("You have already voted on this comment.");
@@ -94,7 +88,6 @@ public class VoteService {
         Vote newVote = new Vote();
         newVote.setVoterName(currentUsername);
         newVote.setVoteValue(voteValue);
-        // newVote.setCommentVote(commentVote); // Link back to CommentVote if using bidirectional
 
         commentVote.getVotes().add(newVote); // Add to the collection in CommentVote
 

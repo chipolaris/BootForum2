@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { HomeComponent } from './home/home.component';
 import { UnauthorizedComponent } from './unauthorized/unauthorized.component';
 import { ResourceNotFoundComponent } from './resource-not-found/resource-not-found.component';
+import { DiscussionViewComponent } from './discussion-view/discussion-view.component';
 import { ForumTreeTableComponent } from './forum-tree-table/forum-tree-table.component';
 import { ForumViewComponent } from './forum-view/forum-view.component';
 import { ForumGroupCreateComponent } from './admin/forum-group-create/forum-group-create.component';
@@ -27,6 +28,7 @@ export const routes: Routes = [
     path: 'app/admin/forum-structure', component: ForumStructureTreeComponent, canActivate: [authGuard],
     data: { roles: ['ADMIN'] }
   },
+  { path: 'app/discussions/:id/view', component: DiscussionViewComponent },
   { path: 'app/forums/:id/view', component: ForumViewComponent },
   {
     path: 'app/admin/forum-groups/create', component: ForumGroupCreateComponent, canActivate: [authGuard],

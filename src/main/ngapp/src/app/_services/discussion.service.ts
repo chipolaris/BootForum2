@@ -72,6 +72,25 @@ export class DiscussionService {
       );
   }
 
+  /**
+   * Fetches a single discussion by its ID.
+   * @param id The ID of the discussion to retrieve.
+   * @returns An Observable of ApiResponse containing the DiscussionDTO.
+   */
+  getDiscussionById(id: number): Observable<ApiResponse<DiscussionDTO>> {
+    return this.http.get<ApiResponse<DiscussionDTO>>(`${this.basePublicApiUrl}/${id}`)
+      .pipe(
+        tap(response => {
+          if (response.success) {
+            console.log(`Discussion with id ${id} fetched successfully via service`, response.data);
+          } else {
+            console.error(`Failed to fetch discussion with id ${id} via service`, response.message, response.errors);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('An error occurred in DiscussionService:', error);
     let errorMessage = 'Something bad happened; please try again later.';
