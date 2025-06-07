@@ -60,7 +60,8 @@ public class ForumStatUpdateListener {
         forumStat.addDiscussionCount(1);
         forumStat.addCommentCount(1); // For the initial comment
 
-        Comment initialComment = discussion.getComments().stream().findFirst().orElse(null); // Get the initial comment
+        // Update: discussion created doesn't count as a comment
+        /*Comment initialComment = discussion.getComments().stream().findFirst().orElse(null); // Get the initial comment
 
         if (initialComment != null && initialComment.getId() != null) {
             CommentInfo forumLastComment = forumStat.getLastComment();
@@ -80,7 +81,7 @@ public class ForumStatUpdateListener {
             }
         } else {
             logger.warn("Initial comment or its ID not found for discussion ID {}. Last comment in forum stat might not be updated.", discussion.getId());
-        }
+        }*/
 
         genericDAO.merge(managedForum); // Persist changes to the forum and its stat
         logger.info("Forum stats updated for Forum ID: {}", managedForum.getId());

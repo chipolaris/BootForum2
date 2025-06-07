@@ -1,12 +1,12 @@
 <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
 
-  <!-- Loading Discussion State -->
-  <div *ngIf="isLoadingDiscussion" class="flex justify-center items-center py-10">
+  <!-- Loading Discussion Details State -->
+  <div *ngIf="isLoadingDiscussion && !discussionDetails" class="flex justify-center items-center py-10">
     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
     <p class="ml-3 text-lg text-gray-600">Loading discussion...</p>
   </div>
 
-  <!-- Discussion Error Message -->
+  <!-- Discussion Details Error Message -->
   <div *ngIf="discussionError && !isLoadingDiscussion"
        class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md mb-6" role="alert">
     <p class="font-bold">Error Loading Discussion</p>
@@ -18,20 +18,19 @@
 
     <!-- Left Column: Comments (75%) -->
     <div class="md:w-3/4 space-y-6">
-      <!-- First Comment (Jumbotron Style) -->
-      <div *ngIf="firstComment && !isLoadingComments"
+
+      <!-- Discussion Details (Jumbotron Style) -->
+      <div *ngIf="discussionDetails && !isLoadingDiscussion && !discussionError"
            class="bg-slate-100 dark:bg-slate-800 p-6 rounded-lg shadow-lg">
         <header class="mb-4">
-          <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100">{{ firstComment.title }}</h2>
+          <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100">{{ discussionDetails.title }}</h2>
           <p class="text-sm text-slate-600 dark:text-slate-300">
-            By: <span class="font-medium">{{ firstComment.createBy }}</span>
-            on {{ firstComment.createDate | date:'medium' }}
+            By: <span class="font-medium">{{ discussionDetails.createBy }}</span>
+            on {{ discussionDetails.createDate | date:'medium' }}
           </p>
         </header>
-        <!-- DIV for Toast UI Viewer for the first comment -->
-        <div #firstCommentViewerEl class="toastui-viewer-styling prose prose-slate dark:prose-invert max-w-none">
-          <!-- Viewer will render here -->
-        </div>
+        <!-- Use ngx-markdown -->
+        <markdown [data]="discussionDetails.content" class="toastui-viewer-styling"></markdown>
         <footer class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
           <div>
             <button type="button" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium mr-3">Reply</button>
@@ -44,24 +43,24 @@
         </footer>
       </div>
 
-      <!-- Loading Comments State (for subsequent comments) -->
-      <div *ngIf="isLoadingComments && !firstComment" class="flex justify-center items-center py-6">
+      <!-- Loading Comments State -->
+      <div *ngIf="isLoadingComments && !commentsPage" class="flex justify-center items-center py-6">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        <p class="ml-2 text-gray-600">Loading comments...</p>
+        <p class="ml-2 text-gray-600">Loading replies...</p>
       </div>
 
       <!-- Comments Error Message -->
       <div *ngIf="commentsError && !isLoadingComments"
            class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md" role="alert">
-        <p class="font-bold">Error Loading Comments</p>
+        <p class="font-bold">Error Loading Replies</p>
         <p>{{ commentsError }}</p>
       </div>
 
-      <!-- Follow-up Comments List -->
-      <div *ngIf="commentsPage && commentsPage.content.length > (firstComment ? 1 : 0) && !isLoadingComments && !commentsError" class="space-y-4">
-        <h3 *ngIf="firstComment" class="text-xl font-semibold text-gray-700 dark:text-gray-200 mt-8 mb-4">Replies</h3>
-        <!-- Use commentsDataForViewers for the loop as it's prepared for the viewers -->
-        <div *ngFor="let comment of commentsDataForViewers; let i = index"
+      <!-- Comments List -->
+      <!-- commentsDataForViewers now only contains comments -->
+      <div *ngIf="commentsDataForViewers.length > 0 && !isLoadingComments && !commentsError" class="space-y-4">
+        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mt-8 mb-4">Replies</h3>
+        <div *ngFor="let comment of commentsDataForViewers; let i = index; trackBy: trackByCommentId"
              class="bg-white dark:bg-slate-700 p-4 rounded-lg shadow-md">
           <header class="mb-2">
             <h4 class="text-lg font-semibold text-gray-800 dark:text-slate-100">{{ comment.title }}</h4>
@@ -70,10 +69,8 @@
               on {{ comment.createDate | date:'mediumDate' }} at {{ comment.createDate | date:'shortTime' }}
             </p>
           </header>
-          <!-- DIV for Toast UI Viewer for each follow-up comment -->
-          <div #followUpCommentViewerEl class="toastui-viewer-styling text-gray-700 dark:text-slate-300 text-sm">
-            <!-- Viewer will render here -->
-          </div>
+          <!-- Use ngx-markdown -->
+          <markdown [data]="comment.content" class="toastui-viewer-styling text-gray-700 dark:text-slate-300 text-sm"></markdown>
           <footer class="mt-3 pt-3 border-t border-gray-200 dark:border-slate-600 flex justify-between items-center">
             <div>
               <button type="button" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium mr-2">Reply</button>
@@ -87,26 +84,25 @@
         </div>
       </div>
 
-      <!-- No Comments Message -->
-      <div *ngIf="commentsPage && commentsPage.empty && !isLoadingComments && !commentsError && !firstComment"
+      <!-- No Comments/Replies Messages -->
+      <div *ngIf="!isLoadingComments && (!commentsPage || commentsPage.empty) && !commentsError"
            class="bg-blue-50 dark:bg-slate-700 border border-blue-200 dark:border-slate-600 text-blue-700 dark:text-blue-300 px-4 py-3 rounded-md shadow"
            role="status">
-        <p>No comments have been posted yet.</p>
+        <p>No comments have been posted for this discussion yet.</p>
       </div>
-      <div *ngIf="commentsPage && commentsPage.content.length === 1 && firstComment && !isLoadingComments && !commentsError"
+      <div *ngIf="isLoadingComments && (!commentsPage || commentsPage.empty) && !commentsError"
            class="bg-blue-50 dark:bg-slate-700 border border-blue-200 dark:border-slate-600 text-blue-700 dark:text-blue-300 px-4 py-3 rounded-md shadow mt-4"
            role="status">
         <p>No replies yet.</p>
       </div>
 
-
-      <!-- Comments Pagination Controls -->
+      <!-- Follow-up Comments Pagination Controls -->
       <nav *ngIf="!isLoadingComments && !commentsError && commentsPage && commentsPage.totalPages > 1"
            class="mt-6 flex items-center justify-between border-t border-gray-200 dark:border-slate-600 px-4 py-3 sm:px-0"
-           aria-label="Comment Pagination">
+           aria-label="Follow-up Comment Pagination">
         <div class="hidden sm:block">
           <p class="text-sm text-gray-700 dark:text-gray-300">
-            Showing
+            Showing replies
             <span class="font-medium">{{ commentsPage.number * commentsPage.size + 1 }}</span>
             to
             <span class="font-medium">{{ commentsPage.number * commentsPage.size + commentsPage.numberOfElements }}</span>
@@ -124,14 +120,14 @@
             <option [value]="20">20</option>
           </select>
 
-          <button (click)="goToCommentPage(currentCommentsPage - 1)"
+          <button (click)="goToCommentsPage(currentCommentsPage - 1)"
                   [disabled]="commentsPage.first || isLoadingComments"
                   class="relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 dark:hover:bg-slate-600">
             Prev
           </button>
           <ng-container *ngFor="let pageNum of displayableCommentPageNumbers">
             <button *ngIf="pageNum !== -1"
-                    (click)="goToCommentPage(pageNum)"
+                    (click)="goToCommentsPage(pageNum)"
                     [disabled]="isLoadingComments"
                     [ngClass]="{'z-10 bg-indigo-50 border-indigo-500 text-indigo-600 dark:bg-indigo-600 dark:text-white dark:border-indigo-500': pageNum === currentCommentsPage, 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 dark:hover:bg-slate-600': pageNum !== currentCommentsPage}"
                     class="relative inline-flex items-center px-3 py-1.5 border text-sm font-medium">
@@ -139,34 +135,34 @@
             </button>
             <span *ngIf="pageNum === -1" class="relative inline-flex items-center px-3 py-1.5 border border-gray-300 bg-white text-sm font-medium text-gray-700 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500">...</span>
           </ng-container>
-          <button (click)="goToCommentPage(currentCommentsPage + 1)"
+          <button (click)="goToCommentsPage(currentCommentsPage + 1)"
                   [disabled]="commentsPage.last || isLoadingComments"
                   class="relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 dark:hover:bg-slate-600">
             Next
           </button>
         </div>
       </nav>
-
     </div> <!-- End Left Column -->
 
     <!-- Right Column: Discussion Sidebar (25%) -->
     <aside class="md:w-1/4 space-y-4">
+      <!-- Sidebar content remains the same -->
       <div class="bg-slate-50 dark:bg-slate-700 p-4 rounded-lg shadow-md">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3 border-b pb-2 dark:border-slate-600">Discussion Info</h3>
         <dl class="space-y-2 text-sm">
           <div>
             <dt class="font-medium text-gray-600 dark:text-slate-300">Title:</dt>
-            <dd class="text-gray-800 dark:text-slate-100">{{ discussionDetails.title }}</dd>
+            <dd class="text-gray-800 dark:text-slate-100">{{ discussionDetails?.title }}</dd>
           </div>
           <div>
             <dt class="font-medium text-gray-600 dark:text-slate-300">Created by:</dt>
-            <dd class="text-gray-800 dark:text-slate-100">{{ discussionDetails.createBy }}</dd>
+            <dd class="text-gray-800 dark:text-slate-100">{{ discussionDetails?.createBy }}</dd>
           </div>
           <div>
             <dt class="font-medium text-gray-600 dark:text-slate-300">Created on:</dt>
-            <dd class="text-gray-800 dark:text-slate-100">{{ discussionDetails.createDate | date:'longDate' }}</dd>
+            <dd class="text-gray-800 dark:text-slate-100">{{ discussionDetails?.createDate | date:'longDate' }}</dd>
           </div>
-          <ng-container *ngIf="discussionDetails.stat as stat">
+          <ng-container *ngIf="discussionDetails?.stat as stat">
             <div>
               <dt class="font-medium text-gray-600 dark:text-slate-300">Total Comments:</dt>
               <dd class="text-gray-800 dark:text-slate-100">{{ stat.commentCount ?? 'N/A' }}</dd>
@@ -192,7 +188,6 @@
           </ng-container>
         </dl>
       </div>
-      <!-- You can add more sidebar blocks here if needed -->
     </aside> <!-- End Right Column -->
 
   </div> <!-- End Main Content -->

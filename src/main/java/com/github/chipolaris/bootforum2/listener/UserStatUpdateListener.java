@@ -68,38 +68,6 @@ public class UserStatUpdateListener {
         // 2. Update UserStat fields
         userStat.addDiscussionCount(1);
 
-        Comment initialComment = discussion.getComments().stream().findFirst().orElse(null);
-
-        if (initialComment != null && initialComment.getId() != null) {
-            userStat.addCommentCount(1); // For the initial comment of the discussion
-
-            // Update last comment for the user if this new comment is more recent
-            CommentInfo userLastComment = userStat.getLastComment();
-            if (userLastComment == null) {
-                userLastComment = new CommentInfo(); // Should be handled by @PrePersist in UserStat
-                userStat.setLastComment(userLastComment);
-            }
-
-            LocalDateTime initialCommentDate = initialComment.getCreateDate() != null ? initialComment.getCreateDate() : LocalDateTime.now();
-
-            if (userLastComment.getCommentDate() == null || initialCommentDate.isAfter(userLastComment.getCommentDate())) {
-                userLastComment.setCommentId(initialComment.getId());
-                userLastComment.setTitle(discussion.getTitle()); // Or initialComment.getTitle() if it can differ
-                userLastComment.setCommentor(creatorUsername);
-                userLastComment.setCommentDate(initialCommentDate);
-            }
-
-            // Update attachment/thumbnail counts from the initial comment
-            if (initialComment.getAttachments() != null) {
-                userStat.addCommentAttachmentCount(initialComment.getAttachments().size());
-            }
-            if (initialComment.getThumbnails() != null) {
-                userStat.addCommentThumbnailCount(initialComment.getThumbnails().size());
-            }
-        } else {
-            logger.warn("Initial comment or its ID not found for discussion ID {}. Some user stats might not be fully updated.", discussion.getId());
-        }
-
         // 3. Persist changes
         // Since UserStat is part of the User aggregate and likely cascaded,
         // merging the User entity should persist changes to UserStat.

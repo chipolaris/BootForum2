@@ -3,7 +3,7 @@
     import { ActivatedRoute, RouterModule } from '@angular/router';
     import { ForumService } from '../_services/forum.service';
     import { DiscussionService } from '../_services/discussion.service';
-    import { ForumDTO, Page, DiscussionDTO } from '../_data/dtos';
+    import { ForumDTO, Page, DiscussionSummaryDTO } from '../_data/dtos';
     import { Subscription, distinctUntilChanged, tap, switchMap } from 'rxjs'; // Added distinctUntilChanged, tap, switchMap
     import { CommonModule } from '@angular/common';
     import { FormsModule } from '@angular/forms';
@@ -32,7 +32,7 @@
     export class ForumViewComponent implements OnInit, OnDestroy {
       forumId: number | null = null;
       forumDetails: ForumDTO | null = null;
-      discussionsPage: Page<DiscussionDTO> | null = null;
+      discussionsPage: Page<DiscussionSummaryDTO> | null = null;
 
       isLoadingForum = true;
       isLoadingDiscussions = true;
@@ -134,7 +134,7 @@
         this.isLoadingDiscussions = true;
         this.discussionsErrorMessage = null;
 
-        const discussionsSub = this.discussionService.listDiscussions(
+        const discussionsSub = this.discussionService.listDiscussionSummaries(
           forumId,
           pageToFetch, // Use the validated pageToFetch
           size,

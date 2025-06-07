@@ -7,6 +7,7 @@ import com.github.chipolaris.bootforum2.event.DiscussionCreatedEvent;
 import com.github.chipolaris.bootforum2.event.DiscussionViewedEvent;
 import com.github.chipolaris.bootforum2.mapper.DiscussionMapper;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
+import com.github.chipolaris.bootforum2.repository.DiscussionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,6 +30,7 @@ public class DiscussionService {
 
     private final GenericDAO genericDAO;
     private final DynamicDAO dynamicDAO;
+    private final DiscussionRepository discussionRepository;
     private final DiscussionMapper discussionMapper;
     private final FileStorageService fileStorageService;
     private final FileInfoMapper fileInfoMapper; // To map FileInfoDTO from FileStorageService to FileInfo entity
@@ -38,6 +40,7 @@ public class DiscussionService {
     // Note: in Spring version >= 4.3, @AutoWired is implied for beans with single constructor
     public DiscussionService(GenericDAO genericDAO,
                                  DynamicDAO dynamicDAO,
+                                 DiscussionRepository discussionRepository,
                                  DiscussionMapper discussionMapper,
                                  FileStorageService fileStorageService,
                                  FileInfoMapper fileInfoMapper,
@@ -45,6 +48,7 @@ public class DiscussionService {
                                  ApplicationEventPublisher eventPublisher) {
         this.genericDAO = genericDAO;
         this.dynamicDAO = dynamicDAO;
+        this.discussionRepository = discussionRepository;
         this.discussionMapper = discussionMapper;
         this.fileStorageService = fileStorageService;
         this.fileInfoMapper = fileInfoMapper;
@@ -70,36 +74,33 @@ public class DiscussionService {
                         .addMessage("Forum not found. Cannot create discussion.");
             }
 
-            // 2. Map DTO to Discussion entity
-            Discussion discussion = discussionMapper.toEntity(discussionCreateDTO);
+            // 2. create Discussion entity
+            Discussion discussion = Discussion.newDiscussion();
+            discussion.setTitle(discussionCreateDTO.title());
+            discussion.setContent(discussionCreateDTO.content());
             discussion.setForum(forum);
             discussion.setCreateBy(username); // Set creator here
 
-            // 3 & 4. Create Initial Comment and Process Files
-            Comment initialComment = createInitialCommentAndProcessFiles(discussion, discussionCreateDTO.comment(), username, images, attachments);
-            discussion.setComments(new ArrayList<>(Collections.singletonList(initialComment)));
+            // 3. Process Files
+            List<FileInfo> imageInfos = processFiles(images, "image");
+            discussion.setThumbnails(imageInfos);
 
-            // 6. Initialize Discussion Statistics
-            DiscussionStat discussionStat = initializeDiscussionStatistics(discussion, initialComment, username);
-            discussion.setStat(discussionStat);
+            List<FileInfo> attachmentInfos = processFiles(attachments, "attachment");
+            discussion.setAttachments(attachmentInfos);
 
-            // 7. Persist Discussion
+            // 4. Initialize Discussion Statistics
+            initializeDiscussionStatistics(discussion);
+
+            // 5. Persist Discussion
             genericDAO.persist(discussion);
 
-            // Update CommentInfo with persisted comment ID if necessary
-            if (initialComment.getId() != null && discussionStat.getLastComment() != null) {
-                discussionStat.getLastComment().setCommentId(initialComment.getId());
-                // If CommentInfo is an entity and needs to be persisted/merged:
-                // genericDAO.merge(discussionStat.getLastComment()); // Or handle via cascade if appropriate
-            }
-
-            // 8. Update Forum Statistics (Candidate for Spring Event)
+            // 6. Update Forum Statistics (Candidate for Spring Event)
             //updateForumStatistics(forum, initialComment, username); // Or publish an event here
             logger.info("Successfully created discussion '{}' with ID {}", discussion.getTitle(), discussion.getId());
 
             eventPublisher.publishEvent(new DiscussionCreatedEvent(this, discussion, username));
 
-            // 9. Map persisted Discussion to DTO for response
+            // 6. Map persisted Discussion to DTO for response
             DiscussionDTO discussionDTO = discussionMapper.toDiscussionDTO(discussion);
             response.setDataObject(discussionDTO);
             response.addMessage("Discussion created successfully.");
@@ -112,49 +113,20 @@ public class DiscussionService {
         return response;
     }
 
-    private Comment createInitialCommentAndProcessFiles(Discussion discussion, String commentContent, String username, MultipartFile[] images, MultipartFile[] attachments) {
-        Comment initialComment = new Comment();
-        initialComment.setTitle(discussion.getTitle()); // first comment share title field with discussion
-        initialComment.setContent(commentContent);
-        initialComment.setDiscussion(discussion);
-        initialComment.setCreateBy(username);
-        // createDate and updateDate are handled by @PrePersist/@PreUpdate in Comment entity
-        initialComment.setReplyTo(null);
-        initialComment.setCommentVote(new CommentVote()); // Initialize votes
-
-        List<FileInfo> imageInfos = processFiles(images, initialComment, "image");
-        initialComment.setThumbnails(imageInfos); // Assuming 'thumbnails' is the correct field for images
-
-        List<FileInfo> attachmentInfos = processFiles(attachments, initialComment, "attachment");
-        initialComment.setAttachments(attachmentInfos);
-
-        return initialComment;
-    }
-
-    private DiscussionStat initializeDiscussionStatistics(Discussion discussion, Comment initialComment, String username) {
-        DiscussionStat discussionStat = new DiscussionStat();
-        discussionStat.setCommentCount(1);
+    private void initializeDiscussionStatistics(Discussion discussion) {
+        DiscussionStat discussionStat = discussion.getStat();
+        discussionStat.setCommentCount(0);
         discussionStat.setViewCount(0);
-        discussionStat.setCommentors(Map.of(username, 1)); // Map: (username: commentCount)
 
-        if (initialComment.getThumbnails() != null) {
-            discussionStat.setThumbnailCount(initialComment.getThumbnails().size());
+        if (discussion.getThumbnails() != null) {
+            discussionStat.setThumbnailCount(discussion.getThumbnails().size());
         }
-        if (initialComment.getAttachments() != null) {
-            discussionStat.setAttachmentCount(initialComment.getAttachments().size());
+        if (discussion.getAttachments() != null) {
+            discussionStat.setAttachmentCount(discussion.getAttachments().size());
         }
-
-        CommentInfo lastCommentInfo = new CommentInfo();
-        // lastCommentInfo.setCommentId(initialComment.getId()); // Set after initialComment is persisted
-        lastCommentInfo.setTitle(discussion.getTitle());
-        lastCommentInfo.setCommentor(username);
-        lastCommentInfo.setCommentDate(initialComment.getCreateDate() != null ? initialComment.getCreateDate() : LocalDateTime.now());
-        discussionStat.setLastComment(lastCommentInfo);
-
-        return discussionStat;
     }
 
-    private List<FileInfo> processFiles(MultipartFile[] files, Comment comment, String fileType) {
+    private List<FileInfo> processFiles(MultipartFile[] files, String fileType) {
         List<FileInfo> fileInfos = new ArrayList<>();
         if (files != null) {
             for (MultipartFile file : files) {
@@ -176,6 +148,32 @@ public class DiscussionService {
             }
         }
         return fileInfos;
+    }
+
+    public ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> findPaginatedDiscussionSummaries(
+            long forumId, Pageable pageable) {
+
+        ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> response = new ServiceResponse<>();
+
+        try {
+
+            long discussionCount = discussionRepository.countDiscussionsByForumId(forumId);
+
+            List<DiscussionSummaryDTO> discussionSummaryDTOs = discussionRepository
+                    .findDiscussionSummariesByForumId(forumId, pageable);
+
+            Page<DiscussionSummaryDTO> pageResult = new PageImpl<>(discussionSummaryDTOs, pageable, discussionCount);
+
+            response.setDataObject(PageResponseDTO.from(pageResult))
+                    .addMessage("Fetched Discussion Summaries for forum: " + forumId);
+        }
+        catch (Exception e) {
+            logger.error("Error fetching Discussion Summaries for forum: " + forumId, e);
+            response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
+                    .addMessage("An unexpected error occurred while fetching discussion summary for forum: " + forumId);
+        }
+
+        return response;
     }
 
     @Transactional(readOnly = true)

@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideZoneChangeDetection, APP_INITIALIZER } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection, APP_INITIALIZER } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -10,6 +10,8 @@ import { routes } from './app.routes';
 import { jwtInterceptor } from './_interceptors/jwt.interceptor';
 import { AuthenticationService } from './_services/authentication.service'; // Import the service
 import { Observable } from 'rxjs';
+
+import { MarkdownModule } from 'ngx-markdown';
 
 // Factory function for APP_INITIALIZER
 export function initializeAppFactory(authService: AuthenticationService): () => Observable<any> {
@@ -34,6 +36,7 @@ export const appConfig: ApplicationConfig = {
       deps: [AuthenticationService], // Dependencies for the factory
       multi: true // Required for APP_INITIALIZER
     },
-    MessageService
+    MessageService,
+    importProvidersFrom(MarkdownModule.forRoot()) // Import MarkdownModule ngx-markdown
   ]
 };

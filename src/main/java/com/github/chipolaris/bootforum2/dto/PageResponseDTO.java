@@ -11,7 +11,8 @@ public record PageResponseDTO<T>(List<T> content,
                                  int totalPages,
                                  boolean last,
                                  boolean first,
-                                 int numberOfElements) {
+                                 int numberOfElements,
+                                 boolean empty) {
     /*
      * This method provides an alternative to a dedicate StructMapper object mapper
      */
@@ -24,7 +25,8 @@ public record PageResponseDTO<T>(List<T> content,
                 page.getTotalPages(),
                 page.isLast(),
                 page.isFirst(),
-                page.getNumberOfElements()
+                page.getNumberOfElements(),
+                page.isEmpty()
         );
     }
 }

@@ -27,11 +27,11 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
   forumTitle: string | null = null;
   @Output() discussionCreationResult = new EventEmitter<{ success: boolean, data?: DiscussionDTO | null, error?: string }>();
 
-  commentEditor: InstanceType<typeof Editor> | null = null;
+  contentEditor: InstanceType<typeof Editor> | null = null;
 
   // Use a setter for ViewChild to react when the element is available
-  @ViewChild('commentEditorRef') private set editorContentEl(el: ElementRef | undefined) {
-    if (el && el.nativeElement && !this.commentEditor) {
+  @ViewChild('contentEditorRef') private set editorContentEl(el: ElementRef | undefined) {
+    if (el && el.nativeElement && !this.contentEditor) {
       // Element is now available, and editor not yet initialized
       this.initializeEditor(el.nativeElement);
     }
@@ -42,7 +42,7 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
   selectedAttachments: FileList | null = null;
   submitted = false;
   isLoading = true;
-  commentError: string | null = null;
+  contentError: string | null = null;
   generalError: string | null = null;
 
   private fb = inject(FormBuilder);
@@ -98,33 +98,33 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
     // This makes `discussionForm` truthy for the *ngIf in the template.
     this.discussionForm = this.fb.group({
       title: ['', [Validators.required, Validators.maxLength(150)]],
-      comment: [''] // Content will be from the editor instance
+      content: [''] // Content will be from the editor instance
     });
 
     // 2. Set isLoading to false.
     // This, combined with `discussionForm` being truthy, should trigger Angular
-    // to render the form and its contents. If #commentEditorRef is rendered,
+    // to render the form and its contents. If #contentEditorRef is rendered,
     // the @ViewChild setter `editorContentEl` will be called.
     this.isLoading = false;
   }
 
   private initializeEditor(element: HTMLElement): void {
     // This method is now called by the @ViewChild setter when the element is ready.
-    if (this.commentEditor) { // Prevent re-initialization
+    if (this.contentEditor) { // Prevent re-initialization
       console.warn('Editor already initialized. Skipping re-initialization.');
       return;
     }
     try {
-      this.commentEditor = new Editor({
+      this.contentEditor = new Editor({
         el: element,
         height: '300px',
         initialEditType: 'markdown',
         previewStyle: 'vertical'
       });
 
-      this.commentEditor.on('change', () => {
-        if (this.commentError && this.commentEditor?.getMarkdown().trim()) {
-          this.commentError = null;
+      this.contentEditor.on('change', () => {
+        if (this.contentError && this.contentEditor?.getMarkdown().trim()) {
+          this.contentError = null;
         }
       });
       console.log('Toast UI Editor initialized successfully via ViewChild setter.');
@@ -135,7 +135,7 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-     this.commentEditor?.destroy();
+     this.contentEditor?.destroy();
      this.routeSubscription?.unsubscribe();
      this.forumTitleSubscription?.unsubscribe();
   }
@@ -161,12 +161,12 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
     }
 
     this.submitted = true;
-    this.commentError = null;
+    this.contentError = null;
     this.generalError = null;
 
-    const commentContent = this.commentEditor?.getMarkdown().trim() || '';
-    if (!commentContent) {
-        this.commentError = 'Comment content is required.';
+    const discussionContent = this.contentEditor?.getMarkdown().trim() || '';
+    if (!discussionContent) {
+        this.contentError = 'Discussion content is required.';
         return;
     }
 
@@ -183,7 +183,7 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
 
     formData.append('forumId', this.forumId.toString());
     formData.append('title', this.f['title'].value);
-    formData.append('comment', commentContent);
+    formData.append('content', discussionContent);
 
     if (this.selectedImages) {
       for (let i = 0; i < this.selectedImages.length; i++) {
@@ -232,10 +232,10 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
     if (this.discussionForm) {
         this.discussionForm.reset();
     }
-    this.commentEditor?.setMarkdown('');
+    this.contentEditor?.setMarkdown('');
     this.selectedImages = null;
     this.selectedAttachments = null;
-    this.commentError = null;
+    this.contentError = null;
     // this.generalError = null; // Consider clearing generalError based on context
   }
 

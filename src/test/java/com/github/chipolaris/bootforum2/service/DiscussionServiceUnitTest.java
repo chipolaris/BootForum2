@@ -92,15 +92,17 @@ class DiscussionServiceUnitTest {
         testDiscussion = new Discussion();
         testDiscussion.setId(1L);
         testDiscussion.setTitle("New Test Title");
+        testDiscussion.setContent("New Test Comment");
         testDiscussion.setForum(testForum);
         testDiscussion.setComments(new ArrayList<>());
         DiscussionStat discussionStat = new DiscussionStat();
         discussionStat.setLastComment(testCommentInfo); // Initialize with a distinct CommentInfo
         testDiscussion.setStat(discussionStat);
 
-        testDiscussionDTO = new DiscussionDTO(1L, LocalDateTime.now(), testUsername,"New Test Title", null, null);
+        testDiscussionDTO = new DiscussionDTO(1L, LocalDateTime.now(), testUsername,"New Test Title",
+                null, null, null, null, null);
 
-        testUser = new User();
+        testUser = User.newUser();
         testUser.setUsername(testUsername);
     }
 
@@ -112,7 +114,6 @@ class DiscussionServiceUnitTest {
 
         when(authenticationFacade.getCurrentUsername()).thenReturn(Optional.of(testUsername));
         when(genericDAO.find(eq(Forum.class), eq(1L))).thenReturn(testForum);
-        when(discussionMapper.toEntity(any(DiscussionCreateDTO.class))).thenReturn(testDiscussion);
         when(discussionMapper.toDiscussionDTO(any(Discussion.class))).thenReturn(testDiscussionDTO);
         // Mock file processing to return success with no files for simplicity
         // If files were present, you'd mock fileStorageService.storeFile and fileInfoMapper.toEntity
@@ -130,26 +131,19 @@ class DiscussionServiceUnitTest {
 
         // Verify interactions
         verify(genericDAO).find(eq(Forum.class), eq(1L));
-        verify(discussionMapper).toEntity(any(DiscussionCreateDTO.class));
 
         ArgumentCaptor<Discussion> discussionCaptor = ArgumentCaptor.forClass(Discussion.class);
         verify(genericDAO).persist(discussionCaptor.capture());
         Discussion persistedDiscussion = discussionCaptor.getValue();
 
-        assertNotNull(persistedDiscussion.getComments());
-        assertEquals(1, persistedDiscussion.getComments().size());
-        Comment initialComment = persistedDiscussion.getComments().get(0);
-        assertEquals(discussionCreateDTO.comment(), initialComment.getContent());
-        assertEquals(testUsername, initialComment.getCreateBy());
-        assertNotNull(initialComment.getCommentVote()); // Ensure CommentVote is initialized
+        assertNull(persistedDiscussion.getComments());
+
+        assertEquals(discussionCreateDTO.content(), persistedDiscussion.getContent());
+        assertEquals(testUsername, persistedDiscussion.getCreateBy());
 
         assertNotNull(persistedDiscussion.getStat());
-        assertEquals(1, persistedDiscussion.getStat().getCommentCount());
-        assertEquals(testUsername, persistedDiscussion.getStat().getLastComment().getCommentor());
-        assertEquals(persistedDiscussion.getTitle(), persistedDiscussion.getStat().getLastComment().getTitle());
-        // Check if the last comment date in stat is recent (close to now)
-        assertTrue(persistedDiscussion.getStat().getLastComment().getCommentDate().isAfter(LocalDateTime.now().minusMinutes(1)));
-
+        assertEquals(0, persistedDiscussion.getStat().getCommentCount());
+        assertNotNull(persistedDiscussion.getStat().getLastComment());
 
         verify(discussionMapper).toDiscussionDTO(any(Discussion.class));
         verify(eventPublisher).publishEvent(any(DiscussionCreatedEvent.class)); // Verify event publication
@@ -186,7 +180,6 @@ class DiscussionServiceUnitTest {
 
         when(authenticationFacade.getCurrentUsername()).thenReturn(Optional.of(testUsername));
         when(genericDAO.find(eq(Forum.class), eq(1L))).thenReturn(testForum);
-        when(discussionMapper.toEntity(any(DiscussionCreateDTO.class))).thenReturn(testDiscussion);
 
         // Simulate file storage failure
         ServiceResponse<FileInfoDTO> failedFileResponse = new ServiceResponse<>();
@@ -211,7 +204,7 @@ class DiscussionServiceUnitTest {
         Discussion persistedDiscussion = discussionCaptor.getValue();
 
         // Assert that the discussion's initial comment has no thumbnails due to storage failure
-        assertTrue(persistedDiscussion.getComments().get(0).getThumbnails().isEmpty(), "Thumbnails should be empty on storage failure.");
+        assertTrue(persistedDiscussion.getThumbnails().isEmpty(), "Thumbnails should be empty on storage failure.");
         assertEquals(0, persistedDiscussion.getStat().getThumbnailCount(), "Thumbnail count in stat should be 0.");
 
         verify(eventPublisher).publishEvent(any(DiscussionCreatedEvent.class)); // Event should still be published

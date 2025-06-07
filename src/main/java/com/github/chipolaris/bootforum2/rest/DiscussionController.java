@@ -1,9 +1,6 @@
 package com.github.chipolaris.bootforum2.rest;
 
-import com.github.chipolaris.bootforum2.dto.ApiResponse;
-import com.github.chipolaris.bootforum2.dto.DiscussionCreateDTO;
-import com.github.chipolaris.bootforum2.dto.DiscussionDTO;
-import com.github.chipolaris.bootforum2.dto.PageResponseDTO;
+import com.github.chipolaris.bootforum2.dto.*;
 import com.github.chipolaris.bootforum2.service.DiscussionService;
 import com.github.chipolaris.bootforum2.service.ServiceResponse;
 import jakarta.validation.Valid;
@@ -80,14 +77,15 @@ public class DiscussionController {
     @GetMapping("/public/discussions/list")
     public ApiResponse<?> listDiscussions(
             @RequestParam(required = true) Long forumId,
-            @PageableDefault(size = 10, sort = "stat.lastComment.commentDate", direction = Sort.Direction.DESC) Pageable pageable) {
+            //@PageableDefault(size = 10, sort = "stat.lastComment.commentDate", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(size = 10, sort = "d.createDate", direction = Sort.Direction.DESC) Pageable pageable) {
 
         logger.info("Received request to list discussions. ForumId: {}, Pageable: {}",
                 forumId, pageable);
 
         try {
 
-            ServiceResponse<PageResponseDTO<DiscussionDTO>> serviceResponse = discussionService.findPaginatedDiscussions(
+            ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> serviceResponse = discussionService.findPaginatedDiscussionSummaries(
                     forumId, pageable);
 
             if (serviceResponse.getAckCode() == ServiceResponse.AckCodeType.SUCCESS) {

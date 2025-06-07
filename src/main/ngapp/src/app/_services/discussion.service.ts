@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'; // Added HttpParams
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { ApiResponse, DiscussionDTO, Page } from '../_data/dtos'; // Adjust path as needed, Added Page
+import { ApiResponse, DiscussionDTO, DiscussionSummaryDTO, Page } from '../_data/dtos'; // Adjust path as needed, Added Page
 
 @Injectable({
   providedIn: 'root'
@@ -42,13 +42,13 @@ export class DiscussionService {
    * @param sortDirection The direction of sorting ('ASC' or 'DESC').
    * @returns An Observable of ApiResponse containing a Page of DiscussionDTOs.
    */
-  listDiscussions(
+  listDiscussionSummaries(
     forumId?: number | null,
     page: number = 0,
     size: number = 10,
     sortProperty: string = 'stat.lastComment.commentDate', // Default sort
     sortDirection: string = 'DESC' // Default direction
-  ): Observable<ApiResponse<Page<DiscussionDTO>>> {
+  ): Observable<ApiResponse<Page<DiscussionSummaryDTO>>> {
 
     let params = new HttpParams()
       .set('page', page.toString())
@@ -59,7 +59,7 @@ export class DiscussionService {
       params = params.append('forumId', forumId.toString());
     }
 
-    return this.http.get<ApiResponse<Page<DiscussionDTO>>>(`${this.basePublicApiUrl}/list`, { params })
+    return this.http.get<ApiResponse<Page<DiscussionSummaryDTO>>>(`${this.basePublicApiUrl}/list`, { params })
       .pipe(
         tap(response => {
           if (response.success) {

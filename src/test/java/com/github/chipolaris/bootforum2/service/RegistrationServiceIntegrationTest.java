@@ -73,17 +73,15 @@ class RegistrationServiceIntegrationTest {
     @Test
     void newRegistration_whenUsernameExistsInUserTable_shouldFail() {
         // Arrange
-        User existingUser = new User();
-        existingUser.setUsername("existingUser");
-        existingUser.setPassword(passwordEncoder.encode("somepassword"));
-        Person person = new Person();
-        person.setEmail("unique-email-for-user@example.com");
-        existingUser.setPerson(person); // Person is created in User constructor, but we set email
-        entityManager.persist(person);
-        entityManager.persist(existingUser);
+        User newUser = User.newUser();
+        newUser.setUsername("newUser");
+        newUser.setPassword(passwordEncoder.encode("somepassword"));
+        newUser.getPerson().setEmail("unique-email-for-user@example.com");
+
+        entityManager.persist(newUser);
         entityManager.flush();
 
-        RegistrationDTO dto = new RegistrationDTO("existingUser", "password123", "Test", "User", "newemail@example.com");
+        RegistrationDTO dto = new RegistrationDTO("newUser", "password123", "Test", "User", "newemail@example.com");
 
         // Act
         ServiceResponse<Registration> response = registrationService.newRegistration(dto);
@@ -117,7 +115,7 @@ class RegistrationServiceIntegrationTest {
     @Test
     void newRegistration_whenEmailExistsInPersonTable_shouldFail() {
         // Arrange
-        User existingUser = new User();
+        User existingUser = User.newUser();
         existingUser.setUsername("anotherUser");
         existingUser.setPassword(passwordEncoder.encode("somepassword"));
         Person person = new Person();

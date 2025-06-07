@@ -127,7 +127,7 @@ public class RegistrationService {
          * The followings are created in User constructor:
          * Person, Preferences, UserStat, accountStatus = 'ACTIVE', userRole=UserRole.USER
          */
-        User user = new User();
+        User user = User.newUser();
 
         user.setUsername(registration.getUsername());
         // note: no need to encode password as it is already encoded in Registration

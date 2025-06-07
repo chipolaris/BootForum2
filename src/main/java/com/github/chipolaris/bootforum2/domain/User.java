@@ -37,13 +37,18 @@ import com.github.chipolaris.bootforum2.enumeration.UserRole;
 		pkColumnValue="USER_ID", valueColumnName="GEN_VALUE", initialValue = 1000, allocationSize=10)
 public class User extends BaseEntity {
 
-	public User() {
-		this.userRoles = new HashSet<>(); // Initialize as HashSet
-		this.userRoles.add(UserRole.USER); // default role
-		this.setAccountStatus(AccountStatus.ACTIVE); // default
-		this.setPerson(new Person());
-		this.setPreferences(new Preferences());
-		this.setStat(new UserStat());
+	public static User newUser() {
+		User user = new User();
+
+		user.userRoles = new HashSet<>(); // Initialize as HashSet
+		user.userRoles.add(UserRole.USER); // default role
+		user.setAccountStatus(AccountStatus.ACTIVE); // default
+
+		user.setPerson(new Person());
+		user.setPreferences(new Preferences());
+		user.setStat(new UserStat());
+
+		return user;
 	}
 
 	@PrePersist

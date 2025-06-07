@@ -4,7 +4,6 @@
 @plugin "tailwindcss-primeui";
 /* src/styles.css or src/styles.scss */
 @import '@toast-ui/editor/dist/toastui-editor.css';
-@import '@toast-ui/editor/dist/toastui-editor-viewer.css';
 /* Optional: Add a theme */
 /* @import '@toast-ui/editor/dist/theme/toastui-editor-dark.css'; */
 html, body { height: 100%; }

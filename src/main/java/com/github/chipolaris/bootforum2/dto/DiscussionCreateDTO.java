@@ -17,7 +17,7 @@ public record DiscussionCreateDTO(
         @Size(max = 255, message = "Title cannot exceed 255 characters")
         String title,
 
-        @NotBlank(message = "Comment content cannot be blank")
-        String comment // This will be the content for the first comment in the discussion
+        @NotBlank(message = "Discussion content cannot be blank")
+        String content // This will be the content for the first comment in the discussion
 ) {
 }

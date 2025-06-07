@@ -2,7 +2,7 @@
 export interface DiscussionCreateDTO {
   forumId: number;
   title: string;
-  comment: string;
+  content: string;
 }
 
 // Model for the forum creation payload
@@ -157,8 +157,21 @@ export interface DiscussionDTO {
   createDate: Date;
   createBy: string;
   title: string;
+  content: string;
+  attachments?: FileInfoDTO[] | null; // Array of FileInfoDTO
+  thumbnails?: FileInfoDTO[] | null; // Array of FileInfoDTO
   tags?: TagDTO[] | null; // Array of TagDTO
   stat?: DiscussionStatDTO | null; // Reference to DiscussionStatDTO
+}
+
+export interface DiscussionSummaryDTO {
+  id?: number;
+  title: string;
+  commentCount: number;
+  viewCount: number;
+  createDate: Date;
+  createBy: string;
+  lastCommentDate: Date;
 }
 
 // Model for the registration payload (matches SignUpRequest without confirmPassword)

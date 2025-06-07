@@ -3,32 +3,26 @@ package com.github.chipolaris.bootforum2.domain;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.OrderBy;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
-import jakarta.persistence.TableGenerator;
+import jakarta.persistence.*;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 @Entity
 @Table(name="DISCUSSION_T")
 @TableGenerator(name="DiscussionIdGenerator", table="ENTITY_ID_T", pkColumnName="GEN_KEY",
         pkColumnValue="DISCUSSION_ID", valueColumnName="GEN_VALUE", initialValue = 1000, allocationSize=10)
+@Indexed
 public class Discussion extends BaseEntity {
+
+    public static Discussion newDiscussion() {
+        Discussion discussion = new Discussion();
+
+        DiscussionStat discussionStat = new DiscussionStat();
+        discussionStat.setLastComment(new CommentInfo());
+        discussion.setStat(discussionStat);
+
+        return discussion;
+    }
 
     @PrePersist
     public void prePersist() {
@@ -58,9 +52,37 @@ public class Discussion extends BaseEntity {
     @Column(name="IMPORTANT")
     private boolean important;
 
+    @FullTextField
+    @Lob
+    @Basic(fetch=FetchType.LAZY)
+    @Column(name="CONTENT")
+    private String content; // content of the discussion
+
     @OneToMany(fetch=FetchType.LAZY, mappedBy="discussion", cascade=CascadeType.ALL)
     @OrderBy("id ASC")
     private List<Comment> comments; // all comments for this discussion thread
+
+    /**
+     * OK to eager fetch attachments as only a handful attachments are expected for each comment
+     */
+    @OneToMany(cascade=CascadeType.ALL, fetch=FetchType.EAGER)
+    @JoinTable(name="DISCUSSION_ATTACHMENT_T",
+            joinColumns={@JoinColumn(name="DISCUSSION_ID", foreignKey = @ForeignKey(name="FK_DISCUS_ATTACH_DISCUS"))},
+            inverseJoinColumns={@JoinColumn(name="FILE_INFO_ID", foreignKey = @ForeignKey(name="FK_DISCUS_ATTACH_FILE_INFO"))},
+            indexes = {@Index(name="IDX_DISCUS_ATTACH", columnList = "DISCUSSION_ID,FILE_INFO_ID")})
+    @OrderColumn(name="SORT_ORDER")
+    private List<FileInfo> attachments;
+
+    /**
+     * OK to eager fetch attachments as only a handful thumbnails are expected for each comment
+     */
+    @OneToMany(cascade=CascadeType.ALL, fetch=FetchType.EAGER)
+    @JoinTable(name="DISCUSSION_THUMBNAIL_T",
+            joinColumns={@JoinColumn(name="DISCUSSION_ID", foreignKey = @ForeignKey(name="FK_DISCUS_THUMB_DISCUS"))},
+            inverseJoinColumns={@JoinColumn(name="FILE_INFO_ID", foreignKey = @ForeignKey(name="FK_DISCUS_ATTACH_FILE_INFO"))},
+            indexes = {@Index(name="IDX_DISCUS_THUMBN", columnList = "DISCUSSION_ID,FILE_INFO_ID")})
+    @OrderColumn(name="SORT_ORDER")
+    private List<FileInfo> thumbnails;
 
     @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
     @JoinColumn(name="DISCUSSION_STAT_ID")
@@ -113,11 +135,32 @@ public class Discussion extends BaseEntity {
         this.important = important;
     }
 
+    public String getContent() {
+        return content;
+    }
+    public void setContent(String content) {
+        this.content = content;
+    }
+
     public List<Comment> getComments() {
         return comments;
     }
     public void setComments(List<Comment> comments) {
         this.comments = comments;
+    }
+
+    public List<FileInfo> getAttachments() {
+        return attachments;
+    }
+    public void setAttachments(List<FileInfo> attachments) {
+        this.attachments = attachments;
+    }
+
+    public List<FileInfo> getThumbnails() {
+        return thumbnails;
+    }
+    public void setThumbnails(List<FileInfo> thumbnails) {
+        this.thumbnails = thumbnails;
     }
 
     public DiscussionStat getStat() {

@@ -80,17 +80,17 @@
               <th scope="col" pSortableColumn="title" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Title <p-sortIcon field="title"></p-sortIcon>
               </th>
-              <th scope="col" pSortableColumn="stat.commentCount" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Comments <p-sortIcon field="stat.commentCount"></p-sortIcon>
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Views
-              </th>
               <th scope="col" pSortableColumn="createDate" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Started On <p-sortIcon field="createDate"></p-sortIcon>
               </th>
+              <th scope="col" pSortableColumn="stat.commentCount" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                Replies <p-sortIcon field="stat.commentCount"></p-sortIcon>
+              </th>
               <th scope="col" pSortableColumn="stat.lastComment.commentDate" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Last Comment <p-sortIcon field="stat.lastComment.commentDate"></p-sortIcon>
+                Last Reply <p-sortIcon field="stat.lastComment.commentDate"></p-sortIcon>
+              </th>
+              <th scope="col" pSortableColumn="stat.viewCount" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                Views <p-sortIcon field="stat.viewCount"></p-sortIcon>
               </th>
             </tr>
           </ng-template>
@@ -103,21 +103,21 @@
                 </a>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                {{ discussion.stat?.commentCount ?? 'N/A' }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                {{ discussion.stat?.viewCount ?? 'N/A' }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                 {{ discussion.createDate | date:'mediumDate' }}
                 <span *ngIf="discussion.createDate"> at {{ discussion.createDate | date:'shortTime' }}</span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                <ng-container *ngIf="discussion.stat?.lastComment?.commentDate; else noLastCommentDate">
-                  {{ discussion.stat?.lastComment?.commentDate | date:'mediumDate' }}
-                  <span *ngIf="discussion.stat?.lastComment?.commentDate"> at {{ discussion.stat?.lastComment?.commentDate | date:'shortTime' }}</span>
+                {{ discussion.commentCount }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                <ng-container *ngIf="discussion.lastCommentDate; else noLastCommentDate">
+                  {{ discussion.lastCommentDate | date:'mediumDate' }}
+                  <span *ngIf="discussion.lastCommentDate"> at {{ discussion.lastCommentDate | date:'shortTime' }}</span>
                 </ng-container>
                 <ng-template #noLastCommentDate>N/A</ng-template>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                {{ discussion.viewCount }}
               </td>
             </tr>
           </ng-template>

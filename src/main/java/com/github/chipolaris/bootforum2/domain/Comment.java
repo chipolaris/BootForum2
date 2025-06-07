@@ -28,10 +28,6 @@ import jakarta.persistence.TableGenerator;
 
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
-// Experimental Hibernate Search
-//import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
-//import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
-//import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
 
 @Entity
 @Table(name="COMMENT_T")

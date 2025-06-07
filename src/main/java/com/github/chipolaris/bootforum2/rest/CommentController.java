@@ -32,9 +32,9 @@ public class CommentController {
      *                     Defaults: size=10, sort='createDate' ASC.
      * @return ApiResponse containing a PageResponseDTO of CommentDTOs or error details.
      */
-    @GetMapping("/comments")
+    @GetMapping("/discussion/{discussionId}/comments")
     public ApiResponse<?> listCommentsByDiscussion(
-            @RequestParam(required = true) Long discussionId,
+            @PathVariable Long discussionId,
             @PageableDefault(size = 10, sort = "createDate", direction = Sort.Direction.ASC) Pageable pageable) {
 
         logger.info("Received request to list comments for discussion ID: {}. Pageable: {}", discussionId, pageable);
