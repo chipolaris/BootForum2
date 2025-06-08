@@ -12,6 +12,7 @@ import { ForumCreateComponent } from './admin/forum-create/forum-create.componen
 import { ForumEditComponent } from './admin/forum-edit/forum-edit.component';
 import { ForumListComponent } from './admin/forum-list/forum-list.component';
 import { DiscussionCreateComponent } from './discussion-create/discussion-create.component';
+import { CommentCreateComponent } from './comment-create/comment-create.component';
 import { RegistrationComponent } from './registration/registration.component';
 import { RegistrationConfirmationComponent } from './registration-confirmation/registration-confirmation.component';
 import { EmailConfirmationComponent } from './email-confirmation/email-confirmation.component';
@@ -52,7 +53,18 @@ export const routes: Routes = [
     path: 'app/admin/forums/:id', component: ForumEditComponent, canActivate: [authGuard],
     data: { roles: ['ADMIN'] }
   },
-  { path: 'app/discussions/create/:forumId', component: DiscussionCreateComponent, canActivate: [authGuard] },
+  {
+    path: 'app/discussions/create/:forumId',
+    component: DiscussionCreateComponent, canActivate: [authGuard]
+  },
+  {
+    path: 'app/comments/create/:discussionId', // For replying to discussion
+    component: CommentCreateComponent, canActivate: [authGuard]
+  },
+  {
+    path: 'app/comments/create/:discussionId/reply-to/:replyToId', // For replying to a specific comment
+    component: CommentCreateComponent, canActivate: [authGuard]
+  },
   { path: 'app/registration', component: RegistrationComponent },
   { path: 'app/registration-confirmation', component: RegistrationConfirmationComponent },
   { path: 'app/confirm-email/:registrationKey', component: EmailConfirmationComponent },

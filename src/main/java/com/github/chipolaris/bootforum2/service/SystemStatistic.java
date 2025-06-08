@@ -5,10 +5,7 @@ import com.github.chipolaris.bootforum2.dao.FilterSpec;
 import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.*; // Assuming your domain entities are here
-import com.github.chipolaris.bootforum2.event.DiscussionCreatedEvent;
-import com.github.chipolaris.bootforum2.event.ForumCreatedEvent;
-import com.github.chipolaris.bootforum2.event.ForumGroupCreatedEvent;
-import com.github.chipolaris.bootforum2.event.UserCreatedEvent;
+import com.github.chipolaris.bootforum2.event.*;
 import com.github.chipolaris.bootforum2.mapper.CommentInfoMapper;
 import io.micrometer.common.util.StringUtils;
 import jakarta.annotation.PostConstruct;
@@ -220,6 +217,19 @@ public class SystemStatistic {
     // ---------- Event listeners
 
     @EventListener
+    @Transactional(readOnly = true) // need this to fetch comment's discussion
+    @Async
+    public void handleCommentCreatedEvent(CommentCreatedEvent event) {
+        Comment comment = event.getComment();
+        logger.info("Handling CommentCreatedEvent for Comment: {}", comment.getTitle());
+
+        this.incrementCommentCount();
+
+        CommentInfo commentInfo = comment.getDiscussion().getStat().getLastComment();
+        this.updateLastComment(commentInfo);
+    }
+
+    @EventListener
     @Async // Uncomment for asynchronous execution (requires @EnableAsync in a config class)
     public void handleDiscussionCreatedEvent(DiscussionCreatedEvent event) {
 
@@ -256,6 +266,8 @@ public class SystemStatistic {
         this.incrementForumGroupCount();
     }
 
+    @EventListener
+    @Async
     public void handleUserCreatedEvent(UserCreatedEvent event) {
 
         /*

@@ -1,16 +1,21 @@
 package com.github.chipolaris.bootforum2.service;
 
-import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.dao.DynamicDAO;
+import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.domain.BaseEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.function.Function;
 
 @Service @Transactional
 public class GenericService {
+
+	private static final Logger logger = LoggerFactory.getLogger(GenericService.class);
 
 	@Autowired
 	private GenericDAO genericDAO;
@@ -35,8 +40,7 @@ public class GenericService {
 	
 	/**
 	 * Find entity with the given type/class and entityId
-	 * 	Note that this method is referred over the {@link #getEntity(Class, Long)} method.
-	 *  However, make sure entityId is not null when invoking this method
+	 * @param <E>
 	 * @param entityClass
 	 * @param entityId (must not be null)
 	 * @return
@@ -49,6 +53,31 @@ public class GenericService {
 		response.setDataObject(genericDAO.find(entityClass, entityId));
 		
 		return response;
+	}
+
+	@Transactional(readOnly=true)
+	public <E, D> ServiceResponse<D> findEntityDTO(Class<E> entityClass, Object entityId, Function<E, D> mapper) {
+
+		ServiceResponse<D> response = new ServiceResponse<>();
+
+		if (entityId == null) {
+			logger.warn("Attempted to fetch entity with null ID.");
+			return response.setAckCode(ServiceResponse.AckCodeType.FAILURE).addMessage("Entity ID cannot be null.");
+		}
+
+		E entity = genericDAO.find(entityClass, entityId);
+
+		if(entity == null) {
+			String error = String.format("Entity %s with id %d not found.", entityClass.getSimpleName(), entityId);
+			return response.setAckCode(ServiceResponse.AckCodeType.FAILURE).addMessage(error);
+		}
+
+		try {
+			return response.setDataObject(mapper.apply(entity));
+		}
+		catch (Exception e) {
+			return response.setAckCode(ServiceResponse.AckCodeType.FAILURE).addMessage("Error mapping entity to DTO.");
+		}
 	}
 	
 	/**

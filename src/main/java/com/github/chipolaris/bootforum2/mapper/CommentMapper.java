@@ -4,7 +4,6 @@ import com.github.chipolaris.bootforum2.domain.Comment;
 import com.github.chipolaris.bootforum2.dto.CommentDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 
@@ -25,7 +24,7 @@ public interface CommentMapper {
     // 'replies' will be mapped recursively by MapStruct.
     // 'attachments', 'thumbnails', 'commentVote' will use their respective mappers.
     @Mapping(target = "replyToId", source = "replyTo.id")
-    CommentDTO toDTO(Comment comment);
+    CommentDTO toCommentDTO(Comment comment);
 
     @Mapping(target = "createDate", ignore = true) // Typically set by @PrePersist
     @Mapping(target = "createBy", ignore = true)   // Typically set by system/security context
@@ -34,7 +33,7 @@ public interface CommentMapper {
     @Mapping(target = "discussion", ignore = true) // Explicitly ignore for toEntity
     Comment toEntity(CommentDTO commentDTO);
 
-    List<CommentDTO> toDTOs(List<Comment> comments);
+    List<CommentDTO> toCommentDTOs(List<Comment> comments);
 
     List<Comment> toEntities(List<CommentDTO> commentDTOs);
 }

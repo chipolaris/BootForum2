@@ -15,7 +15,7 @@ import { DiscussionService } from '../_services/discussion.service';
 import { CommentService } from '../_services/comment.service';
 import { DiscussionDTO, CommentDTO, Page, ApiResponse } from '../_data/dtos';
 
-import { NgIconComponent, provideIcons } from '@ng-icons/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
 import { APP_ICONS } from '../shared/hero-icons';
 
 import { MarkdownModule } from 'ngx-markdown';
@@ -27,7 +27,7 @@ import { MarkdownModule } from 'ngx-markdown';
     CommonModule,
     RouterModule,
     FormsModule,
-    NgIconComponent,
+    NgIcon,
     DatePipe,
     MarkdownModule
   ],

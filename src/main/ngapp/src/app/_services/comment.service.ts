@@ -9,18 +9,13 @@ import { ApiResponse, CommentDTO, Page } from '../_data/dtos'; // Adjust path as
 })
 export class CommentService {
   private http = inject(HttpClient);
-  private basePublicApiUrl = '/api/public/discussion';
+  private basePublicApiUrl = '/api/public';
+  private baseUserApiUrl = '/api/user'; // For authenticated actions
 
   constructor() { }
 
   /**
    * Fetches a paginated and sorted list of ALL comments for a specific discussion.
-   * @param discussionId The ID of the discussion whose comments are to be retrieved.
-   * @param page The page number to retrieve (0-indexed).
-   * @param size The number of comments per page.
-   * @param sortProperty The property to sort by.
-   * @param sortDirection The direction of sorting ('ASC' or 'DESC').
-   * @returns An Observable of ApiResponse containing a Page of CommentDTOs.
    */
   listComments(
     discussionId: number,
@@ -31,24 +26,67 @@ export class CommentService {
   ): Observable<ApiResponse<Page<CommentDTO>>> {
 
     let params = new HttpParams()
+      // discussionId is part of the path for this endpoint
       .set('page', page.toString())
       .set('size', size.toString())
       .set('sort', `${sortProperty},${sortDirection}`);
 
-    const commentsUrl = `${this.basePublicApiUrl}/${discussionId}/comments`;
+    const commentsUrl = `${this.basePublicApiUrl}/discussion/${discussionId}/comments`;
 
     return this.http.get<ApiResponse<Page<CommentDTO>>>(commentsUrl, { params })
       .pipe(
         tap(response => {
           if (response.success) {
-            console.log(`All comments for discussion ${discussionId} listed successfully via service (listComments)`, response.data);
+            console.log(`Comments for discussion ${discussionId} listed successfully via service`, response.data);
           } else {
-            console.error(`Failed to list all comments for discussion ${discussionId} via service (listComments)`, response.message, response.errors);
+            console.error(`Failed to list comments for discussion ${discussionId} via service`, response.message, response.errors);
           }
         }),
         catchError(this.handleError)
       );
   }
+
+  /**
+   * Fetches a single comment by its ID.
+   * @param id The ID of the comment to retrieve.
+   * @returns An Observable of ApiResponse containing the CommentDTO.
+   */
+  getCommentById(id: number): Observable<ApiResponse<CommentDTO>> {
+    // Assuming a public endpoint exists or will be created for fetching a single comment
+    // If not, this might need adjustment or the comment might be sourced differently for quoting
+    const url = `${this.basePublicApiUrl}/comments/${id}`; // Placeholder URL, adjust if backend endpoint differs
+    return this.http.get<ApiResponse<CommentDTO>>(url)
+      .pipe(
+        tap(response => {
+          if (response.success) {
+            console.log(`Comment with id ${id} fetched successfully via service`, response.data);
+          } else {
+            console.error(`Failed to fetch comment with id ${id} via service`, response.message, response.errors);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Submits the comment creation data (including files) to the backend.
+   * @param formData The FormData object containing comment details and files.
+   * @returns An Observable of ApiResponse containing the created CommentDTO.
+   */
+  createComment(formData: FormData): Observable<ApiResponse<CommentDTO>> {
+    return this.http.post<ApiResponse<CommentDTO>>(`${this.baseUserApiUrl}/comments/create`, formData)
+      .pipe(
+        tap(response => {
+          if (response.success) {
+            console.log('Comment created successfully via service', response.data);
+          } else {
+            console.error('Comment creation failed via service', response.message, response.errors);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
+
 
   private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('An error occurred in CommentService:', error);

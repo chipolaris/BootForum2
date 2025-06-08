@@ -15,8 +15,6 @@ public record CommentCreateDTO(
 
         Long replyToId,
 
-        boolean quote,
-
         @NotBlank(message = "Title cannot be blank")
         @Size(max = 255, message = "Title cannot exceed 255 characters")
         String title,

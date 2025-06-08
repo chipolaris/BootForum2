@@ -2,6 +2,7 @@ package com.github.chipolaris.bootforum2.listener;
 
 import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.domain.Comment;
+import com.github.chipolaris.bootforum2.domain.CommentInfo;
 import com.github.chipolaris.bootforum2.domain.Discussion;
 import com.github.chipolaris.bootforum2.domain.DiscussionStat;
 import com.github.chipolaris.bootforum2.event.CommentCreatedEvent;
@@ -12,6 +13,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import io.micrometer.common.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -66,6 +68,9 @@ public class DiscussionStatUpdateListener { // No longer implements ApplicationL
         }
     }
 
+    @EventListener // Use @EventListener for specific event types
+    @Transactional // This listener method should run in its own transaction
+    @Async         // Make this listener asynchronous
     public void handleCommentCreatedEvent(CommentCreatedEvent event) {
 
         Comment comment = event.getComment();
@@ -92,6 +97,16 @@ public class DiscussionStatUpdateListener { // No longer implements ApplicationL
         Map<String, Integer> commentors = discussionStat.getParticipants();
         commentors.merge(event.getUsername(), 1, Integer::sum);
 
+        CommentInfo commentInfo = discussionStat.getLastComment();
+        if (commentInfo.getCommentDate().isBefore(comment.getCreateDate())) {
+            commentInfo.setCommentDate(comment.getCreateDate());
+            commentInfo.setTitle(comment.getTitle());
+            commentInfo.setContentAbbr(StringUtils.truncate(comment.getContent(), 255));
+            commentInfo.setCommentor(comment.getCreateBy());
+            commentInfo.setCommentId(comment.getId());
+        }
+
+        // Persist the changes to DiscussionStat
         genericDAO.merge(discussionStat);
 
         logger.info("Updated comment count for discussion ID: {}", discussion.getId());

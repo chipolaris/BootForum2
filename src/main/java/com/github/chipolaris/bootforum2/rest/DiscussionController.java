@@ -102,14 +102,14 @@ public class DiscussionController {
     /**
      * Retrieves a single discussion by its ID.
      *
-     * @param id The ID of the discussion to retrieve.
+     * @param discussionId The ID of the discussion to retrieve.
      * @return ApiResponse containing the DiscussionDTO or error details.
      */
-    @GetMapping("/public/discussions/{id}")
-    public ApiResponse<?> getDiscussion(@PathVariable Long id) {
-        logger.info("Received request to get discussion with ID: {}", id);
+    @GetMapping("/public/discussions/{discussionId}")
+    public ApiResponse<?> getDiscussion(@PathVariable Long discussionId) {
+        logger.info("Received request to get discussion with ID: {}", discussionId);
 
-        if (id == null) {
+        if (discussionId == null) {
             // This check is somewhat redundant due to @PathVariable being required,
             // but kept for explicit clarity if the path variable was optional.
             logger.warn("ID is null in path.");
@@ -117,16 +117,16 @@ public class DiscussionController {
         }
 
         try {
-            ServiceResponse<DiscussionDTO> serviceResponse = discussionService.findDiscussion(id);
+            ServiceResponse<DiscussionDTO> serviceResponse = discussionService.findDiscussion(discussionId);
 
             if (serviceResponse.getAckCode() == ServiceResponse.AckCodeType.SUCCESS) {
                 return ApiResponse.success(serviceResponse.getDataObject(), "Discussion retrieved successfully.");
             } else {
-                return ApiResponse.error(serviceResponse.getMessages(), String.format("Failed to retrieve discussion with ID %d.", id));
+                return ApiResponse.error(serviceResponse.getMessages(), String.format("Failed to retrieve discussion with ID %d.", discussionId));
             }
         } catch (Exception e) {
-            logger.error(String.format("Unexpected error while retrieving discussion with ID %d", id), e);
-            return ApiResponse.error(String.format("An unexpected error occurred while retrieving discussion with ID %d.", id));
+            logger.error(String.format("Unexpected error while retrieving discussion with ID %d", discussionId), e);
+            return ApiResponse.error(String.format("An unexpected error occurred while retrieving discussion with ID %d.", discussionId));
         }
     }
 }

@@ -9,7 +9,6 @@ import com.github.chipolaris.bootforum2.dto.CommentDTO;
 import com.github.chipolaris.bootforum2.dto.FileInfoDTO;
 import com.github.chipolaris.bootforum2.dto.PageResponseDTO;
 import com.github.chipolaris.bootforum2.event.CommentCreatedEvent;
-import com.github.chipolaris.bootforum2.event.DiscussionCreatedEvent;
 import com.github.chipolaris.bootforum2.mapper.CommentMapper;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
 import org.slf4j.Logger;
@@ -55,6 +54,7 @@ public class CommentService {
         this.eventPublisher = eventPublisher;
     }
 
+    @Transactional(readOnly = false)
     public ServiceResponse<CommentDTO> createComment(
             CommentCreateDTO commentCreateDTO,
             MultipartFile[] images,
@@ -104,7 +104,7 @@ public class CommentService {
 
             eventPublisher.publishEvent(new CommentCreatedEvent(this, comment, username));
 
-            CommentDTO commentDTO = commentMapper.toDTO(comment);
+            CommentDTO commentDTO = commentMapper.toCommentDTO(comment);
             response.setDataObject(commentDTO);
             response.addMessage("Comment created successfully.");
         } catch (Exception e) {
@@ -183,7 +183,7 @@ public class CommentService {
             List<Comment> comments = dynamicDAO.find(dataQuerySpec);
 
             List<CommentDTO> commentDTOs = comments.stream()
-                    .map(commentMapper::toDTO)
+                    .map(commentMapper::toCommentDTO)
                     .collect(Collectors.toList());
 
             Page<CommentDTO> pageResult = new PageImpl<>(commentDTOs, pageable, totalElements);

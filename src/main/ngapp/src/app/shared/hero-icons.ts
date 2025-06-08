@@ -1,4 +1,4 @@
-// src/app/shared-icons.ts
+// HeroIcon's names can be found here: https://ng-icons.github.io/ng-icons/#/browse-icons
 import {
   heroUser,
   heroHome,
@@ -6,6 +6,7 @@ import {
   heroBell,
   heroAcademicCap,
   heroArchiveBoxArrowDown,
+  heroInformationCircle,
   heroFaceSmile,
   heroPhoto,
   heroLink,
@@ -36,6 +37,7 @@ import {
   heroBellSolid,
   heroAcademicCapSolid,
   heroArchiveBoxArrowDownSolid,
+  heroInformationCircleSolid,
   heroFaceSmileSolid,
   heroPhotoSolid,
   heroLinkSolid,
@@ -112,6 +114,7 @@ export const APP_ICONS = {
   heroBell,
   heroAcademicCap,
   heroArchiveBoxArrowDown,
+  heroInformationCircle,
   heroFaceSmile,
   heroPhoto,
   heroLink,
@@ -139,6 +142,7 @@ export const APP_ICONS = {
   heroBellSolid,
   heroAcademicCapSolid,
   heroArchiveBoxArrowDownSolid,
+  heroInformationCircleSolid,
   heroFaceSmileSolid,
   heroPhotoSolid,
   heroLinkSolid,

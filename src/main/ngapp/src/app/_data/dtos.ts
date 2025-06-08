@@ -32,6 +32,14 @@ export interface CommentInfoDTO {
   commentDate: Date;
 }
 
+export interface CommentCreateDTO {
+  discussionId: number;
+  replyToId: number | null;
+  title: string;
+  content: string;
+}
+
+
 export interface ForumCreateDTO {
   title: string;
   description: string;
