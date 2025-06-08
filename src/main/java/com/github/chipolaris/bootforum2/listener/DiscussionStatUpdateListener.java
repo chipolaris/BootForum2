@@ -1,8 +1,10 @@
 package com.github.chipolaris.bootforum2.listener;
 
 import com.github.chipolaris.bootforum2.dao.GenericDAO;
+import com.github.chipolaris.bootforum2.domain.Comment;
 import com.github.chipolaris.bootforum2.domain.Discussion;
 import com.github.chipolaris.bootforum2.domain.DiscussionStat;
+import com.github.chipolaris.bootforum2.event.CommentCreatedEvent;
 import com.github.chipolaris.bootforum2.event.DiscussionViewedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Component
 public class DiscussionStatUpdateListener { // No longer implements ApplicationListener
@@ -61,5 +64,36 @@ public class DiscussionStatUpdateListener { // No longer implements ApplicationL
             // Consider how to handle this error, e.g., retry, log for manual intervention.
             // For now, we'll just log it. The main discussion view operation will still succeed.
         }
+    }
+
+    public void handleCommentCreatedEvent(CommentCreatedEvent event) {
+
+        Comment comment = event.getComment();
+
+        if (comment == null) {
+            logger.warn("Discussion or its statistics are null in DiscussionViewedEvent. Cannot update view count.");
+            return;
+        }
+
+        Discussion discussion = comment.getDiscussion();
+        if (discussion == null) {
+            logger.warn("Discussion is null");
+            return;
+        }
+        DiscussionStat discussionStat = discussion.getStat();
+        if (discussionStat == null) {
+            logger.warn("DiscussionStat is null");
+            return;
+        }
+
+        discussionStat.addCommentCount(1);
+        discussionStat.addAttachmentCount(comment.getAttachments().size());
+        discussionStat.addThumbnailCount(comment.getThumbnails().size());
+        Map<String, Integer> commentors = discussionStat.getParticipants();
+        commentors.merge(event.getUsername(), 1, Integer::sum);
+
+        genericDAO.merge(discussionStat);
+
+        logger.info("Updated comment count for discussion ID: {}", discussion.getId());
     }
 }

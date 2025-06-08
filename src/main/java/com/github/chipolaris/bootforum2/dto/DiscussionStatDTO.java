@@ -10,5 +10,5 @@ public record DiscussionStatDTO(
         Long thumbnailCount,
         Long attachmentCount,
         CommentInfoDTO lastComment,
-        Map<String, Integer> commentors) {
+        Map<String, Integer> participants) {
 }

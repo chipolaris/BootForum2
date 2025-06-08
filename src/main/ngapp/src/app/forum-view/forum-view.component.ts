@@ -1,5 +1,4 @@
-    // /home/cmngu/Workspace/BootForum2/src/main/ngapp/src/app/forum-view/forum-view.component.ts
-    import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+        import { Component, OnInit, OnDestroy, inject } from '@angular/core';
     import { ActivatedRoute, RouterModule } from '@angular/router';
     import { ForumService } from '../_services/forum.service';
     import { DiscussionService } from '../_services/discussion.service';

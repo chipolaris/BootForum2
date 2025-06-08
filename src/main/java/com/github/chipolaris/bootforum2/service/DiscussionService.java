@@ -1,7 +1,10 @@
 package com.github.chipolaris.bootforum2.service;
 
 import com.github.chipolaris.bootforum2.dao.*;
-import com.github.chipolaris.bootforum2.domain.*;
+import com.github.chipolaris.bootforum2.domain.Discussion;
+import com.github.chipolaris.bootforum2.domain.DiscussionStat;
+import com.github.chipolaris.bootforum2.domain.FileInfo;
+import com.github.chipolaris.bootforum2.domain.Forum;
 import com.github.chipolaris.bootforum2.dto.*;
 import com.github.chipolaris.bootforum2.event.DiscussionCreatedEvent;
 import com.github.chipolaris.bootforum2.event.DiscussionViewedEvent;
@@ -18,9 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -117,6 +120,7 @@ public class DiscussionService {
         DiscussionStat discussionStat = discussion.getStat();
         discussionStat.setCommentCount(0);
         discussionStat.setViewCount(0);
+        discussionStat.setParticipants(Map.of(discussion.getCreateBy(), 1));
 
         if (discussion.getThumbnails() != null) {
             discussionStat.setThumbnailCount(discussion.getThumbnails().size());

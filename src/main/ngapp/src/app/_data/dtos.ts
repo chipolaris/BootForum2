@@ -148,7 +148,7 @@ export interface DiscussionStatDTO {
   thumbnailCount?: number;
   attachmentCount?: number;
   lastComment?: CommentInfoDTO | null;
-  commentors?: { [key: string]: number } | null; // Equivalent to Map<String, Integer>
+  participants?: { [key: string]: number } | null; // Equivalent to Map<String, Integer>
 }
 
 // Model for DiscussionDTO, corresponding to Java's DiscussionDTO

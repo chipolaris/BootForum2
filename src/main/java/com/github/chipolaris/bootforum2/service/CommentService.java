@@ -1,21 +1,28 @@
 package com.github.chipolaris.bootforum2.service;
 
-import com.github.chipolaris.bootforum2.dao.DynamicDAO;
-import com.github.chipolaris.bootforum2.dao.FilterSpec;
-import com.github.chipolaris.bootforum2.dao.OrderSpec;
-import com.github.chipolaris.bootforum2.dao.QuerySpec;
+import com.github.chipolaris.bootforum2.dao.*;
 import com.github.chipolaris.bootforum2.domain.Comment;
+import com.github.chipolaris.bootforum2.domain.Discussion;
+import com.github.chipolaris.bootforum2.domain.FileInfo;
+import com.github.chipolaris.bootforum2.dto.CommentCreateDTO;
 import com.github.chipolaris.bootforum2.dto.CommentDTO;
+import com.github.chipolaris.bootforum2.dto.FileInfoDTO;
 import com.github.chipolaris.bootforum2.dto.PageResponseDTO;
+import com.github.chipolaris.bootforum2.event.CommentCreatedEvent;
+import com.github.chipolaris.bootforum2.event.DiscussionCreatedEvent;
 import com.github.chipolaris.bootforum2.mapper.CommentMapper;
+import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,11 +32,112 @@ public class CommentService {
     private static final Logger logger = LoggerFactory.getLogger(CommentService.class);
 
     private final DynamicDAO dynamicDAO;
+    private final GenericDAO genericDAO;
     private final CommentMapper commentMapper;
+    private final FileStorageService fileStorageService;
+    private final FileInfoMapper fileInfoMapper; // To map FileInfoDTO from FileStorageService to FileInfo entity
+    private final AuthenticationFacade authenticationFacade;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public CommentService(DynamicDAO dynamicDAO, CommentMapper commentMapper) {
+    // Note: in Spring version >= 4.3, @AutoWired is implied for beans with single constructor
+    public CommentService(GenericDAO genericDAO, DynamicDAO dynamicDAO,
+                          CommentMapper commentMapper,
+                          FileStorageService fileStorageService,
+                          FileInfoMapper fileInfoMapper,
+                          AuthenticationFacade authenticationFacade,
+                          ApplicationEventPublisher eventPublisher) {
+        this.genericDAO = genericDAO;
         this.dynamicDAO = dynamicDAO;
         this.commentMapper = commentMapper;
+        this.fileStorageService = fileStorageService;
+        this.fileInfoMapper = fileInfoMapper;
+        this.authenticationFacade = authenticationFacade;
+        this.eventPublisher = eventPublisher;
+    }
+
+    public ServiceResponse<CommentDTO> createComment(
+            CommentCreateDTO commentCreateDTO,
+            MultipartFile[] images,
+            MultipartFile[] attachments) {
+
+        ServiceResponse<CommentDTO> response = new ServiceResponse<>();
+        String username = authenticationFacade.getCurrentUsername().orElse("system");
+
+        try {
+            // Fetch Discussion
+            Discussion discussion = genericDAO.find(Discussion.class, commentCreateDTO.discussionId());
+
+            if (discussion == null) {
+                return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
+                        .addMessage("Discussion not found. Cannot create comment.");
+            }
+
+            Comment replyTo = null;
+
+            if(commentCreateDTO.replyToId() != null) {
+                replyTo = genericDAO.find(Comment.class, commentCreateDTO.replyToId());
+
+                // check if the replyTo is actually part of the discussion
+                if(replyTo != null && replyTo.getDiscussion().getId() != discussion.getId()) {
+                    return response.setAckCode(ServiceResponse.AckCodeType.FAILURE).addMessage("Discussion/replyToId mismatch.");
+                }
+            }
+
+            // Create Comment entity
+            Comment comment = new Comment();
+            comment.setTitle(commentCreateDTO.title());
+            comment.setContent(commentCreateDTO.content());
+            comment.setDiscussion(discussion);
+            comment.setReplyTo(replyTo);
+            comment.setCreateBy(username); // Set creator here
+
+            // 3. Process Files
+            List<FileInfo> imageInfos = processFiles(images, "image");
+            comment.setThumbnails(imageInfos);
+
+            List<FileInfo> attachmentInfos = processFiles(attachments, "attachment");
+            comment.setAttachments(attachmentInfos);
+
+            genericDAO.persist(comment);
+
+            logger.info("Successfully created comment '{}' with ID {}", comment.getTitle(), comment.getId());
+
+            eventPublisher.publishEvent(new CommentCreatedEvent(this, comment, username));
+
+            CommentDTO commentDTO = commentMapper.toDTO(comment);
+            response.setDataObject(commentDTO);
+            response.addMessage("Comment created successfully.");
+        } catch (Exception e) {
+            logger.error("Error creating comment: " + commentCreateDTO.title(), e);
+            response.setAckCode(ServiceResponse.AckCodeType.FAILURE);
+            response.addMessage("An unexpected error occurred while creating the comment: " + e.getMessage());
+        }
+
+        return response;
+    }
+
+    private List<FileInfo> processFiles(MultipartFile[] files, String fileType) {
+        List<FileInfo> fileInfos = new ArrayList<>();
+        if (files != null) {
+            for (MultipartFile file : files) {
+                if (!file.isEmpty()) {
+                    ServiceResponse<FileInfoDTO> fileResponse = fileStorageService.storeFile(file);
+                    if (fileResponse.getAckCode() == ServiceResponse.AckCodeType.SUCCESS && fileResponse.getDataObject() != null) {
+                        FileInfo fileInfo = fileInfoMapper.toEntity(fileResponse.getDataObject());
+
+                        genericDAO.persist(fileInfo);
+
+                        fileInfos.add(fileInfo);
+                        logger.info("Stored {} '{}' for comment.", fileType, fileInfo.getOriginalFilename());
+                    } else {
+                        // Log and continue, not adding the failed file.
+                        logger.warn("Failed to store {} file: {}. Reason: {}",
+                                fileType, file.getOriginalFilename(), fileResponse.getMessages());
+                    }
+                }
+            }
+        }
+        return fileInfos;
     }
 
     @Transactional(readOnly = true)

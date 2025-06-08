@@ -152,15 +152,15 @@
         <dl class="space-y-2 text-sm">
           <div>
             <dt class="font-medium text-gray-600 dark:text-slate-300">Title:</dt>
-            <dd class="text-gray-800 dark:text-slate-100">{{ discussionDetails?.title }}</dd>
+            <dd class="text-gray-800 dark:text-slate-100">{{ discussionDetails.title }}</dd>
           </div>
           <div>
             <dt class="font-medium text-gray-600 dark:text-slate-300">Created by:</dt>
-            <dd class="text-gray-800 dark:text-slate-100">{{ discussionDetails?.createBy }}</dd>
+            <dd class="text-gray-800 dark:text-slate-100">{{ discussionDetails.createBy }}</dd>
           </div>
           <div>
             <dt class="font-medium text-gray-600 dark:text-slate-300">Created on:</dt>
-            <dd class="text-gray-800 dark:text-slate-100">{{ discussionDetails?.createDate | date:'longDate' }}</dd>
+            <dd class="text-gray-800 dark:text-slate-100">{{ discussionDetails.createDate | date:'longDate' }}</dd>
           </div>
           <ng-container *ngIf="discussionDetails?.stat as stat">
             <div>
@@ -177,13 +177,17 @@
             </div>
             <div>
               <dt class="font-medium text-gray-600 dark:text-slate-300">Participants:</dt>
-              <dd class="text-gray-800 dark:text-slate-100">{{ stat.commentors ? getObjectKeys(stat.commentors).length : 'N/A' }}</dd>
+              <dd class="text-gray-800 dark:text-slate-100">{{ stat.participants ? getObjectKeys(stat.participants).length : 'N/A' }}</dd>
             </div>
-            <div *ngIf="stat.lastComment">
+            <div>
               <dt class="font-medium text-gray-600 dark:text-slate-300">Last Activity:</dt>
-              <dd class="text-gray-800 dark:text-slate-100">
-                {{ stat.lastComment.commentDate | date:'medium' }} by {{ stat.lastComment.commentor }}
+              <dd *ngIf="stat.lastComment?.commentDate && stat.lastComment?.commentor; else discussionCreated"
+                  class="text-gray-800 dark:text-slate-100">
+                {{ stat.lastComment?.commentDate | date:'medium' }} by {{ stat.lastComment?.commentor }}
               </dd>
+              <ng-template #discussionCreated>
+                Discussion Created on {{ discussionDetails.createDate | date:'medium' }} by {{ discussionDetails.createBy }}
+              </ng-template>
             </div>
           </ng-container>
         </dl>

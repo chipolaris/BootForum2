@@ -58,7 +58,7 @@ public class ForumStatUpdateListener {
         }
 
         forumStat.addDiscussionCount(1);
-        forumStat.addCommentCount(1); // For the initial comment
+        // forumStat.addCommentCount(1); // For the initial comment
 
         // Update: discussion created doesn't count as a comment
         /*Comment initialComment = discussion.getComments().stream().findFirst().orElse(null); // Get the initial comment

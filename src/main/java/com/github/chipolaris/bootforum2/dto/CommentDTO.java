@@ -11,7 +11,7 @@ public record CommentDTO(
         String updateBy,
         String title,
         String content,
-        // CommentDTO replyTo, // don't use this in DTO, could cause a circular reference
+        // CommentDTO replyToId, // don't use this in DTO, could cause a circular reference
         Long replyToId,
         // List<CommentDTO> replies, // Don't need this as we typically use for flat list of comments
         String ipAddress,
