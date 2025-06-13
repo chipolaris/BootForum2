@@ -4,5 +4,5 @@ import com.github.chipolaris.bootforum2.domain.CommentInfo;
 
 import java.time.LocalDateTime;
 
-public record CommentInfoDTO(Long id, String title, String contentAbbr, Long commentId, String commentor, LocalDateTime commentDate) {
+public record CommentInfoDTO(Long commentId, String title, String contentAbbr, String commentor, LocalDateTime commentDate) {
 }

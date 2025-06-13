@@ -1,6 +1,7 @@
 package com.github.chipolaris.bootforum2.rest;
 
 import com.github.chipolaris.bootforum2.domain.User;
+import com.github.chipolaris.bootforum2.dto.UserDTO;
 import com.github.chipolaris.bootforum2.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,7 +21,7 @@ public class UserController {
 
 	//@GetMapping("/profile")
 	@RequestMapping(path = "/profile", method = {RequestMethod.GET, RequestMethod.OPTIONS})
-	public ResponseEntity<User> getUserProfile(@AuthenticationPrincipal UserDetails userDetails) {
+	public ResponseEntity<UserDTO> getUserProfile(@AuthenticationPrincipal UserDetails userDetails) {
 		// @AuthenticationPrincipal injects the principal object (UserDetails by default)
 		if (userDetails == null) {
 			// Should not happen if endpoint is secured correctly, but good practice
@@ -28,8 +29,7 @@ public class UserController {
 		}
 		// Return the UserDetails object or map it to a DTO
 		// Avoid sending sensitive info like passwords!
-		User user = userService.getUser(userDetails.getUsername()).getDataObject();
-		user.setPassword(null);
+		UserDTO user = userService.getUser(userDetails.getUsername()).getDataObject();
 		return ResponseEntity.ok(user);
 	}
 }

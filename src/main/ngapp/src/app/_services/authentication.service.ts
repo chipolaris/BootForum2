@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { map, catchError, tap, shareReplay, switchMap, first } from 'rxjs/operators'; // Added first
 
-import { User } from '../_data/models';
+import { UserDTO } from '../_data/dtos';
 
 interface AuthResponse {
   accessToken: string;
@@ -12,28 +12,28 @@ interface AuthResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthenticationService {
-	private currentUserSubject: BehaviorSubject<User | null>;
-	public currentUser: Observable<User | null>;
+	private currentUserSubject: BehaviorSubject<UserDTO | null>;
+	public currentUser: Observable<UserDTO | null>;
 	// Remove profileRequest$ caching from here if APP_INITIALIZER handles the first call
-	// private profileRequest$: Observable<User | null> | null = null;
+	// private profileRequest$: Observable<UserDTO | null> | null = null;
 
 	private authUrl = '/api/authenticate';
 	private profileUrl = '/api/user/profile';
 	private readonly TOKEN_KEY = 'authToken';
 
 	constructor(private http: HttpClient) {
-		this.currentUserSubject = new BehaviorSubject<User | null>(null);
+		this.currentUserSubject = new BehaviorSubject<UserDTO | null>(null);
 		this.currentUser = this.currentUserSubject.asObservable();
 		// We will move the initial profile fetch to an explicit init method
 		// for APP_INITIALIZER
 	}
 
 	// NEW METHOD: To be called by APP_INITIALIZER
-	public initializeAuthState(): Observable<User | null> {
+	public initializeAuthState(): Observable<UserDTO | null> {
 		const token = this.getCurrentUserToken();
 		if (token) {
 			// Fetch profile and ensure the observable completes for APP_INITIALIZER
-			return this.http.get<User>(this.profileUrl).pipe(
+			return this.http.get<UserDTO>(this.profileUrl).pipe(
 				tap(user => {
 					console.log("User profile fetched during init:", user);
 					this.currentUserSubject.next(user);
@@ -50,7 +50,7 @@ export class AuthenticationService {
 		}
 	}
 
-	public get currentUserValue(): User | null {
+	public get currentUserValue(): UserDTO | null {
 		return this.currentUserSubject.value;
 	}
 
@@ -67,7 +67,7 @@ export class AuthenticationService {
 	}
 
 	// Modified getUserProfile to not rely on its own caching if APP_INITIALIZER handles first call
-	getUserProfile(): Observable<User | null> {
+	getUserProfile(): Observable<UserDTO | null> {
 		if (!this.hasToken()) {
 			this.currentUserSubject.next(null);
 			return of(null);
@@ -78,7 +78,7 @@ export class AuthenticationService {
 			return of(this.currentUserValue);
 		}
 
-		return this.http.get<User>(this.profileUrl).pipe(
+		return this.http.get<UserDTO>(this.profileUrl).pipe(
 			tap(user => {
 				console.log("User profile fetched:", user);
 				this.currentUserSubject.next(user);
@@ -92,7 +92,7 @@ export class AuthenticationService {
 		);
 	}
 
-	login(username: string, password: string): Observable<User | null> {
+	login(username: string, password: string): Observable<UserDTO | null> {
 		this.removeToken();
 		this.currentUserSubject.next(null);
 

@@ -18,7 +18,8 @@ import io.micrometer.common.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-@Component
+@Deprecated
+//@Component
 public class DiscussionStatUpdateListener { // No longer implements ApplicationListener
 
     private static final Logger logger = LoggerFactory.getLogger(DiscussionStatUpdateListener.class);

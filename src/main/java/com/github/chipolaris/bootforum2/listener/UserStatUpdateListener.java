@@ -22,7 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-@Component
+@Deprecated
+// @Component
 public class UserStatUpdateListener {
 
     private static final Logger logger = LoggerFactory.getLogger(UserStatUpdateListener.class);

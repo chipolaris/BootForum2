@@ -1,13 +1,14 @@
-import { Component, OnInit } from '@angular/core'; // Removed Inject
+import { Component, OnInit, inject } from '@angular/core'; // Added inject
 import { Router, RouterLink, RouterModule, RouterOutlet } from '@angular/router';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+// MessageService is provided in app.config.ts, so no need to import here unless used directly in this component's template
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { NgIf, CommonModule } from '@angular/common';
+import { NgIf, CommonModule } from '@angular/common'; // CommonModule provides DatePipe if needed in template
 
 import { AuthenticationService } from './_services/authentication.service';
-import { User } from './_data/models';
+import { SystemStatisticService } from './_services/system-statistic.service'; // Import the new service
+import { UserDTO as User, SystemStatisticDTO } from './_data/dtos'; // Import the DTO
 
 @Component({
   selector: 'app-root',
@@ -15,13 +16,21 @@ import { User } from './_data/models';
   imports: [ RouterLink, RouterOutlet, RouterModule, ToastModule, NgIf, CommonModule ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
-  providers: [ ] // MessageService is usually provided in app.config
+  providers: [ ]
 })
-export class AppComponent implements OnInit { // Removed 'implements OnInit' if ngOnInit is empty
+export class AppComponent implements OnInit {
   title = 'BootForum2';
 
   isLoggedIn$: Observable<boolean>;
   isAdmin$: Observable<boolean>;
+
+  // Properties for System Statistics
+  systemStats: SystemStatisticDTO | null = null;
+  statsError: string | null = null;
+  isLoadingStats = true;
+
+  // Inject SystemStatisticService
+  private systemStatisticService = inject(SystemStatisticService);
 
   constructor(
 	 public authService: AuthenticationService,
@@ -30,7 +39,6 @@ export class AppComponent implements OnInit { // Removed 'implements OnInit' if 
 	 this.isLoggedIn$ = this.authService.currentUser.pipe(map(user => !!user));
 	 this.isAdmin$ = this.authService.currentUser.pipe(
      map((user: User | null) => {
-       // Check if user exists, has userRoles array, and if 'ADMIN' is one of the roles
        return !!(user && user.userRoles && user.userRoles.includes('ADMIN'));
      })
    );
@@ -38,9 +46,24 @@ export class AppComponent implements OnInit { // Removed 'implements OnInit' if 
 
   ngOnInit(): void {
     // The APP_INITIALIZER now handles the initial auth state loading.
-    // This logic can be removed or simplified.
-    // You might still want to log if the user is authenticated after init.
     console.log('AppComponent initialized. User authenticated:', this.authService.isAuthenticated());
+    this.loadSystemStatistics(); // Load system stats on init
+  }
+
+  loadSystemStatistics(): void {
+    this.isLoadingStats = true;
+    this.statsError = null;
+    this.systemStatisticService.getSystemStatistics().subscribe({
+      next: (data) => {
+        this.systemStats = data;
+        this.isLoadingStats = false;
+      },
+      error: (err) => {
+        this.statsError = err.message || 'Failed to load system statistics.';
+        this.isLoadingStats = false;
+        console.error('Error loading system statistics in AppComponent:', err);
+      }
+    });
   }
 
   logout() {

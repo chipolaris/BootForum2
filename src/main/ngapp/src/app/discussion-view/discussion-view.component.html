@@ -191,7 +191,7 @@
               <dt class="font-medium text-gray-600 dark:text-slate-300">Last Activity:</dt>
               <dd *ngIf="stat.lastComment?.commentDate && stat.lastComment?.commentor; else discussionCreated"
                   class="text-gray-800 dark:text-slate-100">
-                {{ stat.lastComment?.commentDate | date:'medium' }} by {{ stat.lastComment?.commentor }}
+                Comment on {{ stat.lastComment?.commentDate | date:'medium' }} by {{ stat.lastComment?.commentor }}
               </dd>
               <ng-template #discussionCreated class="text-gray-800 dark:text-slate-100">
                 Discussion created on {{ discussionDetails.createDate | date:'medium' }} by {{ discussionDetails.createBy }}

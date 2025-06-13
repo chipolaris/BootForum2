@@ -1,5 +1,6 @@
 package com.github.chipolaris.bootforum2.config;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.dao.DynamicDAO;
@@ -54,6 +55,7 @@ public class SeedDataInitializer implements ApplicationRunner {
         }
 
         try (InputStream inputStream = resource.getInputStream()) {
+            // objectMapper.enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
             // ObjectMapper will deserialize to the SeedData record
             SeedData seedData = objectMapper.readValue(inputStream, SeedData.class);
 
@@ -68,10 +70,10 @@ public class SeedDataInitializer implements ApplicationRunner {
                     if (!userExists) {
                         logger.info("User '{}' not found. Seeding user...", seedUser.username()); // Use record accessor
 
-                        User newUser = new User(); // User constructor initializes Person, Preferences, UserStat
+                        User newUser = User.newUser(); // User.newUser() initializes Person, Preferences, UserStat
                         newUser.setUsername(seedUser.username()); // Use record accessor
                         newUser.setPassword(passwordEncoder.encode(seedUser.password())); // Use record accessor
-                        newUser.addUserRole(seedUser.userRole()); // Use record accessor
+                        newUser.setUserRoles(seedUser.userRoles()); // Use record accessor
                         newUser.setAccountStatus(seedUser.accountStatus()); // Use record accessor
 
                         // createDate will be set by @PrePersist in User entity

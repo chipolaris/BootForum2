@@ -1,10 +1,3 @@
-// Model for the create discussion payload
-export interface DiscussionCreateDTO {
-  forumId: number;
-  title: string;
-  content: string;
-}
-
 // Model for the forum creation payload
 export interface ForumDTO {
   id?: number;
@@ -24,7 +17,6 @@ export interface ForumStatDTO {
 }
 
 export interface CommentInfoDTO {
-  id?: number;
   title: string;
   contentAbbr: string;
   commentId: number;
@@ -148,6 +140,13 @@ export interface CommentDTO {
   commentVote?: CommentVoteDTO | null; // Reference to CommentVoteDTO
 }
 
+// Model for the create discussion payload
+export interface DiscussionCreateDTO {
+  forumId: number;
+  title: string;
+  content: string;
+}
+
 // Model for DiscussionStatDTO, corresponding to Java's DiscussionStatDTO
 export interface DiscussionStatDTO {
   commentCount?: number;
@@ -172,6 +171,14 @@ export interface DiscussionDTO {
   stat?: DiscussionStatDTO | null; // Reference to DiscussionStatDTO
 }
 
+export interface DiscussionInfoDTO {
+  discussionId: number;
+  title: string;
+  contentAbbr: string;
+  createBy: string;
+  createDate: Date;
+}
+
 export interface DiscussionSummaryDTO {
   id?: number;
   title: string;
@@ -182,6 +189,29 @@ export interface DiscussionSummaryDTO {
   lastCommentDate: Date;
 }
 
+export interface PersonDTO {
+	id?: number;
+	firstName?: string;
+	lastName?: string;
+	email?: string;
+	createDate?: Date;
+	updateDate?: Date;
+	createdBy?: string;
+	updatedBy?: string;
+}
+
+export interface UserDTO {
+  id?: number;
+  username: string;
+  userRoles?: string[];
+  accountStatus?: string;
+  person: PersonDTO;
+  createDate?: Date;
+  updateDate?: Date;
+  createdBy?: string;
+  updatedBy?: string;
+}
+
 // Model for the registration payload (matches SignUpRequest without confirmPassword)
 export interface RegistrationPayload {
   username: string;
@@ -189,6 +219,17 @@ export interface RegistrationPayload {
   firstName: string;
   lastName: string;
   email: string;
+}
+
+export interface SystemStatisticDTO {
+  userCount: number;
+  forumCount: number;
+  discussionCount: number;
+  commentCount: number;
+  lastRegisteredUser: string;
+  lastUserRegisteredDate: Date;
+  lastComment: CommentInfoDTO;
+  lastDiscussion: DiscussionInfoDTO;
 }
 
 // Define an interface for the generic API response structure

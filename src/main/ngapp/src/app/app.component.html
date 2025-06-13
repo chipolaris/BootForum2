@@ -1,4 +1,3 @@
-
 <div class="flex flex-col h-screen">
   <p-toast position="top-center"></p-toast>
   <header class="bg-indigo-100">
@@ -26,54 +25,42 @@
             <li *ngIf="(isLoggedIn$ | async) && (isAdmin$ | async)">
               <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/admin/forum-structure"> Forum Structure </a>
             </li>
-
           </ul>
         </nav>
 
         <div class="flex items-center gap-4">
           <div class="sm:flex sm:gap-4">
-
             <button *ngIf="isLoggedIn$ | async" (click)="logout()"
-               class="block rounded-md bg-orange-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-orange-700 cursor-pointer"
-            >
+                    class="block rounded-md bg-orange-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-orange-700 cursor-pointer">
               <span class="pi pi-sign-out mr-2"></span>
               Logout
             </button>
 
             <a *ngIf="!(isLoggedIn$ | async)"
                class="hidden rounded-md bg-gray-100 px-5 py-2.5 text-sm font-medium text-teal-600 transition hover:text-teal-600/75 sm:block"
-               routerLink="/app/registration"
-            >
+               routerLink="/app/registration">
               <span class="pi pi-clipboard mr-2"></span>
               Register
             </a>
 
             <a *ngIf="!(isLoggedIn$ | async)"
                class="block rounded-md bg-teal-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-teal-700"
-               routerLink="/app/login"
-            >
+               routerLink="/app/login">
               <span class="pi pi-sign-in mr-2"></span>
               Login
             </a>
-
           </div>
 
           <button
-            class="block rounded-sm bg-gray-100 p-2.5 text-gray-600 transition hover:text-gray-600/75 md:hidden"
-          >
+            class="block rounded-sm bg-gray-100 p-2.5 text-gray-600 transition hover:text-gray-600/75 md:hidden">
             <span class="sr-only">Toggle menu</span>
-            <!--
-              Note: svg is the new trend of using over the icon libraries like FontAwesome, Bootstrap, Material, etc
-              The following svg tag is the hamburger/menu icon
-            -->
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="size-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              stroke-width="2"
-            >
+              stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
@@ -84,7 +71,77 @@
 
   <!-- Container: Centers content vertically and horizontally, light gray background -->
   <main class="bg-gray-100 flex-grow">
-      <router-outlet/>
+    <router-outlet />
+
+    <!-- System Statistics Panel -->
+    <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-8 mt-8">
+      <div *ngIf="isLoadingStats" class="flex justify-center items-center py-6">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <p class="ml-2 text-gray-600">Loading system statistics...</p>
+      </div>
+
+      <div *ngIf="statsError && !isLoadingStats" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md" role="alert">
+        <p class="font-bold">Could not load System Statistics</p>
+        <p>{{ statsError }}</p>
+      </div>
+
+      <div *ngIf="systemStats && !isLoadingStats && !statsError" class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-lg">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-slate-100 mb-4 border-b dark:border-slate-700 pb-2">
+          System Statistics
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
+          <div>
+            <dt class="font-medium text-gray-600 dark:text-slate-400">Total Users:</dt>
+            <dd class="text-gray-800 dark:text-slate-200 text-lg font-semibold">{{ systemStats.userCount }}</dd>
+          </div>
+          <div>
+            <dt class="font-medium text-gray-600 dark:text-slate-400">Total Forums:</dt>
+            <dd class="text-gray-800 dark:text-slate-200 text-lg font-semibold">{{ systemStats.forumCount }}</dd>
+          </div>
+          <div>
+            <dt class="font-medium text-gray-600 dark:text-slate-400">Total Discussions:</dt>
+            <dd class="text-gray-800 dark:text-slate-200 text-lg font-semibold">{{ systemStats.discussionCount }}</dd>
+          </div>
+          <div>
+            <dt class="font-medium text-gray-600 dark:text-slate-400">Total Comments:</dt>
+            <dd class="text-gray-800 dark:text-slate-200 text-lg font-semibold">{{ systemStats.commentCount }}</dd>
+          </div>
+          <div>
+            <dt class="font-medium text-gray-600 dark:text-slate-400">Last Registered User:</dt>
+            <dd class="text-gray-800 dark:text-slate-200">
+              {{ systemStats.lastRegisteredUser || 'N/A' }}
+              <span *ngIf="systemStats.lastUserRegisteredDate" class="block text-xs text-gray-500 dark:text-slate-500">
+                on {{ systemStats.lastUserRegisteredDate | date:'mediumDate' }}
+              </span>
+            </dd>
+          </div>
+          <div class="md:col-span-2 lg:col-span-1"> <!-- Adjust span for different screen sizes -->
+            <dt class="font-medium text-gray-600 dark:text-slate-400">Latest Activity:</dt>
+            <ng-container *ngIf="systemStats.lastComment && systemStats.lastComment.commentId > 0; else noRecentActivity">
+              <dd class="text-gray-800 dark:text-slate-200">
+                <span class="font-semibold">Comment:</span> "{{ systemStats.lastComment.title }}"
+                <span class="block text-xs text-gray-500 dark:text-slate-500">
+                  by {{ systemStats.lastComment.commentor }} on {{ systemStats.lastComment.commentDate | date:'medium' }}
+                </span>
+              </dd>
+            </ng-container>
+            <ng-template #noRecentActivity>
+              <ng-container *ngIf="systemStats.lastDiscussion && systemStats.lastDiscussion.discussionId > 0">
+                <dd class="text-gray-800 dark:text-slate-200">
+                  <span class="font-semibold">Discussion:</span> "{{ systemStats.lastDiscussion.title }}"
+                  <span class="block text-xs text-gray-500 dark:text-slate-500">
+                    by {{ systemStats.lastDiscussion.createBy }} on {{ systemStats.lastDiscussion.createDate | date:'medium' }}
+                  </span>
+                </dd>
+              </ng-container>
+              <ng-container *ngIf="!(systemStats.lastComment && systemStats.lastComment.commentId > 0) && !(systemStats.lastDiscussion && systemStats.lastDiscussion.discussionId > 0)">
+                <dd class="text-gray-800 dark:text-slate-200">No recent activity.</dd>
+              </ng-container>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer class="">

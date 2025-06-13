@@ -3,7 +3,7 @@
     {
       "username": "admin",
       "password": "secret123",
-      "userRole": "ADMIN",
+      "userRoles": ["ADMIN", "USER"],
       "accountStatus": "ACTIVE",
       "person": {
         "firstName": "Admin",
@@ -14,7 +14,7 @@
     {
       "username": "user1",
       "password": "secret123",
-      "userRole": "USER",
+      "userRoles": ["USER"],
       "accountStatus": "ACTIVE",
       "person": {
         "firstName": "One",

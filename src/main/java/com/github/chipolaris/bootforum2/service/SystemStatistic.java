@@ -1,10 +1,11 @@
 package com.github.chipolaris.bootforum2.service; // Or a more suitable package
 
 import com.github.chipolaris.bootforum2.dao.DynamicDAO;
-import com.github.chipolaris.bootforum2.dao.FilterSpec;
 import com.github.chipolaris.bootforum2.dao.GenericDAO;
-import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.*; // Assuming your domain entities are here
+import com.github.chipolaris.bootforum2.dto.CommentInfoDTO;
+import com.github.chipolaris.bootforum2.dto.DiscussionInfoDTO;
+import com.github.chipolaris.bootforum2.dto.SystemStatisticDTO;
 import com.github.chipolaris.bootforum2.event.*;
 import com.github.chipolaris.bootforum2.mapper.CommentInfoMapper;
 import io.micrometer.common.util.StringUtils;
@@ -19,8 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
@@ -29,7 +28,8 @@ public class SystemStatistic {
     private static final Logger logger = LoggerFactory.getLogger(SystemStatistic.class);
 
     // --- Data Attributes ---
-    private volatile CommentInfo lastComment;
+    private volatile CommentInfoDTO lastComment;
+    private DiscussionInfoDTO lastDiscussion;
     private final AtomicLong commentCount = new AtomicLong(0);
     private final AtomicLong discussionCount = new AtomicLong(0);
     private final AtomicLong forumCount = new AtomicLong(0);
@@ -67,18 +67,18 @@ public class SystemStatistic {
         // Load last comment
         Comment latestDbComment = genericDAO.greatest(Comment.class, "createDate");
         if (latestDbComment != null) {
-            // It's safer to create a new CommentInfo object rather than trying to set fields on a potentially null one.
-            this.lastComment = new CommentInfo(); // Ensure lastComment is initialized
-            this.lastComment.setCommentId(latestDbComment.getId());
-            this.lastComment.setCommentDate(latestDbComment.getCreateDate());
-            this.lastComment.setCommentor(latestDbComment.getCreateBy());
-            this.lastComment.setTitle(latestDbComment.getTitle());
-            // The StringUtils.truncate method from micrometer returns the truncated string,
-            // it does not modify the original string in place.
             String truncatedContent = StringUtils.truncate(latestDbComment.getContent(), 255);
-            this.lastComment.setContentAbbr(truncatedContent);
+            this.lastComment = new CommentInfoDTO(latestDbComment.getId(), latestDbComment.getTitle(), truncatedContent,
+                    latestDbComment.getCreateBy(), latestDbComment.getCreateDate()); // Ensure lastComment is initialized
         }
 
+        // Load last discussion
+        Discussion latestDbDiscussion = genericDAO.greatest(Discussion.class, "createDate");
+        if(latestDbDiscussion != null) {
+            String truncatedContent = StringUtils.truncate(latestDbDiscussion.getContent(), 255);
+            this.lastDiscussion = new DiscussionInfoDTO(latestDbDiscussion.getId(), latestDbDiscussion.getTitle(),
+                    truncatedContent, latestDbDiscussion.getCreateBy(), latestDbDiscussion.getCreateDate());
+        }
 
         // Load last registered user
         User latestUser = genericDAO.greatest(User.class, "createDate");
@@ -94,14 +94,18 @@ public class SystemStatistic {
         printStatistics(); // Optionally print stats after initialization
     }
 
-    // --- Getters (Thread-safe for reads) ---
-    public CommentInfo getLastComment() {
-        return lastComment; // CommentInfo should be immutable or a defensive copy returned if mutable
+    public SystemStatisticDTO getDTO() {
+        return new SystemStatisticDTO(this.userCount.get(), this.forumCount.get(), this.discussionCount.get(),
+                this.commentCount.get(), this.lastRegisteredUser, this.lastUserRegisteredDate,
+                this.lastComment, this.lastDiscussion);
     }
 
-    public long getCommentCount() {
-        return commentCount.get();
-    }
+    // --- Getters (Thread-safe for reads) ---
+    public CommentInfoDTO getLastComment() { return lastComment; }
+
+    public DiscussionInfoDTO getLastDiscussion() { return lastDiscussion; }
+
+    public long getCommentCount() { return commentCount.get(); }
 
     public long getDiscussionCount() {
         return discussionCount.get();
@@ -134,14 +138,29 @@ public class SystemStatistic {
 
     // --- Updaters (Synchronized for thread-safety on compound objects) ---
 
-    public synchronized void updateLastComment(CommentInfo newCommentInfo) {
-        if (newCommentInfo == null || newCommentInfo.getCommentDate() == null) {
+    public synchronized void updateLastComment(Comment newComment) {
+        if (newComment == null || newComment.getCreateDate() == null) {
             return;
         }
-        if (this.lastComment == null || this.lastComment.getCommentDate() == null ||
-                newCommentInfo.getCommentDate().isAfter(this.lastComment.getCommentDate())) {
-            this.lastComment = newCommentInfo; // Assuming newCommentInfo is a complete, new object
-            logger.debug("Updated last comment to: {}", newCommentInfo.getCommentId());
+        if (this.lastComment == null || this.lastComment.commentDate() == null ||
+                newComment.getCreateDate().isAfter(this.lastComment.commentDate())) {
+            String truncatedContent = StringUtils.truncate(newComment.getContent(), 255);
+            this.lastComment = new CommentInfoDTO(newComment.getId(), newComment.getTitle(),
+                    truncatedContent, newComment.getCreateBy(), newComment.getCreateDate()); // Assuming newComment is a complete, new object
+            logger.debug("Updated last comment to: {}", newComment.getId());
+        }
+    }
+
+    public synchronized void updateLastDiscussion(Discussion newDiscussion) {
+        if (newDiscussion == null || newDiscussion.getCreateDate() == null) {
+            return;
+        }
+        if (this.lastDiscussion == null || this.lastDiscussion.createDate() == null ||
+                newDiscussion.getCreateDate().isAfter(this.lastDiscussion.createDate())) {
+            String truncatedContent = StringUtils.truncate(newDiscussion.getContent(), 255);
+            this.lastDiscussion = new DiscussionInfoDTO(newDiscussion.getId(), newDiscussion.getTitle(),
+                    truncatedContent, newDiscussion.getCreateBy(), newDiscussion.getCreateDate()); // Assuming newComment is a complete, new object
+            logger.debug("Updated last discussion to: {}", newDiscussion.getId());
         }
     }
 
@@ -200,14 +219,26 @@ public class SystemStatistic {
 
         if (lastComment != null) {
             sb.append("\nLast Comment Details:");
-            sb.append(String.format("\n  ID: %s", lastComment.getCommentId() != null ? lastComment.getCommentId().toString() : "N/A"));
-            sb.append(String.format("\n  Title: %s", lastComment.getTitle() != null ? lastComment.getTitle() : "N/A"));
-            sb.append(String.format("\n  Commentor: %s", lastComment.getCommentor() != null ? lastComment.getCommentor() : "N/A"));
+            sb.append(String.format("\n  ID: %s", lastComment.commentId() != null ? lastComment.commentId() : "N/A"));
+            sb.append(String.format("\n  Title: %s", lastComment.title() != null ? lastComment.title() : "N/A"));
+            sb.append(String.format("\n  Commentor: %s", lastComment.commentor() != null ? lastComment.commentor() : "N/A"));
             sb.append(String.format("\n  Date: %s",
-                    lastComment.getCommentDate() != null ? lastComment.getCommentDate().format(formatter) : "N/A"));
-            sb.append(String.format("\n  Content Abbr: %s", lastComment.getContentAbbr() != null ? lastComment.getContentAbbr() : "N/A"));
+                    lastComment.commentDate() != null ? lastComment.commentDate().format(formatter) : "N/A"));
+            sb.append(String.format("\n  Content Abbr: %s", lastComment.contentAbbr() != null ? lastComment.contentAbbr() : "N/A"));
         } else {
             sb.append("\nLast Comment Details: N/A");
+        }
+
+        if (lastDiscussion != null) {
+            sb.append("\nLast Comment Details:");
+            sb.append(String.format("\n  ID: %s", lastDiscussion.discussionId() != null ? lastDiscussion.discussionId() : "N/A"));
+            sb.append(String.format("\n  Title: %s", lastDiscussion.title() != null ? lastDiscussion.title() : "N/A"));
+            sb.append(String.format("\n  CreateBy: %s", lastDiscussion.createBy() != null ? lastDiscussion.createBy() : "N/A"));
+            sb.append(String.format("\n  Date: %s",
+                    lastDiscussion.createDate() != null ? lastDiscussion.createDate().format(formatter) : "N/A"));
+            sb.append(String.format("\n  Content Abbr: %s", lastDiscussion.contentAbbr() != null ? lastDiscussion.contentAbbr() : "N/A"));
+        } else {
+            sb.append("\nLast Discussion Details: N/A");
         }
         sb.append("\n-------------------------");
 
@@ -225,8 +256,7 @@ public class SystemStatistic {
 
         this.incrementCommentCount();
 
-        CommentInfo commentInfo = comment.getDiscussion().getStat().getLastComment();
-        this.updateLastComment(commentInfo);
+        this.updateLastComment(comment);
     }
 
     @EventListener
@@ -242,7 +272,7 @@ public class SystemStatistic {
 
         incrementDiscussionCount();
         incrementCommentCount();
-        updateLastComment(event.getDiscussion().getStat().getLastComment());
+        updateLastDiscussion(event.getDiscussion());
 
         logger.info("New discussion created. Discussion count: {}, Comment count: {}",
                 discussionCount.get(), commentCount.get());

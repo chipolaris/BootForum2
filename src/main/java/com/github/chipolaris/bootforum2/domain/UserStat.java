@@ -39,11 +39,11 @@ public class UserStat extends BaseEntity {
     @JoinColumn(name="LAST_COMMENT_INFO_ID", foreignKey = @ForeignKey(name="FK_USER_STAT_LAST_COMMEN"))
     private CommentInfo lastComment; // info about last comment, used for display
 
-    @Column(name="COMMENT_THUMBNAIL_COUNT")
-    private long commentThumbnailCount;
+    @Column(name="THUMBNAIL_COUNT")
+    private long thumbnailCount;
 
-    @Column(name="COMMENT_ATTACHMENT_COUNT")
-    private long commentAttachmentCount;
+    @Column(name="ATTACHMENT_COUNT")
+    private long attachmentCount;
 
     @Column(name="COMMENT_COUNT")
     private long commentCount;
@@ -76,24 +76,22 @@ public class UserStat extends BaseEntity {
         this.lastComment = lastComment;
     }
 
-    public long getCommentThumbnailCount() {
-        return commentThumbnailCount;
+    public long getThumbnailCount() {
+        return thumbnailCount;
     }
-    public void setCommentThumbnailCount(long thumbnailCount) {
-        this.commentThumbnailCount = thumbnailCount;
+    public void setThumbnailCount(long thumbnailCount) {
+        this.thumbnailCount = thumbnailCount;
     }
-    public void addCommentThumbnailCount(long value) {
-        this.commentThumbnailCount += value;
+    public void addThumbnailCount(long value) {
+        this.thumbnailCount += value;
     }
 
-    public long getCommentAttachmentCount() {
-        return commentAttachmentCount;
+    public long getAttachmentCount() {
+        return attachmentCount;
     }
-    public void setCommentAttachmentCount(long commentAttachmentCount) {
-        this.commentAttachmentCount = commentAttachmentCount;
-    }
-    public void addCommentAttachmentCount(long value) {
-        this.commentAttachmentCount += value;
+    public void setAttachmentCount(long attachmentCount) { this.attachmentCount = attachmentCount; }
+    public void addAttachmentCount(long value) {
+        this.attachmentCount += value;
     }
 
     public long getCommentCount() {
