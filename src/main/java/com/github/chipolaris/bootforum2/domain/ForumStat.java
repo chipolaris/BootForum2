@@ -24,8 +24,12 @@ public class ForumStat extends BaseEntity {
     private Long id;
 
     @OneToOne(fetch=FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name="LAST_COMMENT_INFO_ID", foreignKey = @ForeignKey(name="FK_FORUM_STAT_LAST_COMMEN"))
+    @JoinColumn(name="LAST_COMMENT_INFO_ID", foreignKey = @ForeignKey(name="FK_FORUM_STAT_LAST_COMMENT"))
     private CommentInfo lastComment; // info about last comment, used for display
+
+    @OneToOne(fetch=FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinColumn(name="LAST_DISCUSSION_INFO_ID", foreignKey = @ForeignKey(name="FK_FORUM_STAT_LAST_DISCUSSION"))
+    private DiscussionInfo lastDiscussion; // info about last discussion, used for display
 
     @Column(name="COMMENT_COUNT")
     private long commentCount;
@@ -47,6 +51,9 @@ public class ForumStat extends BaseEntity {
     public void setLastComment(CommentInfo lastComment) {
         this.lastComment = lastComment;
     }
+
+    public DiscussionInfo getLastDiscussion() { return lastDiscussion; }
+    public void setLastDiscussion(DiscussionInfo lastDiscussion) { this.lastDiscussion = lastDiscussion; }
 
     public long getCommentCount() {
         return commentCount;

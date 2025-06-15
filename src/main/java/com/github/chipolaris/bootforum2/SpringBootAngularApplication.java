@@ -6,6 +6,9 @@ import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.Person;
 import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.security.JwtAuthenticationFilter;
+import com.github.chipolaris.bootforum2.service.ForumService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -43,6 +46,8 @@ import java.util.List;
 @SpringBootApplication
 @EnableAsync
 public class SpringBootAngularApplication {
+
+    private static final Logger logger = LoggerFactory.getLogger(SpringBootAngularApplication.class);
 
     public static void main(String[] args) {
         SpringApplication.run(SpringBootAngularApplication.class, args);
@@ -175,9 +180,9 @@ public class SpringBootAngularApplication {
         return args -> {
             try (Connection conn = dataSource.getConnection()) {
                 var rs = conn.getMetaData().getTables(null, null, "%", new String[]{"TABLE"});
-                System.out.println("Tables visible to Spring Boot:");
+                logger.info("Tables visible to Spring Boot:");
                 while (rs.next()) {
-                    System.out.println(" - " + rs.getString("TABLE_NAME"));
+                    logger.info(" - " + rs.getString("TABLE_NAME"));
                 }
             }
         };
@@ -186,37 +191,36 @@ public class SpringBootAngularApplication {
     @Bean @Order(3)
     CommandLineRunner validateData(DynamicDAO dynamicDAO) {
         return args -> {
-            System.out.println("Validating data...");
-
+            logger.info("Validating data...");
 
             if(dynamicDAO.exists(QuerySpec.builder(User.class).filter(FilterSpec.eq("username", "admin")).build())) {
-                System.out.println("User 'admin' exists (as expected)");
+                logger.info("User 'admin' exists (as expected)");
             }
             else {
-                System.out.println("User 'admin' does not exist (something wrong)");
+                logger.info("User 'admin' does not exist (something wrong)");
             }
 
             if(dynamicDAO.exists(QuerySpec.builder(User.class).filter(FilterSpec.eq("username", "user1")).build())) {
-                System.out.println("User 'user1' exists (as expected)");
+                logger.info("User 'user1' exists (as expected)");
             }
             else {
-                System.out.println("User 'user1' does not exist (something wrong)");
+                logger.info("User 'user1' does not exist (something wrong)");
             }
 
             if(dynamicDAO.exists(QuerySpec.builder(Person.class).filter(FilterSpec.eq("firstName", "Admin"))
                     .filter(FilterSpec.eq("lastName", "User")).build())) {
-                System.out.println("Person 'Admin User' exists (as expected)");
+                logger.info("Person 'Admin User' exists (as expected)");
             }
             else {
-                System.out.println("Person 'Admin User' does not exist (something wrong)");
+                logger.info("Person 'Admin User' does not exist (something wrong)");
             }
 
             if(dynamicDAO.exists(QuerySpec.builder(Person.class).filter(FilterSpec.eq("firstName", "One"))
                     .filter(FilterSpec.eq("lastName", "User")).build())) {
-                System.out.println("Person 'One User' exists (as expected)");
+                logger.info("Person 'One User' exists (as expected)");
             }
             else {
-                System.out.println("Person 'One User' does not exist (something wrong)");
+                logger.info("Person 'One User' does not exist (something wrong)");
             }
         };
     }

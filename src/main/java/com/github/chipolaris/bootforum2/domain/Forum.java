@@ -31,16 +31,23 @@ public class Forum extends BaseEntity {
 
     @PrePersist
     public void prePersist() {
-        this.setStat(createForumStat());
-        this.setCreateDate(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        this.setCreateDate(now);
+        this.setUpdateDate(now);
     }
 
-    private static ForumStat createForumStat() {
+    public static Forum newForum() {
+        Forum forum = new Forum();
+        forum.setActive(true);
+
         ForumStat forumStat = new ForumStat();
         forumStat.setCommentCount(0);
         forumStat.setDiscussionCount(0);
         forumStat.setLastComment(new CommentInfo());
-        return forumStat;
+        forumStat.setLastDiscussion(new DiscussionInfo());
+        forum.setStat(forumStat);
+
+        return forum;
     }
 
     @PreUpdate

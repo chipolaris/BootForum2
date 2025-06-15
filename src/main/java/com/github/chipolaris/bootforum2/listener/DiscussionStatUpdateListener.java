@@ -96,7 +96,7 @@ public class DiscussionStatUpdateListener { // No longer implements ApplicationL
         discussionStat.addAttachmentCount(comment.getAttachments().size());
         discussionStat.addThumbnailCount(comment.getThumbnails().size());
         Map<String, Integer> commentors = discussionStat.getParticipants();
-        commentors.merge(event.getUsername(), 1, Integer::sum);
+        commentors.merge(comment.getCreateBy(), 1, Integer::sum);
 
         CommentInfo commentInfo = discussionStat.getLastComment();
         if (commentInfo.getCommentDate().isBefore(comment.getCreateDate())) {

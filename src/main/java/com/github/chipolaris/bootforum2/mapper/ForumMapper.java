@@ -25,6 +25,8 @@ public interface ForumMapper {
 
     void mergeIntoEntity(ForumUpdateDTO dto, @MappingTarget Forum entity);
 
+    void mergeIntoEntity(ForumCreateDTO dto, @MappingTarget Forum entity);
+
     /**
      * Maps a Forum entity to a ForumViewDTO.
      * The 'forumDTO' field is mapped from the input Forum entity.

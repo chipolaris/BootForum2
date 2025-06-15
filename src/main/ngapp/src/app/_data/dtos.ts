@@ -12,6 +12,7 @@ export interface ForumDTO {
 export interface ForumStatDTO {
   id?: number;
   lastComment: CommentInfoDTO;
+  lastDiscussion: DiscussionInfoDTO;
   commentCount: number;
   discussionCount: number;
 }
@@ -175,8 +176,8 @@ export interface DiscussionInfoDTO {
   discussionId: number;
   title: string;
   contentAbbr: string;
-  createBy: string;
-  createDate: Date;
+  discussionCreator: string;
+  discussionCreateDate: Date;
 }
 
 export interface DiscussionSummaryDTO {

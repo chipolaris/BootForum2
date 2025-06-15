@@ -16,15 +16,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+/**
+ * Component to listen to User events
+ */
 @Component
-public class UserLoginSuccessListener {
+public class UserEventsListener {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserLoginSuccessListener.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserEventsListener.class);
 
     private final GenericDAO genericDAO;
     private final DynamicDAO dynamicDAO;
 
-    public UserLoginSuccessListener(GenericDAO genericDAO, DynamicDAO dynamicDAO) {
+    public UserEventsListener(GenericDAO genericDAO, DynamicDAO dynamicDAO) {
         this.genericDAO = genericDAO;
         this.dynamicDAO = dynamicDAO;
     }

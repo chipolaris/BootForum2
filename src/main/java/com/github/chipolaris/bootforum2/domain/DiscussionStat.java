@@ -126,5 +126,13 @@ public class DiscussionStat extends BaseEntity {
     public void setParticipants(Map<String, Integer> participants) {
         this.participants = participants;
     }
+    public void addParticipant(String username) {
+        if (this.participants == null) {
+            this.participants = Map.of(username, 1);
+        }
+        else {
+            this.participants.merge(username, 1, Integer::sum);
+        }
+    }
 }
 

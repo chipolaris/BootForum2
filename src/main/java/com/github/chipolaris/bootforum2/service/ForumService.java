@@ -2,8 +2,7 @@ package com.github.chipolaris.bootforum2.service;
 
 import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.dao.DynamicDAO;
-import com.github.chipolaris.bootforum2.domain.Forum;
-import com.github.chipolaris.bootforum2.domain.ForumGroup;
+import com.github.chipolaris.bootforum2.domain.*;
 import com.github.chipolaris.bootforum2.dto.ForumCreateDTO;
 import com.github.chipolaris.bootforum2.dto.ForumDTO;
 import com.github.chipolaris.bootforum2.dto.ForumUpdateDTO;
@@ -56,8 +55,13 @@ public class ForumService {
                         .addMessage(String.format("Forum group with id %d is not found", forumGroupId));
             }
             else {
-                Forum forum = forumMapper.toEntity(forumCreateDTO);
+                // create forum
+                Forum forum = Forum.newForum();
+
+                forumMapper.mergeIntoEntity(forumCreateDTO, forum);
+
                 forum.setForumGroup(forumGroup);
+
                 genericDAO.persist(forum);
 
                 response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumMapper.toForumDTO(forum))

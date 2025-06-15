@@ -155,8 +155,8 @@ public class SystemStatistic {
         if (newDiscussion == null || newDiscussion.getCreateDate() == null) {
             return;
         }
-        if (this.lastDiscussion == null || this.lastDiscussion.createDate() == null ||
-                newDiscussion.getCreateDate().isAfter(this.lastDiscussion.createDate())) {
+        if (this.lastDiscussion == null || this.lastDiscussion.discussionCreateDate() == null ||
+                newDiscussion.getCreateDate().isAfter(this.lastDiscussion.discussionCreateDate())) {
             String truncatedContent = StringUtils.truncate(newDiscussion.getContent(), 255);
             this.lastDiscussion = new DiscussionInfoDTO(newDiscussion.getId(), newDiscussion.getTitle(),
                     truncatedContent, newDiscussion.getCreateBy(), newDiscussion.getCreateDate()); // Assuming newComment is a complete, new object
@@ -230,12 +230,12 @@ public class SystemStatistic {
         }
 
         if (lastDiscussion != null) {
-            sb.append("\nLast Comment Details:");
+            sb.append("\nLast Discussion Details:");
             sb.append(String.format("\n  ID: %s", lastDiscussion.discussionId() != null ? lastDiscussion.discussionId() : "N/A"));
             sb.append(String.format("\n  Title: %s", lastDiscussion.title() != null ? lastDiscussion.title() : "N/A"));
-            sb.append(String.format("\n  CreateBy: %s", lastDiscussion.createBy() != null ? lastDiscussion.createBy() : "N/A"));
+            sb.append(String.format("\n  CreateBy: %s", lastDiscussion.discussionCreator() != null ? lastDiscussion.discussionCreator() : "N/A"));
             sb.append(String.format("\n  Date: %s",
-                    lastDiscussion.createDate() != null ? lastDiscussion.createDate().format(formatter) : "N/A"));
+                    lastDiscussion.discussionCreateDate() != null ? lastDiscussion.discussionCreateDate().format(formatter) : "N/A"));
             sb.append(String.format("\n  Content Abbr: %s", lastDiscussion.contentAbbr() != null ? lastDiscussion.contentAbbr() : "N/A"));
         } else {
             sb.append("\nLast Discussion Details: N/A");
@@ -252,11 +252,12 @@ public class SystemStatistic {
     @Async
     public void handleCommentCreatedEvent(CommentCreatedEvent event) {
         Comment comment = event.getComment();
-        logger.info("Handling CommentCreatedEvent for Comment: {}", comment.getTitle());
 
         this.incrementCommentCount();
 
         this.updateLastComment(comment);
+
+        logger.info("Handling CommentCreatedEvent for Comment: {}", comment.getTitle());
     }
 
     @EventListener
@@ -266,16 +267,15 @@ public class SystemStatistic {
         /*
          * When a discussion is created:
          *  - increase discussion count
-         *  - increase comment count
-         *  - update last comment info
+         *  - update last discussion info
          */
 
+        Discussion discussion = event.getDiscussion();
         incrementDiscussionCount();
-        incrementCommentCount();
         updateLastDiscussion(event.getDiscussion());
 
-        logger.info("New discussion created. Discussion count: {}, Comment count: {}",
-                discussionCount.get(), commentCount.get());
+        logger.info("Handling DiscussionCreatedEvent created {}. Discussion count: {}",
+                discussion.getTitle(), discussionCount.get());
     }
 
     @EventListener
@@ -306,8 +306,10 @@ public class SystemStatistic {
          *  - update last registered user info
          */
         User user = event.getUser();
-        logger.info("Handling UserCreatedEvent for User: {}", user.getUsername());
+
         this.incrementUserCount();
         this.updateUserRegistration(user.getUsername(), user.getCreateDate());
+
+        logger.info("Handling UserCreatedEvent for User: {}", user.getUsername());
     }
 }

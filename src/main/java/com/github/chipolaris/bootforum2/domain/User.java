@@ -1,6 +1,7 @@
 package com.github.chipolaris.bootforum2.domain;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet; // Import HashSet
 import java.util.List;
 import java.util.Set; // Import Set
@@ -46,7 +47,10 @@ public class User extends BaseEntity {
 
 		user.setPerson(new Person());
 		user.setPreferences(new Preferences());
+		user.setSecurityChallenges(new ArrayList<>());
 		user.setStat(new UserStat());
+		user.getStat().setLastComment(new CommentInfo());
+		user.getStat().setLastDiscussion(new DiscussionInfo());
 
 		return user;
 	}

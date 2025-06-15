@@ -130,7 +130,7 @@
                 <dd class="text-gray-800 dark:text-slate-200">
                   <span class="font-semibold">Discussion:</span> "{{ systemStats.lastDiscussion.title }}"
                   <span class="block text-xs text-gray-500 dark:text-slate-500">
-                    by {{ systemStats.lastDiscussion.createBy }} on {{ systemStats.lastDiscussion.createDate | date:'medium' }}
+                    by {{ systemStats.lastDiscussion.discussionCreator }} on {{ systemStats.lastDiscussion.discussionCreateDate | date:'medium' }}
                   </span>
                 </dd>
               </ng-container>

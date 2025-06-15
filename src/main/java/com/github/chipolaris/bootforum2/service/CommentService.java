@@ -102,7 +102,7 @@ public class CommentService {
 
             logger.info("Successfully created comment '{}' with ID {}", comment.getTitle(), comment.getId());
 
-            eventPublisher.publishEvent(new CommentCreatedEvent(this, comment, username));
+            eventPublisher.publishEvent(new CommentCreatedEvent(this, comment));
 
             CommentDTO commentDTO = commentMapper.toCommentDTO(comment);
             response.setDataObject(commentDTO);

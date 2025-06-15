@@ -65,9 +65,9 @@ public class ForumStatUpdateListener {
     @Transactional(readOnly = false) // Make the listener's operation transactional
     @Async
     public void handleCommentCreatedEvent(CommentCreatedEvent event) {
-        String username = event.getUsername();
 
         Comment comment = event.getComment();
+        String username = comment.getCreateBy();
 
         Discussion discussion = comment.getDiscussion();
         DiscussionStat discussionStat = discussion.getStat();

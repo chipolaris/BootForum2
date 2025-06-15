@@ -7,19 +7,13 @@ import org.springframework.context.ApplicationEvent;
 
 public class CommentCreatedEvent extends ApplicationEvent {
     private final Comment comment;
-    private final String username;
 
-    public CommentCreatedEvent(Object source, Comment comment, String username) {
+    public CommentCreatedEvent(Object source, Comment comment) {
         super(source);
         this.comment = comment;
-        this.username = username;
     }
 
     public Comment getComment() {
         return comment;
-    }
-
-    public String getUsername() {
-        return username;
     }
 }
