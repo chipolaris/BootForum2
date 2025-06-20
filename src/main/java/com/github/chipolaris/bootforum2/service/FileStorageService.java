@@ -1,16 +1,18 @@
 package com.github.chipolaris.bootforum2.service;
 
+import com.github.chipolaris.bootforum2.dao.GenericDAO;
+import com.github.chipolaris.bootforum2.domain.FileInfo;
+import com.github.chipolaris.bootforum2.dto.FileCreatedDTO;
 import com.github.chipolaris.bootforum2.dto.FileInfoDTO;
+import com.github.chipolaris.bootforum2.dto.FileResourceDTO;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,11 +34,14 @@ public class FileStorageService {
 
     private final Path fileStorageLocation;
     private final FileInfoMapper fileInfoMapper;
+    private final GenericDAO genericDAO;
 
     // Note: in Spring version >= 4.3, @AutoWired is implied for beans with single constructor
-    public FileStorageService(@Value("${file.storage.base-path}") String storagePath, FileInfoMapper fileInfoMapper) {
+    public FileStorageService(@Value("${file.storage.base-path}") String storagePath,
+                              FileInfoMapper fileInfoMapper, GenericDAO genericDAO) {
         this.fileStorageLocation = Paths.get(storagePath).toAbsolutePath().normalize();
         this.fileInfoMapper = fileInfoMapper;
+        this.genericDAO = genericDAO;
     }
 
     @PostConstruct
@@ -50,12 +55,10 @@ public class FileStorageService {
         }
     }
 
-    public ServiceResponse<FileInfoDTO> storeFile(MultipartFile multipartFile) {
-        ServiceResponse<FileInfoDTO> response = new ServiceResponse<>();
+    public ServiceResponse<FileCreatedDTO> storeFile(MultipartFile multipartFile) {
 
         if (multipartFile == null || multipartFile.isEmpty()) {
-            return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("File is empty or not provided.");
+            return ServiceResponse.error("File is empty or not provided.");
         }
 
         String originalFilename = StringUtils.cleanPath(multipartFile.getOriginalFilename());
@@ -83,57 +86,74 @@ public class FileStorageService {
                 Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
             }
 
-            // Create FileInfoDTO
-            FileInfoDTO fileInfo = new FileInfoDTO(null, originalFilename, multipartFile.getContentType(),
-                    datePartitionPath.resolve(uniqueFilename).toString().replace("\\", "/"));
+            // Create FileCreatedDTO
+            FileCreatedDTO fileInfo = new FileCreatedDTO(originalFilename, multipartFile.getContentType(),
+                    multipartFile.getSize(), datePartitionPath.toString() + "/" + uniqueFilename);
 
-            logger.info("Stored file '{}' as '{}' with relative path '{}'", originalFilename, uniqueFilename, fileInfo.path());
+            logger.info("Stored file '{}' as '{}'", originalFilename, uniqueFilename);
 
-            return response.setDataObject(fileInfo)
-                    .addMessage("File stored successfully: " + originalFilename);
+            return ServiceResponse.success("File stored successfully: " + originalFilename, fileInfo);
 
         } catch (IOException ex) {
             logger.error("Could not store file {}. Please try again!", originalFilename, ex);
-            return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("Could not store file " + originalFilename + ". Error: " + ex.getMessage());
+            return ServiceResponse.error("Could not store file " + originalFilename + ". Error: " + ex.getMessage());
         }
     }
 
-    public ServiceResponse<Resource> loadFileAsResource(FileInfoDTO fileInfo) {
-        ServiceResponse<Resource> response = new ServiceResponse<>();
+    /**
+     * Loads a file as a resource along with its metadata, ready for serving.
+     *
+     * @param fileId The ID of the FileInfo entity.
+     * @return ServiceResponse containing FileServingResourceDTO or an error.
+     */
+    public ServiceResponse<FileResourceDTO> getFileResourceById(Long fileId) {
+        // 1. Get FileInfo to retrieve metadata
+        FileInfo fileInfo = genericDAO.find(FileInfo.class, fileId);
 
+        // 2. Resolve path and create resource (similar to existing loadFileAsResource)
         try {
-            Path filePath = this.fileStorageLocation.resolve(fileInfo.path()).normalize();
+            Path filePath = this.fileStorageLocation.resolve(fileInfo.getPath()).normalize();
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() && resource.isReadable()) {
-                logger.debug("Loading resource for file ID {}: {}", fileInfo.id(), filePath);
-                return response.setDataObject(resource)
-                        .addMessage("File resource loaded successfully.");
+                long contentLength = resource.contentLength(); // Get content length
+                FileResourceDTO fileResourceDTO = new FileResourceDTO(resource,
+                        fileInfo.getOriginalFilename(), fileInfo.getMimeType());
+
+                logger.debug("Prepared file for serving (original name {}): {}", fileInfo.getOriginalFilename(), filePath);
+                return ServiceResponse.success("File resource created successfully.", fileResourceDTO);
             } else {
-                logger.warn("File resource not found or not readable at path: {}", filePath);
-                return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                        .addMessage("File not found or is not readable: " + fileInfo.originalFilename());
+                logger.warn("File resource not found or not readable at path: {} for file ID: {}", filePath, fileId);
+                return ServiceResponse.error("File not found or is not readable: " + fileInfo.getOriginalFilename());
             }
         } catch (MalformedURLException ex) {
-            logger.error("Error creating URL resource for file ID {}: {}", fileInfo.id(), fileInfo.path(), ex);
-            return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("Error reading file: " + fileInfo.originalFilename() + ". Invalid path.");
+            logger.error("Error creating URL resource for file (original name {}): {} for file ID: {}",
+                    fileInfo.getOriginalFilename(), fileInfo.getPath(), fileId, ex);
+            return ServiceResponse.error("Error reading file: " + fileInfo.getOriginalFilename() + ". Invalid path.");
+        } catch (IOException ex) { // For resource.fileSize()
+            logger.error("Error getting content length for file (original name {}): {} for file ID: {}",
+                    fileInfo.getOriginalFilename(), fileInfo.getPath(), fileId, ex);
+            return ServiceResponse.error("Error accessing file details: " + fileInfo.getOriginalFilename());
         }
     }
 
     /**
      * Delete a file
      *
-     * @param fileInfo The file to delete.
+     * @param fileId id of the file to delete
      * @return ServiceResponse indicating the outcome.
      */
 
-    public ServiceResponse<Void> deleteFile(FileInfoDTO fileInfo) {
-        ServiceResponse<Void> response = new ServiceResponse<>();
+    public ServiceResponse<Void> deleteFile(Long fileId) {
+
+        FileInfo fileInfo = genericDAO.find(FileInfo.class, fileId);
+
+        if(fileInfo == null) {
+            return ServiceResponse.error("File not found for deletion");
+        }
 
         try {
-            Path filePath = this.fileStorageLocation.resolve(fileInfo.path()).normalize();
+            Path filePath = this.fileStorageLocation.resolve(fileInfo.getPath()).normalize();
             boolean deleted = Files.deleteIfExists(filePath);
 
             if (deleted) {
@@ -143,12 +163,11 @@ public class FileStorageService {
                 // Proceed to delete metadata anyway or handle as an inconsistency
             }
 
-            return response.addMessage("File and its metadata deleted successfully: " + fileInfo.originalFilename());
+            return ServiceResponse.success("File and its metadata deleted successfully: " + fileInfo.getOriginalFilename());
 
         } catch (IOException ex) {
-            logger.error("Could not delete file with ID {}: {}", fileInfo.id(), fileInfo.path(), ex);
-            return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("Could not delete file " + fileInfo.originalFilename() + ". Error: " + ex.getMessage());
+            logger.error("Could not delete file with ID {}", fileInfo.getId(), ex);
+            return ServiceResponse.error("Could not delete file " + fileInfo.getOriginalFilename() + ". Error: " + ex.getMessage());
         }
     }
 }

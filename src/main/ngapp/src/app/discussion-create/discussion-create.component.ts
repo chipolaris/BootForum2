@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, ActivatedRoute } from '@angular/router';
 
 // Import Toast UI Editor specific modules
-import Editor from '@toast-ui/editor';
+import { Editor } from '@toast-ui/editor';
 import { DiscussionService } from '../_services/discussion.service';
 import { ForumService } from '../_services/forum.service';
 import { DiscussionDTO } from '../_data/dtos'; // Assuming ForumDTO is not directly used here or part of DiscussionDTO

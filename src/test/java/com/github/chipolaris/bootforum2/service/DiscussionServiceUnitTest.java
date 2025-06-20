@@ -4,10 +4,7 @@ import com.github.chipolaris.bootforum2.dao.DynamicDAO;
 import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.*;
-import com.github.chipolaris.bootforum2.dto.DiscussionCreateDTO;
-import com.github.chipolaris.bootforum2.dto.DiscussionDTO;
-import com.github.chipolaris.bootforum2.dto.FileInfoDTO;
-import com.github.chipolaris.bootforum2.dto.PageResponseDTO;
+import com.github.chipolaris.bootforum2.dto.*;
 import com.github.chipolaris.bootforum2.event.DiscussionCreatedEvent;
 import com.github.chipolaris.bootforum2.mapper.DiscussionMapper;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
@@ -182,7 +179,7 @@ class DiscussionServiceUnitTest {
         when(genericDAO.find(eq(Forum.class), eq(1L))).thenReturn(testForum);
 
         // Simulate file storage failure
-        ServiceResponse<FileInfoDTO> failedFileResponse = new ServiceResponse<>();
+        ServiceResponse<FileCreatedDTO> failedFileResponse = new ServiceResponse<>();
         failedFileResponse.setAckCode(ServiceResponse.AckCodeType.FAILURE).addMessage("Disk full");
         when(fileStorageService.storeFile(any(MultipartFile.class))).thenReturn(failedFileResponse);
         // fileInfoMapper.toEntity should not be called if storeFile fails and returns null dataObject

@@ -135,7 +135,7 @@ public class DiscussionService {
         if (files != null) {
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
-                    ServiceResponse<FileInfoDTO> fileResponse = fileStorageService.storeFile(file);
+                    ServiceResponse<FileCreatedDTO> fileResponse = fileStorageService.storeFile(file);
                     if (fileResponse.getAckCode() == ServiceResponse.AckCodeType.SUCCESS && fileResponse.getDataObject() != null) {
                         FileInfo fileInfo = fileInfoMapper.toEntity(fileResponse.getDataObject());
 

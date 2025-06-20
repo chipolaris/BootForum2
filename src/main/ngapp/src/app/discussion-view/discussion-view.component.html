@@ -31,6 +31,7 @@
         </header>
         <!-- Use ngx-markdown -->
         <markdown [data]="discussionDetails.content" class="toastui-viewer-styling"></markdown>
+        <app-file-list [files]="discussionDetails.attachments ?? []"></app-file-list>
         <footer class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
           <div>
             <!-- Reply to Discussion -->
@@ -75,6 +76,7 @@
             </p>
           </header>
           <markdown [data]="comment.content" class="toastui-viewer-styling text-gray-700 dark:text-slate-300 text-sm"></markdown>
+          <app-file-list [files]="comment.attachments ?? []"></app-file-list>
           <footer class="mt-3 pt-3 border-t border-gray-200 dark:border-slate-600 flex justify-between items-center">
             <div>
               <!-- Reply to Comment -->

@@ -14,8 +14,6 @@ public record FileInfoDTO(
         @Size(max = 100)
         String mimeType,
 
-        @NotBlank
-        @Size(max = 2000)
-        String path
+        Long fileSize
 ) {
 }

@@ -1,5 +1,7 @@
 package com.github.chipolaris.bootforum2.service;
 
+import com.github.chipolaris.bootforum2.dto.FileResourceDTO;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,9 +53,48 @@ public class ServiceResponse<T> {
 		return this;
 	}
 
+	/*
+	 * Utility methods
+	 */
+	public boolean isSuccess() {
+		return this.ackCode == AckCodeType.SUCCESS;
+	}
+
+	public boolean isWarning() {
+		return this.ackCode == AckCodeType.WARNING;
+	}
+
+	public boolean isFailure() {
+		return this.ackCode == AckCodeType.FAILURE;
+	}
+
 	public enum AckCodeType {
 		SUCCESS,
 		WARNING,
 		FAILURE
+	}
+
+	/*
+	 * Convenient static methods
+	 */
+	public static <T> ServiceResponse<T> success(String message, T dataObject) {
+		ServiceResponse response = new ServiceResponse<>(); // SUCCESS
+		response.addMessage(message).setDataObject(dataObject);
+
+		return response;
+	}
+
+	public static <T> ServiceResponse<T> success(String message) {
+		ServiceResponse response = new ServiceResponse<>(); // SUCCESS
+		response.addMessage(message);
+
+		return response;
+	}
+
+	public static <T> ServiceResponse<T> error(String message) {
+		ServiceResponse response = new ServiceResponse<>();
+		response.setAckCode(AckCodeType.FAILURE).addMessage(message);
+
+		return response;
 	}
 }

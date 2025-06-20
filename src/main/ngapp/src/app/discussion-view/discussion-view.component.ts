@@ -13,7 +13,8 @@ import { catchError } from 'rxjs/operators';
 
 import { DiscussionService } from '../_services/discussion.service';
 import { CommentService } from '../_services/comment.service';
-import { DiscussionDTO, CommentDTO, Page, ApiResponse } from '../_data/dtos';
+import { DiscussionDTO, CommentDTO, FileInfoDTO, Page, ApiResponse } from '../_data/dtos';
+import { FileListComponent } from '../file-list/file-list.component'
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { APP_ICONS } from '../shared/hero-icons';
@@ -29,7 +30,8 @@ import { MarkdownModule } from 'ngx-markdown';
     FormsModule,
     NgIcon,
     DatePipe,
-    MarkdownModule
+    MarkdownModule,
+    FileListComponent
   ],
   providers: [
     provideIcons(APP_ICONS)

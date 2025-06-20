@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subscription, of } from 'rxjs';
 import { finalize, switchMap, catchError, tap } from 'rxjs/operators';
 
-import Editor from '@toast-ui/editor';
+import { Editor } from '@toast-ui/editor';
 
 import { CommentService } from '../_services/comment.service';
 import { DiscussionService } from '../_services/discussion.service'; // To fetch discussion content for quoting

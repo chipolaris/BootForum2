@@ -95,12 +95,6 @@ export interface Page<T> {
   empty: boolean;        // True if the content array is empty
 }
 
-export interface ForumViewDTO {
-  forumDTO: ForumDTO;
-  // discussionDTOs: DiscussionDTO[]; // Old way
-  discussionsPage: Page<DiscussionDTO>; // New: Paginated discussions
-}
-
 // Model for TagDTO, corresponding to Java's TagDTO
 export interface TagDTO {
   id?: number;
@@ -115,7 +109,7 @@ export interface FileInfoDTO {
   id?: number; // Corresponds to Long id, optional as it might not be present before creation
   originalFilename: string;
   mimeType: string;
-  path: string;
+  fileSize: number;
 }
 
 // You would also need CommentVoteDTO, for example:

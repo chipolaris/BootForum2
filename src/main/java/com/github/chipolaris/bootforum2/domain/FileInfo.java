@@ -31,6 +31,9 @@ public class FileInfo extends BaseEntity {
     @Column(name="PATH", length=2000)
     private String path;
 
+    @Column(name="FILE_SIZE")
+    private Long fileSize;
+
     @Override
     public Long getId() {
         return id;
@@ -59,4 +62,7 @@ public class FileInfo extends BaseEntity {
     public void setPath(String path) {
         this.path = path;
     }
+
+    public Long getFileSize() { return fileSize; }
+    public void setFileSize(Long fileSize) { this.fileSize = fileSize; }
 }

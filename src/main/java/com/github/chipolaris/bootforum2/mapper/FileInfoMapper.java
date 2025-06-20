@@ -1,6 +1,7 @@
 package com.github.chipolaris.bootforum2.mapper;
 
 import com.github.chipolaris.bootforum2.domain.FileInfo;
+import com.github.chipolaris.bootforum2.dto.FileCreatedDTO;
 import com.github.chipolaris.bootforum2.dto.FileInfoDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
@@ -14,6 +15,8 @@ public interface FileInfoMapper {
     FileInfoDTO toDTO(FileInfo fileInfo);
 
     FileInfo toEntity(FileInfoDTO fileInfoDTO);
+
+    FileInfo toEntity(FileCreatedDTO fileCreatedDTO);
 
     /**
      * Updates an existing FileInfo entity from a FileInfoDTO.

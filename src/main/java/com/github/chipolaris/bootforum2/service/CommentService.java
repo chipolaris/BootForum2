@@ -4,10 +4,7 @@ import com.github.chipolaris.bootforum2.dao.*;
 import com.github.chipolaris.bootforum2.domain.Comment;
 import com.github.chipolaris.bootforum2.domain.Discussion;
 import com.github.chipolaris.bootforum2.domain.FileInfo;
-import com.github.chipolaris.bootforum2.dto.CommentCreateDTO;
-import com.github.chipolaris.bootforum2.dto.CommentDTO;
-import com.github.chipolaris.bootforum2.dto.FileInfoDTO;
-import com.github.chipolaris.bootforum2.dto.PageResponseDTO;
+import com.github.chipolaris.bootforum2.dto.*;
 import com.github.chipolaris.bootforum2.event.CommentCreatedEvent;
 import com.github.chipolaris.bootforum2.mapper.CommentMapper;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
@@ -121,8 +118,8 @@ public class CommentService {
         if (files != null) {
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
-                    ServiceResponse<FileInfoDTO> fileResponse = fileStorageService.storeFile(file);
-                    if (fileResponse.getAckCode() == ServiceResponse.AckCodeType.SUCCESS && fileResponse.getDataObject() != null) {
+                    ServiceResponse<FileCreatedDTO> fileResponse = fileStorageService.storeFile(file);
+                    if (fileResponse.isSuccess() && fileResponse.getDataObject() != null) {
                         FileInfo fileInfo = fileInfoMapper.toEntity(fileResponse.getDataObject());
 
                         genericDAO.persist(fileInfo);
