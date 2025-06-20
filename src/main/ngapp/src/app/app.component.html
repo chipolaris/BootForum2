@@ -11,6 +11,9 @@
         <nav aria-label="Global" class="hidden md:block">
           <ul class="flex items-center gap-6 text-sm">
             <li>
+              <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/forums/tree-table"> Forums </a>
+            </li>
+            <li *ngIf="(isLoggedIn$ | async)">
               <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/dashboard"> Dashboard </a>
             </li>
             <li *ngIf="(isLoggedIn$ | async) && (isAdmin$ | async)">

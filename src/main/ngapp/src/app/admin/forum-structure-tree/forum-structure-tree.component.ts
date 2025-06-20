@@ -102,8 +102,8 @@ export class ForumStructureTreeComponent implements OnInit {
       leaf: false,
       expanded: isRoot,
       children: [],
-      expandedIcon: 'pi pi-folder-open', // Keep PrimeNG icons for groups if no custom icon
-      collapsedIcon: 'pi pi-folder',
+      //expandedIcon: 'pi pi-folder-open', // Keep PrimeNG icons for groups if no custom icon
+      //collapsedIcon: 'pi pi-folder',
     };
 
     if (group.forums && group.forums.length > 0) {
@@ -127,7 +127,7 @@ export class ForumStructureTreeComponent implements OnInit {
       data: forum,
       type: 'forum',
       leaf: true,
-      icon: 'pi pi-comments', // Keep PrimeNG icon for forums if no custom icon
+      //icon: 'pi pi-comments', // Keep PrimeNG icon for forums if no custom icon
     };
   }
 

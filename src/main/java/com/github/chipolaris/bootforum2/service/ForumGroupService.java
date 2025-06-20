@@ -1,8 +1,8 @@
 package com.github.chipolaris.bootforum2.service;
 
-import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.dao.DynamicDAO;
 import com.github.chipolaris.bootforum2.dao.FilterSpec;
+import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.ForumGroup;
 import com.github.chipolaris.bootforum2.dto.ForumGroupCreateDTO;
@@ -13,7 +13,6 @@ import com.github.chipolaris.bootforum2.event.ForumGroupCreatedEvent;
 import com.github.chipolaris.bootforum2.mapper.ForumGroupMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,121 +39,122 @@ public class ForumGroupService {
     @Transactional(readOnly=false)
     public ServiceResponse<ForumGroupDTO> createForumGroup(ForumGroupCreateDTO forumCreateDTO) {
 
-        ServiceResponse<ForumGroupDTO> response = new ServiceResponse<>();
         Long parentId = forumCreateDTO.parentGroupId();
 
         // make sure parent forum group is specified
         if(parentId == null) {
-            response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("Parent forum group is not specified");
+            return ServiceResponse.failure("Parent forum group is not specified");
         }
         else {
             // make sure the specified parent forum group exists
             ForumGroup parentForumGroup = genericDAO.find(ForumGroup.class, parentId);
 
             if(parentForumGroup == null) {
-                response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                        .addMessage(String.format("Parent forum group with id %d is not found", parentId));
+                return ServiceResponse.failure("Parent forum group with id %d is not found".formatted(parentId));
             }
             else {
-                ForumGroup forumGroup = forumGroupMapper.toEntity(forumCreateDTO);
-                forumGroup.setParent(parentForumGroup);
-                genericDAO.persist(forumGroup);
+                ForumGroup forumGroup = null;
+                try {
+                    forumGroup = forumGroupMapper.toEntity(forumCreateDTO);
+                    forumGroup.setParent(parentForumGroup);
+                    genericDAO.persist(forumGroup);
 
-                response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumGroupMapper.toForumGroupDTO(forumGroup))
-                        .addMessage("Forum group created successfully");
+                    eventPublisher.publishEvent(new ForumGroupCreatedEvent(this, forumGroup));
 
-                eventPublisher.publishEvent(new ForumGroupCreatedEvent(this, forumGroup));
-
-                logger.info("Forum group {} created successfully", forumGroup.getTitle());
+                    logger.info("Forum group {} created successfully", forumGroup.getTitle());
+                    return ServiceResponse.success("Forum group with title '%s' created successfully".formatted(forumGroup.getTitle()),
+                            forumGroupMapper.toForumGroupDTO(forumGroup));
+                } catch (Exception e) {
+                    logger.error("Exception creating forum group: %s".formatted(e.getMessage()));
+                    return ServiceResponse.failure("Exception creating forum group: %s".formatted(e.getMessage()));
+                }
             }
         }
-
-        return response;
     }
 
     @Transactional(readOnly = false)
     public ServiceResponse<ForumGroupDTO> updateForumGroup(ForumGroupUpdateDTO forumGroupUpdateDTO) {
 
-        ServiceResponse<ForumGroupDTO> response = new ServiceResponse<>();
-
         ForumGroup forumGroup = genericDAO.find(ForumGroup.class, forumGroupUpdateDTO.id());
 
         if(forumGroup == null) {
-            response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage(String.format("Forum group with id %d is not found", forumGroupUpdateDTO.id()));
+            logger.warn("Forum group with id {} is not found", forumGroupUpdateDTO.id());
+
+            return ServiceResponse.failure("Forum group with id %d is not found".formatted(forumGroupUpdateDTO.id()));
         }
         else {
-            forumGroupMapper.mergeDTOToEntity(forumGroupUpdateDTO, forumGroup);
+            try {
+                forumGroupMapper.mergeDTOToEntity(forumGroupUpdateDTO, forumGroup);
 
-            forumGroup = genericDAO.merge(forumGroup);
+                forumGroup = genericDAO.merge(forumGroup);
 
-            response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumGroupMapper.toForumGroupDTO(forumGroup))
-                    .addMessage("Forum group updated successfully");
+                logger.info("Forum group {} updated successfully", forumGroup.getTitle());
 
-            logger.info("Forum group {} updated successfully", forumGroup.getTitle());
+                return ServiceResponse.success("Forum group with id %d updated successfully".formatted(forumGroup.getId()),
+                        forumGroupMapper.toForumGroupDTO(forumGroup));
+            } catch (Exception e) {
+                logger.error("Exception updating forum group with id %d: %s".formatted(e.getMessage()));
+                return ServiceResponse.failure("Exception updating forum group with id %d: %s".formatted(e.getMessage()));
+            }
         }
-        return response;
     }
 
     @Transactional(readOnly = true)
     public ServiceResponse<ForumGroupDTO> getForumGroup(Long id) {
 
-        ServiceResponse<ForumGroupDTO> response = new ServiceResponse<>();
-
         ForumGroup forumGroup = genericDAO.find(ForumGroup.class, id);
 
         if(forumGroup == null) {
-            response.setAckCode(ServiceResponse.AckCodeType.FAILURE).
-                    addMessage(String.format("Forum group with id %d is not found", id));
+            return ServiceResponse.failure("Forum group with id %d is not found".formatted(id));
         }
         else {
-            response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumGroupMapper.toForumGroupDTO(forumGroup)).
-                    addMessage("Forum group fetched successfully");
-        }
 
-        return response;
+            try {
+                return ServiceResponse.success("Forum group fetched successfully", forumGroupMapper.toForumGroupDTO(forumGroup));
+            } catch (Exception e) {
+                logger.error("Exception fetching forum group with id %d: %s".formatted(id, e.getMessage()));
+                return ServiceResponse.failure("Exception fetching forum group with id %d: %s".formatted(id, e.getMessage()));
+            }
+        }
     }
 
     @Transactional(readOnly = true)
     public ServiceResponse<ForumGroupDTO> getRootForumGroup() {
 
-        ServiceResponse<ForumGroupDTO> response = new ServiceResponse<>();
-
         QuerySpec rooForumGroupQuery = QuerySpec.builder(ForumGroup.class).filter(FilterSpec.isNull("parent")).build();
         ForumGroup rootForumGroup = dynamicDAO.<ForumGroup>findOptional(rooForumGroupQuery).orElse(null);
 
         if(rootForumGroup == null) {
-            response.setAckCode(ServiceResponse.AckCodeType.FAILURE).
-                    addMessage("No root forum group found");
+            return ServiceResponse.failure("No root forum group found");
         }
         else {
-            response.setAckCode(ServiceResponse.AckCodeType.SUCCESS)
-                    .setDataObject(forumGroupMapper.toForumGroupDTO(rootForumGroup))
-                    .addMessage("Successfully retrieved root forum group");
+            try {
+                return ServiceResponse.success("Successfully retrieved root forum group", forumGroupMapper.toForumGroupDTO(rootForumGroup));
+            } catch (Exception e) {
+                logger.error("Exception retrieving root forum group: %s".formatted(e.getMessage()));
+                return ServiceResponse.failure("Exception retrieving root forum group: %s".formatted(e.getMessage()));
+            }
         }
 
-        return response;
     }
 
     @Transactional(readOnly = true)
     public ServiceResponse<ForumTreeTableDTO> getForumTreeTable() {
 
-        ServiceResponse<ForumTreeTableDTO> response = new ServiceResponse<>();
-
         QuerySpec rooForumGroupQuery = QuerySpec.builder(ForumGroup.class).filter(FilterSpec.isNull("parent")).build();
         ForumGroup rootForumGroup = dynamicDAO.<ForumGroup>findOptional(rooForumGroupQuery).orElse(null);
 
         if(rootForumGroup == null) {
-            response.setAckCode(ServiceResponse.AckCodeType.FAILURE).
-                    addMessage("No root forum group found");
+            return ServiceResponse.failure("No root forum group found");
         }
         else {
-            response.setAckCode(ServiceResponse.AckCodeType.SUCCESS)
-                    .setDataObject(forumGroupMapper.toForumTreeTableDTO(rootForumGroup))
-                    .addMessage("Successfully retrieved forum tree table");
+            try {
+                return ServiceResponse.success("Successfully retrieved forum tree table",
+                        forumGroupMapper.toForumTreeTableDTO(rootForumGroup));
+            } catch (Exception e) {
+                logger.error("Exception retrieving forum tree table: %s".formatted(e.getMessage()));
+                return ServiceResponse.failure("Exception retrieving forum tree table: %s".formatted(e.getMessage()));
+            }
         }
-
-        return response;
     }
 }

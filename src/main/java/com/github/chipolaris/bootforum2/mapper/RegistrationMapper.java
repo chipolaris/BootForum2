@@ -1,6 +1,7 @@
 package com.github.chipolaris.bootforum2.mapper;
 
 import com.github.chipolaris.bootforum2.domain.Registration;
+import com.github.chipolaris.bootforum2.dto.RegistrationCreatedDTO;
 import com.github.chipolaris.bootforum2.dto.RegistrationDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -15,4 +16,6 @@ public interface RegistrationMapper {
     @Mapping(target = "createDate", ignore = true) // Handled by @PrePersist
     @Mapping(target = "updateDate", ignore = true) // Handled by @PrePersist
     Registration toEntity(RegistrationDTO dto);
+
+    RegistrationCreatedDTO toRegistrationCreatedDTO(Registration entity);
 }

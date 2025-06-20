@@ -45,7 +45,7 @@ class DiscussionServiceUnitTest {
     private DiscussionMapper discussionMapper;
 
     @Mock
-    private FileStorageService fileStorageService;
+    private FileService fileService;
 
     @Mock
     private FileInfoMapper fileInfoMapper;
@@ -181,7 +181,7 @@ class DiscussionServiceUnitTest {
         // Simulate file storage failure
         ServiceResponse<FileCreatedDTO> failedFileResponse = new ServiceResponse<>();
         failedFileResponse.setAckCode(ServiceResponse.AckCodeType.FAILURE).addMessage("Disk full");
-        when(fileStorageService.storeFile(any(MultipartFile.class))).thenReturn(failedFileResponse);
+        when(fileService.storeFile(any(MultipartFile.class))).thenReturn(failedFileResponse);
         // fileInfoMapper.toEntity should not be called if storeFile fails and returns null dataObject
 
         when(discussionMapper.toDiscussionDTO(any(Discussion.class))).thenReturn(testDiscussionDTO);
@@ -194,7 +194,7 @@ class DiscussionServiceUnitTest {
         assertEquals(ServiceResponse.AckCodeType.SUCCESS, response.getAckCode(), "Discussion creation should succeed even if file storage fails.");
         assertNotNull(response.getDataObject());
 
-        verify(fileStorageService).storeFile(eq(mockImage)); // Verify attempt to store file
+        verify(fileService).storeFile(eq(mockImage)); // Verify attempt to store file
 
         ArgumentCaptor<Discussion> discussionCaptor = ArgumentCaptor.forClass(Discussion.class);
         verify(genericDAO).persist(discussionCaptor.capture());

@@ -35,7 +35,7 @@ public class DiscussionService {
     private final DynamicDAO dynamicDAO;
     private final DiscussionRepository discussionRepository;
     private final DiscussionMapper discussionMapper;
-    private final FileStorageService fileStorageService;
+    private final FileService fileService;
     private final FileInfoMapper fileInfoMapper; // To map FileInfoDTO from FileStorageService to FileInfo entity
     private final AuthenticationFacade authenticationFacade;
     private final ApplicationEventPublisher eventPublisher;
@@ -45,7 +45,7 @@ public class DiscussionService {
                                  DynamicDAO dynamicDAO,
                                  DiscussionRepository discussionRepository,
                                  DiscussionMapper discussionMapper,
-                                 FileStorageService fileStorageService,
+                                 FileService fileService,
                                  FileInfoMapper fileInfoMapper,
                                  AuthenticationFacade authenticationFacade,
                                  ApplicationEventPublisher eventPublisher) {
@@ -53,7 +53,7 @@ public class DiscussionService {
         this.dynamicDAO = dynamicDAO;
         this.discussionRepository = discussionRepository;
         this.discussionMapper = discussionMapper;
-        this.fileStorageService = fileStorageService;
+        this.fileService = fileService;
         this.fileInfoMapper = fileInfoMapper;
         this.authenticationFacade = authenticationFacade;
         this.eventPublisher = eventPublisher;
@@ -135,7 +135,7 @@ public class DiscussionService {
         if (files != null) {
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
-                    ServiceResponse<FileCreatedDTO> fileResponse = fileStorageService.storeFile(file);
+                    ServiceResponse<FileCreatedDTO> fileResponse = fileService.storeFile(file);
                     if (fileResponse.getAckCode() == ServiceResponse.AckCodeType.SUCCESS && fileResponse.getDataObject() != null) {
                         FileInfo fileInfo = fileInfoMapper.toEntity(fileResponse.getDataObject());
 

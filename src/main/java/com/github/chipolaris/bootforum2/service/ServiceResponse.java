@@ -1,7 +1,5 @@
 package com.github.chipolaris.bootforum2.service;
 
-import com.github.chipolaris.bootforum2.dto.FileResourceDTO;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -91,7 +89,21 @@ public class ServiceResponse<T> {
 		return response;
 	}
 
-	public static <T> ServiceResponse<T> error(String message) {
+	public static <T> ServiceResponse<T> warning(String message, T dataObject) {
+		ServiceResponse response = new ServiceResponse<>(); // SUCCESS
+		response.setAckCode(AckCodeType.WARNING).addMessage(message).setDataObject(dataObject);
+
+		return response;
+	}
+
+	public static <T> ServiceResponse<T> warning(String message) {
+		ServiceResponse response = new ServiceResponse<>();
+		response.setAckCode(AckCodeType.WARNING).addMessage(message);
+
+		return response;
+	}
+
+	public static <T> ServiceResponse<T> failure(String message) {
 		ServiceResponse response = new ServiceResponse<>();
 		response.setAckCode(AckCodeType.FAILURE).addMessage(message);
 

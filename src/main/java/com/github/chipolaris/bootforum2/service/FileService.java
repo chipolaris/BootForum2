@@ -3,7 +3,6 @@ package com.github.chipolaris.bootforum2.service;
 import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.domain.FileInfo;
 import com.github.chipolaris.bootforum2.dto.FileCreatedDTO;
-import com.github.chipolaris.bootforum2.dto.FileInfoDTO;
 import com.github.chipolaris.bootforum2.dto.FileResourceDTO;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
 import jakarta.annotation.PostConstruct;
@@ -28,17 +27,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @Service
-public class FileStorageService {
+public class FileService {
 
-    private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
+    private static final Logger logger = LoggerFactory.getLogger(FileService.class);
 
     private final Path fileStorageLocation;
     private final FileInfoMapper fileInfoMapper;
     private final GenericDAO genericDAO;
 
     // Note: in Spring version >= 4.3, @AutoWired is implied for beans with single constructor
-    public FileStorageService(@Value("${file.storage.base-path}") String storagePath,
-                              FileInfoMapper fileInfoMapper, GenericDAO genericDAO) {
+    public FileService(@Value("${file.storage.base-path}") String storagePath,
+                       FileInfoMapper fileInfoMapper, GenericDAO genericDAO) {
         this.fileStorageLocation = Paths.get(storagePath).toAbsolutePath().normalize();
         this.fileInfoMapper = fileInfoMapper;
         this.genericDAO = genericDAO;
@@ -58,7 +57,7 @@ public class FileStorageService {
     public ServiceResponse<FileCreatedDTO> storeFile(MultipartFile multipartFile) {
 
         if (multipartFile == null || multipartFile.isEmpty()) {
-            return ServiceResponse.error("File is empty or not provided.");
+            return ServiceResponse.failure("File is empty or not provided.");
         }
 
         String originalFilename = StringUtils.cleanPath(multipartFile.getOriginalFilename());
@@ -96,7 +95,7 @@ public class FileStorageService {
 
         } catch (IOException ex) {
             logger.error("Could not store file {}. Please try again!", originalFilename, ex);
-            return ServiceResponse.error("Could not store file " + originalFilename + ". Error: " + ex.getMessage());
+            return ServiceResponse.failure("Could not store file " + originalFilename + ". Error: " + ex.getMessage());
         }
     }
 
@@ -124,16 +123,16 @@ public class FileStorageService {
                 return ServiceResponse.success("File resource created successfully.", fileResourceDTO);
             } else {
                 logger.warn("File resource not found or not readable at path: {} for file ID: {}", filePath, fileId);
-                return ServiceResponse.error("File not found or is not readable: " + fileInfo.getOriginalFilename());
+                return ServiceResponse.failure("File not found or is not readable: " + fileInfo.getOriginalFilename());
             }
         } catch (MalformedURLException ex) {
             logger.error("Error creating URL resource for file (original name {}): {} for file ID: {}",
                     fileInfo.getOriginalFilename(), fileInfo.getPath(), fileId, ex);
-            return ServiceResponse.error("Error reading file: " + fileInfo.getOriginalFilename() + ". Invalid path.");
+            return ServiceResponse.failure("Error reading file: " + fileInfo.getOriginalFilename() + ". Invalid path.");
         } catch (IOException ex) { // For resource.fileSize()
             logger.error("Error getting content length for file (original name {}): {} for file ID: {}",
                     fileInfo.getOriginalFilename(), fileInfo.getPath(), fileId, ex);
-            return ServiceResponse.error("Error accessing file details: " + fileInfo.getOriginalFilename());
+            return ServiceResponse.failure("Error accessing file details: " + fileInfo.getOriginalFilename());
         }
     }
 
@@ -149,7 +148,7 @@ public class FileStorageService {
         FileInfo fileInfo = genericDAO.find(FileInfo.class, fileId);
 
         if(fileInfo == null) {
-            return ServiceResponse.error("File not found for deletion");
+            return ServiceResponse.failure("File not found for deletion");
         }
 
         try {
@@ -167,7 +166,7 @@ public class FileStorageService {
 
         } catch (IOException ex) {
             logger.error("Could not delete file with ID {}", fileInfo.getId(), ex);
-            return ServiceResponse.error("Could not delete file " + fileInfo.getOriginalFilename() + ". Error: " + ex.getMessage());
+            return ServiceResponse.failure("Could not delete file " + fileInfo.getOriginalFilename() + ". Error: " + ex.getMessage());
         }
     }
 }

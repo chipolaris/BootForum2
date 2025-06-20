@@ -55,7 +55,7 @@ public class CommentController {
             ServiceResponse<PageResponseDTO<CommentDTO>> serviceResponse =
                     commentService.findPaginatedComments(discussionId, pageable);
 
-            if (serviceResponse.getAckCode() == ServiceResponse.AckCodeType.SUCCESS) {
+            if (serviceResponse.isSuccess()) {
                 return ApiResponse.success(serviceResponse.getDataObject(), "Comments retrieved successfully.");
             } else {
                 return ApiResponse.error(serviceResponse.getMessages(), "Failed to retrieve comments.");
@@ -93,7 +93,7 @@ public class CommentController {
             ServiceResponse<CommentDTO> serviceResponse = commentService.createComment(
                     commentCreateDTO, images, attachments);
 
-            if (serviceResponse.getAckCode() == ServiceResponse.AckCodeType.FAILURE) {
+            if (serviceResponse.isFailure()) {
                 return ApiResponse.error(serviceResponse.getMessages(), "Comment creation failed");
             }
             return ApiResponse.success(serviceResponse.getDataObject(), "Comment created successfully");
@@ -111,7 +111,7 @@ public class CommentController {
             ServiceResponse<CommentDTO> serviceResponse =
                 genericService.findEntityDTO(Comment.class, commentId, commentMapper::toCommentDTO);
 
-            if(serviceResponse.getAckCode() == ServiceResponse.AckCodeType.FAILURE) {
+            if(serviceResponse.isFailure()) {
                 return ApiResponse.error(serviceResponse.getMessages(), "Failed to retrieve comment.");
             }
             return ApiResponse.success(serviceResponse.getDataObject(), "Comment retrieved successfully.");

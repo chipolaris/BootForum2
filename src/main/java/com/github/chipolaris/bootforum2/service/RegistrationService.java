@@ -7,9 +7,12 @@ import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.Person;
 import com.github.chipolaris.bootforum2.domain.Registration;
 import com.github.chipolaris.bootforum2.domain.User;
+import com.github.chipolaris.bootforum2.dto.RegistrationCreatedDTO;
 import com.github.chipolaris.bootforum2.dto.RegistrationDTO;
+import com.github.chipolaris.bootforum2.dto.UserRegisteredDTO;
 import com.github.chipolaris.bootforum2.event.UserCreatedEvent;
 import com.github.chipolaris.bootforum2.mapper.RegistrationMapper;
+import com.github.chipolaris.bootforum2.mapper.UserMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,15 +29,18 @@ public class RegistrationService {
 
     private final GenericDAO genericDAO;
     private final DynamicDAO dynamicDAO;
+    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final RegistrationMapper registrationMapper;
     private final ApplicationEventPublisher eventPublisher;
 
     // Note: in Spring version >= 4.3, @AutoWired is implied for beans with single constructor
-    public RegistrationService(GenericDAO genericDAO, DynamicDAO dynamicDAO, PasswordEncoder passwordEncoder,
-                               RegistrationMapper registrationMapper, ApplicationEventPublisher eventPublisher) {
+    public RegistrationService(GenericDAO genericDAO, DynamicDAO dynamicDAO, UserMapper userMapper,
+                               PasswordEncoder passwordEncoder, RegistrationMapper registrationMapper,
+                               ApplicationEventPublisher eventPublisher) {
         this.genericDAO = genericDAO;
         this.dynamicDAO = dynamicDAO;
+        this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.registrationMapper = registrationMapper;
         this.eventPublisher = eventPublisher;
@@ -43,14 +49,14 @@ public class RegistrationService {
     /**
      * Create a new Registration
      * @param registrationDTO DTO containing registration data.
-     * @return The newly created User object.
+     * @return The RegistrationCreatedDTO contains the newly created Registration's ID and registrationKey.
      * @throws RuntimeException if username or email already exists.
      */
     @Transactional(readOnly=false)
-    public ServiceResponse<Registration> newRegistration(RegistrationDTO registrationDTO) {
+    public ServiceResponse<RegistrationCreatedDTO> newRegistration(RegistrationDTO registrationDTO) {
         logger.info("Attempting to register new user: {}", registrationDTO.username());
 
-        ServiceResponse<Registration> response = new ServiceResponse<>();
+        ServiceResponse<RegistrationCreatedDTO> response = new ServiceResponse<>();
 
         // Check if username exists
         if(dynamicDAO.exists(QuerySpec.builder(User.class).filter(FilterSpec.eq("username", registrationDTO.username())).build())
@@ -69,7 +75,7 @@ public class RegistrationService {
             response.addMessage("Error: Email is already in use!");
         }
 
-        if(response.getAckCode() != ServiceResponse.AckCodeType.FAILURE) {
+        if(!response.isFailure()) {
             // Use mapper to convert RegistrationDTO to Registration object
             Registration registration = registrationMapper.toEntity(registrationDTO);
 
@@ -78,27 +84,26 @@ public class RegistrationService {
             registration.setRegistrationKey(UUID.randomUUID().toString());
 
             genericDAO.persist(registration);
-            response.setDataObject(registration);
+            response.setDataObject(registrationMapper.toRegistrationCreatedDTO(registration));
         }
 
         return response;
     }
 
     /**
-     * Confirm email for a registration. If exists, create a new User. Afterward, delete the Registration.
+     * Confirm a registration. If exists, create a new User. Afterward, delete the Registration.
      * @param registrationKey
      * @return
      */
     @Transactional(readOnly=false)
-    public ServiceResponse<User> confirmRegistrationEmail(String registrationKey) {
-        ServiceResponse<User> response = new ServiceResponse<>();
+    public ServiceResponse<UserRegisteredDTO> confirmRegistration(String registrationKey) {
 
         Registration registration = dynamicDAO.<Registration>findOptional(QuerySpec.builder(Registration.class)
                 .filter(FilterSpec.eq("registrationKey", registrationKey)).build()).orElse(null);
 
         if(registration == null) {
-            response.setAckCode(ServiceResponse.AckCodeType.FAILURE);
-            response.addMessage("Error: Invalid registration key");
+            logger.warn("Invalid registration key: {}", registrationKey);
+            return ServiceResponse.failure("Invalid registration key: '%s'".formatted(registrationKey));
         }
         else {
             // Initialize user
@@ -106,14 +111,13 @@ public class RegistrationService {
 
             genericDAO.persist(user); // persist User object
             genericDAO.remove(registration); // cleanup the Registration object
-            logger.info("Successfully registered user: {}", user.getUsername());
 
-            response.setDataObject(user);
-
+            // Publish event
             eventPublisher.publishEvent(new UserCreatedEvent(this, user));
-        }
 
-        return response;
+            logger.info("Successfully registered user: {}", user.getUsername());
+            return ServiceResponse.success("User registered successfully", userMapper.toUserRegisteredDTO(user));
+        }
     }
 
     /**

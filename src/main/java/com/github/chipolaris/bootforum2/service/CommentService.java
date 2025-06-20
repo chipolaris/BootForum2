@@ -30,7 +30,7 @@ public class CommentService {
     private final DynamicDAO dynamicDAO;
     private final GenericDAO genericDAO;
     private final CommentMapper commentMapper;
-    private final FileStorageService fileStorageService;
+    private final FileService fileService;
     private final FileInfoMapper fileInfoMapper; // To map FileInfoDTO from FileStorageService to FileInfo entity
     private final AuthenticationFacade authenticationFacade;
     private final ApplicationEventPublisher eventPublisher;
@@ -38,14 +38,14 @@ public class CommentService {
     // Note: in Spring version >= 4.3, @AutoWired is implied for beans with single constructor
     public CommentService(GenericDAO genericDAO, DynamicDAO dynamicDAO,
                           CommentMapper commentMapper,
-                          FileStorageService fileStorageService,
+                          FileService fileService,
                           FileInfoMapper fileInfoMapper,
                           AuthenticationFacade authenticationFacade,
                           ApplicationEventPublisher eventPublisher) {
         this.genericDAO = genericDAO;
         this.dynamicDAO = dynamicDAO;
         this.commentMapper = commentMapper;
-        this.fileStorageService = fileStorageService;
+        this.fileService = fileService;
         this.fileInfoMapper = fileInfoMapper;
         this.authenticationFacade = authenticationFacade;
         this.eventPublisher = eventPublisher;
@@ -118,7 +118,7 @@ public class CommentService {
         if (files != null) {
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
-                    ServiceResponse<FileCreatedDTO> fileResponse = fileStorageService.storeFile(file);
+                    ServiceResponse<FileCreatedDTO> fileResponse = fileService.storeFile(file);
                     if (fileResponse.isSuccess() && fileResponse.getDataObject() != null) {
                         FileInfo fileInfo = fileInfoMapper.toEntity(fileResponse.getDataObject());
 

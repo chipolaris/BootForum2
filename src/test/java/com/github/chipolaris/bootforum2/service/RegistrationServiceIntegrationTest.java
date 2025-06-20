@@ -3,7 +3,9 @@ package com.github.chipolaris.bootforum2.service;
 import com.github.chipolaris.bootforum2.domain.Person;
 import com.github.chipolaris.bootforum2.domain.Registration;
 import com.github.chipolaris.bootforum2.domain.User;
+import com.github.chipolaris.bootforum2.dto.RegistrationCreatedDTO;
 import com.github.chipolaris.bootforum2.dto.RegistrationDTO;
+import com.github.chipolaris.bootforum2.dto.UserRegisteredDTO;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,12 +51,12 @@ class RegistrationServiceIntegrationTest {
         RegistrationDTO dto = new RegistrationDTO("newUser", "password123", "New", "User", "newuser@example.com");
 
         // Act
-        ServiceResponse<Registration> response = registrationService.newRegistration(dto);
+        ServiceResponse<RegistrationCreatedDTO> response = registrationService.newRegistration(dto);
 
         // Assert
         assertEquals(ServiceResponse.AckCodeType.SUCCESS, response.getAckCode());
         assertNotNull(response.getDataObject());
-        Long registrationId = response.getDataObject().getId();
+        Long registrationId = response.getDataObject().id();
         assertNotNull(registrationId);
 
         // Verify in DB
@@ -84,7 +86,7 @@ class RegistrationServiceIntegrationTest {
         RegistrationDTO dto = new RegistrationDTO("newUser", "password123", "Test", "User", "newemail@example.com");
 
         // Act
-        ServiceResponse<Registration> response = registrationService.newRegistration(dto);
+        ServiceResponse<RegistrationCreatedDTO> response = registrationService.newRegistration(dto);
 
         // Assert
         assertEquals(ServiceResponse.AckCodeType.FAILURE, response.getAckCode());
@@ -105,10 +107,10 @@ class RegistrationServiceIntegrationTest {
         RegistrationDTO dto = new RegistrationDTO("pendingUser", "password123", "Test", "User", "newemail@example.com");
 
         // Act
-        ServiceResponse<Registration> response = registrationService.newRegistration(dto);
+        ServiceResponse<RegistrationCreatedDTO> response = registrationService.newRegistration(dto);
 
         // Assert
-        assertEquals(ServiceResponse.AckCodeType.FAILURE, response.getAckCode());
+        assertTrue(response.isFailure());
         assertTrue(response.getMessages().contains("Error: Username is already taken!"));
     }
 
@@ -128,10 +130,10 @@ class RegistrationServiceIntegrationTest {
         RegistrationDTO dto = new RegistrationDTO("newUser", "password123", "Test", "User", "existingemail@example.com");
 
         // Act
-        ServiceResponse<Registration> response = registrationService.newRegistration(dto);
+        ServiceResponse<RegistrationCreatedDTO> response = registrationService.newRegistration(dto);
 
         // Assert
-        assertEquals(ServiceResponse.AckCodeType.FAILURE, response.getAckCode());
+        assertTrue(response.isFailure());
         assertTrue(response.getMessages().contains("Error: Email is already in use!"));
     }
 
@@ -149,10 +151,10 @@ class RegistrationServiceIntegrationTest {
         RegistrationDTO dto = new RegistrationDTO("newUser", "password123", "Test", "User", "pendingemail@example.com");
 
         // Act
-        ServiceResponse<Registration> response = registrationService.newRegistration(dto);
+        ServiceResponse<RegistrationCreatedDTO> response = registrationService.newRegistration(dto);
 
         // Assert
-        assertEquals(ServiceResponse.AckCodeType.FAILURE, response.getAckCode());
+        assertTrue(response.isFailure());
         assertTrue(response.getMessages().contains("Error: Email is already in use!"));
     }
     // endregion
@@ -175,16 +177,16 @@ class RegistrationServiceIntegrationTest {
         Long registrationId = registration.getId();
 
         // Act
-        ServiceResponse<User> response = registrationService.confirmRegistrationEmail(registrationKey);
+        ServiceResponse<UserRegisteredDTO> response = registrationService.confirmRegistration(registrationKey);
 
         // Assert
         assertEquals(ServiceResponse.AckCodeType.SUCCESS, response.getAckCode());
         assertNotNull(response.getDataObject());
-        User createdUser = response.getDataObject();
-        assertNotNull(createdUser.getId());
+        UserRegisteredDTO createdUser = response.getDataObject();
+        assertNotNull(createdUser.id());
 
         // Verify User in DB
-        User persistedUser = entityManager.find(User.class, createdUser.getId());
+        User persistedUser = entityManager.find(User.class, createdUser.id());
         assertNotNull(persistedUser);
         assertEquals("confirmUser", persistedUser.getUsername());
         assertEquals("confirm@example.com", persistedUser.getPerson().getEmail());
@@ -198,16 +200,16 @@ class RegistrationServiceIntegrationTest {
     }
 
     @Test
-    void confirmRegistrationEmail_whenKeyIsInvalid_shouldFail() {
+    void confirmRegistration_whenKeyIsInvalid_shouldFail() {
         // Arrange
         String invalidKey = "this-key-does-not-exist";
 
         // Act
-        ServiceResponse<User> response = registrationService.confirmRegistrationEmail(invalidKey);
+        ServiceResponse<UserRegisteredDTO> response = registrationService.confirmRegistration(invalidKey);
 
         // Assert
-        assertEquals(ServiceResponse.AckCodeType.FAILURE, response.getAckCode());
-        assertTrue(response.getMessages().contains("Error: Invalid registration key"));
+        assertTrue(response.isFailure());
+        assertTrue(response.getMessages().contains("Invalid registration key: 'this-key-does-not-exist'"));
 
         // Verify no user was created
         Long userCount = entityManager.createQuery("SELECT COUNT(u) FROM User u", Long.class).getSingleResult();
@@ -248,17 +250,17 @@ class RegistrationServiceIntegrationTest {
 
 
         // Act
-        ServiceResponse<User> response = registrationService.confirmRegistrationEmail(registrationKey);
+        ServiceResponse<UserRegisteredDTO> response = registrationService.confirmRegistration(registrationKey);
 
         // Assert
         assertEquals(ServiceResponse.AckCodeType.SUCCESS, response.getAckCode());
         assertNotNull(response.getDataObject());
-        User createdUser = response.getDataObject();
-        assertNotNull(createdUser.getId());
-        assertNotEquals(preExistingUser.getId(), createdUser.getId(), "A new user should be created from registration data");
+        UserRegisteredDTO createdUser = response.getDataObject();
+        assertNotNull(createdUser.id());
+        assertNotEquals(preExistingUser.getId(), createdUser.id(), "A new user should be created from registration data");
 
         // Verify User in DB (the one created from registration)
-        User persistedUser = entityManager.find(User.class, createdUser.getId());
+        User persistedUser = entityManager.find(User.class, createdUser.id());
         assertNotNull(persistedUser);
         assertEquals("existingConfirmUser", persistedUser.getUsername());
         assertEquals("existingconfirm@example.com", persistedUser.getPerson().getEmail());

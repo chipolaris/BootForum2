@@ -39,41 +39,39 @@ public class ForumService {
     @Transactional(readOnly=false)
     public ServiceResponse<ForumDTO> createForum(ForumCreateDTO forumCreateDTO) {
 
-        ServiceResponse<ForumDTO> response = new ServiceResponse<>();
         Long forumGroupId = forumCreateDTO.parentGroupId();
 
         // make sure forum group is specified
         if(forumGroupId == null) {
-            response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("Forum group is not specified");
+            return ServiceResponse.failure("Forum group is not specified");
         }
         else {
             // make sure the specified forum group exists
             ForumGroup forumGroup = genericDAO.find(ForumGroup.class, forumGroupId);
             if(forumGroup == null) {
-                response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                        .addMessage(String.format("Forum group with id %d is not found", forumGroupId));
+                return ServiceResponse.failure("Forum group with id %d is not found".formatted(forumGroupId));
             }
             else {
-                // create forum
-                Forum forum = Forum.newForum();
+                try {
+                    // create forum
+                    Forum forum = Forum.newForum();
 
-                forumMapper.mergeIntoEntity(forumCreateDTO, forum);
+                    forumMapper.mergeIntoEntity(forumCreateDTO, forum);
 
-                forum.setForumGroup(forumGroup);
+                    forum.setForumGroup(forumGroup);
 
-                genericDAO.persist(forum);
+                    genericDAO.persist(forum);
 
-                response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumMapper.toForumDTO(forum))
-                        .addMessage("Forum created successfully");
+                    eventPublisher.publishEvent(new ForumCreatedEvent(this, forum));
 
-                eventPublisher.publishEvent(new ForumCreatedEvent(this, forum));
-
-                logger.info("Forum {} created successfully", forum.getTitle());
+                    logger.info("Forum {} created successfully", forum.getTitle());
+                    return ServiceResponse.success("Forum created successfully", forumMapper.toForumDTO(forum));
+                } catch (Exception e) {
+                    logger.error("Exception creating forum: %s".formatted(e.getMessage()));
+                    return ServiceResponse.failure("Exception creating forum: %s".formatted(e.getMessage()));
+                }
             }
         }
-
-        return response;
     }
 
     @Transactional(readOnly = false)
@@ -84,20 +82,17 @@ public class ForumService {
         Forum forum = genericDAO.find(Forum.class, forumUpdateDTO.id());
 
         if(forum == null) {
-            response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage(String.format("Forum with id %d is not found",forumUpdateDTO.id()));
+            return ServiceResponse.failure("Forum with id %d is not found".formatted(forumUpdateDTO.id()));
         }
         else {
             forumMapper.mergeIntoEntity(forumUpdateDTO, forum);
 
             forum = genericDAO.merge(forum);
 
-            response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumMapper.toForumDTO(forum))
-                    .addMessage("Forum updated successfully");
-
             logger.info("Forum {} updated successfully", forum.getTitle());
+
+            return ServiceResponse.success("Forum updated successfully", forumMapper.toForumDTO(forum));
         }
-        return response;
     }
 
     @Transactional(readOnly = true)
@@ -109,7 +104,7 @@ public class ForumService {
 
         if(forum == null) {
             response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage(String.format("Forum with id %d is not found", id));
+                    .addMessage("Forum with id %d is not found".formatted(id));
         }
         else {
             response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).setDataObject(forumMapper.toForumDTO(forum))
@@ -122,33 +117,22 @@ public class ForumService {
     @Transactional(readOnly = true)
     public ServiceResponse<List<ForumDTO>> getAllForums() {
 
-        ServiceResponse<List<ForumDTO>> response = new ServiceResponse<>();
-
         List<Forum> forums = genericDAO.all(Forum.class);
         List<ForumDTO> forumDTOs = forums.stream().map(forumMapper::toForumDTO).toList();
 
-        response.setAckCode(ServiceResponse.AckCodeType.SUCCESS).
-                setDataObject(forumDTOs).addMessage("Forums fetched successfully");
-
-        return response;
+        return ServiceResponse.success("Forums fetched successfully", forumDTOs);
     }
 
     @Transactional(readOnly = true)
     public ServiceResponse<ForumViewDTO> getForumView(long id) {
-        ServiceResponse<ForumViewDTO> response = new ServiceResponse<>();
 
         Forum forum = genericDAO.find(Forum.class, id);
 
         if(forum == null) {
-            response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage(String.format("Forum with id %d is not found", id));
+            return ServiceResponse.failure("Forum with id %d is not found".formatted(id));
         }
         else {
-            response.setAckCode(ServiceResponse.AckCodeType.SUCCESS)
-                    .setDataObject(forumMapper.toForumViewDTO(forum)).
-                    addMessage("Forum fetched successfully");
+            return ServiceResponse.success("Forum fetched successfully", forumMapper.toForumViewDTO(forum));
         }
-
-        return response;
     }
 }

@@ -1,7 +1,7 @@
 package com.github.chipolaris.bootforum2.rest;
 
 import com.github.chipolaris.bootforum2.dto.FileResourceDTO;
-import com.github.chipolaris.bootforum2.service.FileStorageService;
+import com.github.chipolaris.bootforum2.service.FileService;
 import com.github.chipolaris.bootforum2.service.ServiceResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -24,10 +24,10 @@ public class FileController {
 
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);
 
-    private final FileStorageService fileStorageService;
+    private final FileService fileService;
 
-    public FileController(FileStorageService fileStorageService) {
-        this.fileStorageService = fileStorageService;
+    public FileController(FileService fileService) {
+        this.fileService = fileService;
     }
 
     @GetMapping("/{fileId}")
@@ -35,7 +35,7 @@ public class FileController {
         logger.debug("Received request to serve file with ID: {}", fileId);
 
         ServiceResponse<FileResourceDTO> serviceResponse =
-                fileStorageService.getFileResourceById(fileId);
+                fileService.getFileResourceById(fileId);
 
         if (serviceResponse.isFailure() || serviceResponse.getDataObject() == null) {
             logger.warn("Failed to load file for serving with ID {}: {}", fileId, serviceResponse.getMessages());
