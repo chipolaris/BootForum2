@@ -5,7 +5,7 @@ import {
   inject,
   ChangeDetectorRef,
 } from '@angular/core';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, distinctUntilChanged, tap, of } from 'rxjs';
@@ -14,7 +14,8 @@ import { MessageService } from 'primeng/api';
 
 import { DiscussionService } from '../_services/discussion.service';
 import { CommentService } from '../_services/comment.service';
-import { VoteService } from '../_services/vote.service'; // Import VoteService
+import { VoteService } from '../_services/vote.service';
+import { AuthenticationService } from '../_services/authentication.service';
 import { DiscussionDTO, CommentDTO, FileInfoDTO, Page, ApiResponse } from '../_data/dtos';
 import { FileListComponent } from '../file-list/file-list.component'
 
@@ -37,17 +38,18 @@ import { MarkdownModule } from 'ngx-markdown';
   ],
   providers: [
     provideIcons(APP_ICONS)
-    // MessageService is already provided in app.config.ts
   ],
   templateUrl: './discussion-view.component.html',
   styleUrls: ['./discussion-view.component.css']
 })
 export class DiscussionViewComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
+  private router = inject(Router); // Inject Router
   private discussionService = inject(DiscussionService);
   private commentService = inject(CommentService);
-  private voteService = inject(VoteService); // Inject VoteService
-  private messageService = inject(MessageService); // Inject MessageService
+  private voteService = inject(VoteService);
+  private authService = inject(AuthenticationService); // Inject AuthenticationService
+  private messageService = inject(MessageService);
   private cdr = inject(ChangeDetectorRef);
 
   discussionId: number | null = null;
@@ -68,9 +70,7 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
 
   private subscriptions = new Subscription();
 
-  // No changes to ngOnInit, resetDataStates, loadDiscussionData, fetchDiscussionDetails, fetchComments,
-  // handleError, goToCommentsPage, onCommentsPageSizeChange, onCommentsSortChange,
-  // _calculateDisplayablePageNumbers, getObjectKeys, trackByCommentId, or ngOnDestroy
+  // --- No changes to other lifecycle hooks or data fetching methods ---
 
   ngOnInit(): void {
     const routeParamsSub = this.route.paramMap.pipe(
@@ -189,6 +189,13 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
   }
 
   voteForDiscussion(voteValue: 'up' | 'down'): void {
+
+    if (!this.authService.isAuthenticated()) {
+      // Redirect to login page, preserving the current URL to return to after login
+      this.router.navigate(['/app/login'], { queryParams: { returnUrl: this.router.url } });
+      return; // Stop further execution
+    }
+
     if (!this.discussionDetails?.id) {
       return;
     }
@@ -218,6 +225,13 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
   }
 
   voteForComment(comment: CommentDTO, voteValue: 'up' | 'down'): void {
+
+    if (!this.authService.isAuthenticated()) {
+      // Redirect to login page, preserving the current URL to return to after login
+      this.router.navigate(['/app/login'], { queryParams: { returnUrl: this.router.url } });
+      return; // Stop further execution
+    }
+
     if (!comment.id) {
       return;
     }
