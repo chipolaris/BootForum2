@@ -43,9 +43,19 @@
                [state]="{ contentToQuote: discussionDetails.content, authorToQuote: discussionDetails.createBy, quotedItemTitle: discussionDetails.title }"
                class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium cursor-pointer">Quote</a>
           </div>
-          <div>
-            <button type="button" class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-sm font-medium mr-3">Vote Up</button>
-            <button type="button" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium">Vote Down</button>
+          <div class="flex items-center gap-x-3">
+            <button (click)="voteForDiscussion('up')" type="button" class="flex items-center text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-sm font-medium">
+              Vote Up
+              <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-700 dark:text-green-100">
+                {{ discussionDetails.stat?.voteUpCount ?? 0 }}
+              </span>
+            </button>
+            <button (click)="voteForDiscussion('down')" type="button" class="flex items-center text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium">
+              Vote Down
+              <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-700 dark:text-red-100">
+                {{ discussionDetails.stat?.voteDownCount ?? 0 }}
+              </span>
+            </button>
           </div>
         </footer>
       </div>
@@ -88,9 +98,19 @@
                  [state]="{ contentToQuote: comment.content, authorToQuote: comment.createBy, quotedItemTitle: comment.title }"
                  class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium cursor-pointer">Quote</a>
             </div>
-            <div>
-              <button type="button" class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-xs font-medium mr-2">Vote Up</button>
-              <button type="button" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-xs font-medium">Vote Down</button>
+            <div class="flex items-center gap-x-2">
+              <button (click)="voteForComment(comment, 'up')" type="button" class="flex items-center text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-xs font-medium">
+                Vote Up
+                <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-700 dark:text-green-100">
+                  {{ comment.commentVote?.voteUpCount ?? 0 }}
+                </span>
+              </button>
+              <button (click)="voteForComment(comment, 'down')" type="button" class="flex items-center text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-xs font-medium">
+                Vote Down
+                <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-700 dark:text-red-100">
+                  {{ comment.commentVote?.voteDownCount ?? 0 }}
+                </span>
+              </button>
             </div>
           </footer>
         </div>

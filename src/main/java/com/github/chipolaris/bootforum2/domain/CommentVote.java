@@ -54,6 +54,7 @@ public class CommentVote extends BaseEntity {
     public void setVoteUpCount(int voteUpCount) {
         this.voteUpCount = voteUpCount;
     }
+    public void addVoteUpCount() { this.voteUpCount++; }
 
     public int getVoteDownCount() {
         return voteDownCount;
@@ -61,6 +62,7 @@ public class CommentVote extends BaseEntity {
     public void setVoteDownCount(int voteDownCount) {
         this.voteDownCount = voteDownCount;
     }
+    public void addVoteDownCount() { this.voteDownCount++; }
 
     public Set<Vote> getVotes() {
         return votes;

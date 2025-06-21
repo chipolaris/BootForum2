@@ -2,24 +2,9 @@ package com.github.chipolaris.bootforum2.domain;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Set;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.MapKeyColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.TableGenerator;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name="DISCUSSION_STAT_T")
@@ -57,6 +42,19 @@ public class DiscussionStat extends BaseEntity {
     @MapKeyColumn(name = "COMMENTOR")
     @Column(name = "COMMENT_COUNT")
     private Map<String, Integer> participants;
+
+    @Column(name="VOTE_UP_COUNT")
+    private int voteUpCount;
+
+    @Column(name="VOTE_DOWN_COUNT")
+    private int voteDownCount;
+
+    @OneToMany(cascade=CascadeType.ALL, fetch=FetchType.LAZY)
+    @JoinTable(name="DISCUSSION_STAT_VOTE_T",
+            joinColumns={@JoinColumn(name="DISCUSSION_STAT_ID", foreignKey = @ForeignKey(name="FK_DISCUS_STAT_VOT_DISCUS_STAT"))},
+            inverseJoinColumns={@JoinColumn(name="VOTE_ID", foreignKey = @ForeignKey(name="FK_DISCUS_STAT_VOT_VOTE"))},
+            indexes = {@Index(name="IDX_DISCUSSION_STAT_VOTE", columnList = "DISCUSSION_STAT_ID,VOTE_ID")})
+    private Set<Vote> votes;
 
     @Override
     public Long getId() {
@@ -133,6 +131,29 @@ public class DiscussionStat extends BaseEntity {
         else {
             this.participants.merge(username, 1, Integer::sum);
         }
+    }
+
+    public int getVoteUpCount() {
+        return voteUpCount;
+    }
+    public void setVoteUpCount(int voteUpCount) {
+        this.voteUpCount = voteUpCount;
+    }
+    public void addVoteUpCount() { this.voteUpCount++; }
+
+    public int getVoteDownCount() {
+        return voteDownCount;
+    }
+    public void setVoteDownCount(int voteDownCount) {
+        this.voteDownCount = voteDownCount;
+    }
+    public void addVoteDownCount() { this.voteDownCount++; }
+
+    public Set<Vote> getVotes() {
+        return votes;
+    }
+    public void setVotes(Set<Vote> votes) {
+        this.votes = votes;
     }
 }
 

@@ -52,7 +52,7 @@ public class DiscussionController {
             ServiceResponse<DiscussionDTO> serviceResponse = discussionService.createDiscussion(
                     discussionCreateDTO, images, attachments);
 
-            if (serviceResponse.getAckCode() == ServiceResponse.AckCodeType.FAILURE) {
+            if (serviceResponse.isFailure()) {
                 return ApiResponse.error(serviceResponse.getMessages(),"Discussion creation failed");
             }
             return ApiResponse.success(serviceResponse.getDataObject(), "Discussion created successfully");
@@ -88,7 +88,7 @@ public class DiscussionController {
             ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> serviceResponse = discussionService.findPaginatedDiscussionSummaries(
                     forumId, pageable);
 
-            if (serviceResponse.getAckCode() == ServiceResponse.AckCodeType.SUCCESS) {
+            if (serviceResponse.isSuccess()) {
                 return ApiResponse.success(serviceResponse.getDataObject(), "Discussions retrieved successfully.");
             } else {
                 return ApiResponse.error(serviceResponse.getMessages(), "Failed to retrieve discussions.");
@@ -119,7 +119,7 @@ public class DiscussionController {
         try {
             ServiceResponse<DiscussionDTO> serviceResponse = discussionService.findDiscussion(discussionId);
 
-            if (serviceResponse.getAckCode() == ServiceResponse.AckCodeType.SUCCESS) {
+            if (serviceResponse.isSuccess()) {
                 return ApiResponse.success(serviceResponse.getDataObject(), "Discussion retrieved successfully.");
             } else {
                 return ApiResponse.error(serviceResponse.getMessages(), String.format("Failed to retrieve discussion with ID %d.", discussionId));

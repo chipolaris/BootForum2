@@ -151,6 +151,8 @@ export interface DiscussionStatDTO {
   attachmentCount?: number;
   lastComment?: CommentInfoDTO | null;
   participants?: { [key: string]: number } | null; // Equivalent to Map<String, Integer>
+  voteUpCount?: number;
+  voteDownCount?: number;
 }
 
 // Model for DiscussionDTO, corresponding to Java's DiscussionDTO

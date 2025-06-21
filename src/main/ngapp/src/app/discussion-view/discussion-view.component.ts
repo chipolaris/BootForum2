@@ -10,9 +10,11 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, distinctUntilChanged, tap, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { MessageService } from 'primeng/api';
 
 import { DiscussionService } from '../_services/discussion.service';
 import { CommentService } from '../_services/comment.service';
+import { VoteService } from '../_services/vote.service'; // Import VoteService
 import { DiscussionDTO, CommentDTO, FileInfoDTO, Page, ApiResponse } from '../_data/dtos';
 import { FileListComponent } from '../file-list/file-list.component'
 
@@ -35,6 +37,7 @@ import { MarkdownModule } from 'ngx-markdown';
   ],
   providers: [
     provideIcons(APP_ICONS)
+    // MessageService is already provided in app.config.ts
   ],
   templateUrl: './discussion-view.component.html',
   styleUrls: ['./discussion-view.component.css']
@@ -43,6 +46,8 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private discussionService = inject(DiscussionService);
   private commentService = inject(CommentService);
+  private voteService = inject(VoteService); // Inject VoteService
+  private messageService = inject(MessageService); // Inject MessageService
   private cdr = inject(ChangeDetectorRef);
 
   discussionId: number | null = null;
@@ -62,6 +67,10 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
   discussionError: string | null = null;
 
   private subscriptions = new Subscription();
+
+  // No changes to ngOnInit, resetDataStates, loadDiscussionData, fetchDiscussionDetails, fetchComments,
+  // handleError, goToCommentsPage, onCommentsPageSizeChange, onCommentsSortChange,
+  // _calculateDisplayablePageNumbers, getObjectKeys, trackByCommentId, or ngOnDestroy
 
   ngOnInit(): void {
     const routeParamsSub = this.route.paramMap.pipe(
@@ -177,6 +186,65 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       });
     this.subscriptions.add(sub);
+  }
+
+  voteForDiscussion(voteValue: 'up' | 'down'): void {
+    if (!this.discussionDetails?.id) {
+      return;
+    }
+
+    this.voteService.voteOnDiscussion(this.discussionDetails.id, voteValue).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Your vote has been recorded!' });
+          // Optimistically update the UI
+          if (this.discussionDetails?.stat) {
+            if (voteValue === 'up') {
+              this.discussionDetails.stat.voteUpCount = (this.discussionDetails.stat.voteUpCount ?? 0) + 1;
+            } else {
+              this.discussionDetails.stat.voteDownCount = (this.discussionDetails.stat.voteDownCount ?? 0) + 1;
+            }
+          }
+        } else {
+          const errorMessage = response.errors?.join(', ') || response.message || 'Failed to record vote.';
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+        }
+      },
+      error: (err) => {
+        console.error('Error voting on discussion:', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'An unexpected error occurred.' });
+      }
+    });
+  }
+
+  voteForComment(comment: CommentDTO, voteValue: 'up' | 'down'): void {
+    if (!comment.id) {
+      return;
+    }
+
+    this.voteService.voteOnComment(comment.id, voteValue).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Your vote has been recorded!' });
+          // Optimistically update the UI
+          if (!comment.commentVote) {
+            comment.commentVote = { voteUpCount: 0, voteDownCount: 0 };
+          }
+          if (voteValue === 'up') {
+            comment.commentVote.voteUpCount = (comment.commentVote.voteUpCount ?? 0) + 1;
+          } else {
+            comment.commentVote.voteDownCount = (comment.commentVote.voteDownCount ?? 0) + 1;
+          }
+        } else {
+          const errorMessage = response.errors?.join(', ') || response.message || 'Failed to record vote.';
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+        }
+      },
+      error: (err) => {
+        console.error('Error voting on comment:', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'An unexpected error occurred.' });
+      }
+    });
   }
 
   private handleError(message: string, type: 'discussion' | 'comments', errors?: string[] | null): void {

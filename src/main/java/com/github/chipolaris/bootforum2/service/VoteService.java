@@ -4,11 +4,11 @@ import com.github.chipolaris.bootforum2.dao.DynamicDAO;
 import com.github.chipolaris.bootforum2.dao.FilterSpec;
 import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.dao.QuerySpec;
-import com.github.chipolaris.bootforum2.domain.Comment;
-import com.github.chipolaris.bootforum2.domain.CommentVote;
-import com.github.chipolaris.bootforum2.domain.Vote;
+import com.github.chipolaris.bootforum2.domain.*;
 import com.github.chipolaris.bootforum2.event.CommentVotedEvent;
+import com.github.chipolaris.bootforum2.event.DiscussionVotedEvent;
 import com.github.chipolaris.bootforum2.repository.CommentVoteRepository;
+import com.github.chipolaris.bootforum2.repository.DiscussionStatRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,25 +25,27 @@ public class VoteService {
 
     private final GenericDAO genericDAO;
     private final CommentVoteRepository commentVoteRepository;
+    private final DiscussionStatRepository discussionStatRepository;
     private final AuthenticationFacade authenticationFacade;
     private final ApplicationEventPublisher eventPublisher;
 
     public VoteService(GenericDAO genericDAO, CommentVoteRepository commentVoteRepository,
-                       AuthenticationFacade authenticationFacade, ApplicationEventPublisher eventPublisher) {
+                       DiscussionStatRepository discussionStatRepository, AuthenticationFacade authenticationFacade,
+                       ApplicationEventPublisher eventPublisher) {
         this.genericDAO = genericDAO;
         this.commentVoteRepository = commentVoteRepository;
+        this.discussionStatRepository = discussionStatRepository;
         this.authenticationFacade = authenticationFacade;
         this.eventPublisher = eventPublisher;
     }
 
-    @Transactional
+    @Transactional(readOnly = false)
     public ServiceResponse<Void> addVoteToComment(Long commentId, String voteValueInput) {
-        ServiceResponse<Void> response = new ServiceResponse<>();
 
+        // Ensure user is logged in and get their username
         Optional<String> currentUsernameOpt = authenticationFacade.getCurrentUsername();
         if (currentUsernameOpt.isEmpty()) {
-            return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("User must be logged in to vote.");
+            return ServiceResponse.failure("User must be logged in to vote.");
         }
         String currentUsername = currentUsernameOpt.get();
 
@@ -53,24 +55,20 @@ public class VoteService {
         } else if ("down".equalsIgnoreCase(voteValueInput)) {
             voteValue = -1;
         } else {
-            return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("Invalid vote value. Must be 'up' or 'down'.");
+            return ServiceResponse.failure("Invalid vote value. Must be 'up' or 'down'.");
         }
 
         Comment comment = genericDAO.find(Comment.class, commentId);
         if (comment == null) {
-            return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage(String.format("Comment with ID %d not found.", commentId));
+            return ServiceResponse.failure("Comment with ID %d not found.".formatted(commentId));
         }
 
         CommentVote commentVote = comment.getCommentVote();
-        if (commentVote == null) {
+
+        if(commentVote == null) {
             commentVote = new CommentVote();
             comment.setCommentVote(commentVote);
-            // Ensure CommentVote is persisted if it's new.
-            // If CommentVote has its own ID generator and is not purely cascaded for persist,
-            // you might need to persist it separately or ensure cascade settings are correct.
-            // For now, assuming cascade from Comment handles this.
+            genericDAO.merge(comment);
         }
 
         if (commentVote.getVotes() == null) {
@@ -80,8 +78,7 @@ public class VoteService {
         // Check if the user has already voted
         boolean alreadyVoted = commentVoteRepository.hasUserVotedOnCommentVote(commentVote.getId(), currentUsername);
         if (alreadyVoted) {
-            return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("You have already voted on this comment.");
+            return ServiceResponse.failure("You have already voted on this comment.");
         }
 
         // Create and add the new vote
@@ -92,10 +89,10 @@ public class VoteService {
         commentVote.getVotes().add(newVote); // Add to the collection in CommentVote
 
         // Update counts
-        if (voteValue == 1) {
-            commentVote.setVoteUpCount(commentVote.getVoteUpCount() + 1);
+        if (voteValue > 0) {
+            commentVote.addVoteUpCount();
         } else {
-            commentVote.setVoteDownCount(commentVote.getVoteDownCount() + 1);
+            commentVote.addVoteDownCount();
         }
 
         try {
@@ -112,12 +109,85 @@ public class VoteService {
             // Publish event
             eventPublisher.publishEvent(new CommentVotedEvent(this, comment, currentUsername, voteValue));
 
-            return response;
+            return ServiceResponse.success("Vote registered successfully.");
         } catch (Exception e) {
-            logger.error(String.format("Error while registering vote for user '%s' on comment ID %d", currentUsername, commentId), e);
+            logger.error("Error while registering vote for user '%s' on comment ID %d".formatted(currentUsername, commentId), e);
+
             // Rollback will happen due to @Transactional
-            return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("An error occurred while registering your vote.");
+            return ServiceResponse.failure("An error occurred while registering your vote.");
+        }
+    }
+
+    @Transactional(readOnly = false)
+    public ServiceResponse<Void> addVoteToDiscussion(Long discussionId, String voteValueInput) {
+
+        // Ensure user is logged in and get their username
+        Optional<String> currentUsernameOpt = authenticationFacade.getCurrentUsername();
+        if (currentUsernameOpt.isEmpty()) {
+            return ServiceResponse.failure("User must be logged in to vote.");
+        }
+        String currentUsername = currentUsernameOpt.get();
+
+        short voteValue = 0;
+        if ("up".equalsIgnoreCase(voteValueInput)) {
+            voteValue = 1;
+        } else if ("down".equalsIgnoreCase(voteValueInput)) {
+            voteValue = -1;
+        } else {
+            return ServiceResponse.failure("Invalid vote value. Must be 'up' or 'down'.");
+        }
+
+        Discussion discussion = genericDAO.find(Discussion.class, discussionId);
+        if (discussion == null) {
+            return ServiceResponse.failure("Discussion with ID %d not found.".formatted(discussionId));
+        }
+
+        DiscussionStat discussionStat = discussion.getStat();
+
+        if (discussionStat.getVotes() == null) {
+            discussionStat.setVotes(new HashSet<>());
+        }
+
+        // Check if the user has already voted
+        boolean alreadyVoted = discussionStatRepository.hasUserVotedOnDiscussionStat(discussionStat.getId(), currentUsername);
+        if (alreadyVoted) {
+            return ServiceResponse.failure("You have already voted on this discussion.");
+        }
+
+        // Create and add the new vote
+        Vote newVote = new Vote();
+        newVote.setVoterName(currentUsername);
+        newVote.setVoteValue(voteValue);
+
+        discussionStat.getVotes().add(newVote); // Add to the collection in CommentVote
+
+        // Update counts
+        if (voteValue > 0) {
+            discussionStat.addVoteUpCount();
+        } else {
+            discussionStat.addVoteDownCount();
+        }
+
+        try {
+            // Persisting the Vote entity explicitly if it's not cascaded from CommentVote,
+            // or if CommentVote's cascade doesn't cover adding to the 'votes' collection effectively.
+            // If CommentVote.votes has CascadeType.ALL, merging commentVote (or comment) should be enough.
+            genericDAO.persist(newVote); // Persist the new Vote entity
+            genericDAO.merge(discussionStat); // Merge CommentVote to update counts and the collection
+            // If CommentVote is managed by Comment's cascade, merging Comment is the primary way.
+            // genericDAO.merge(comment);
+
+            logger.info("User '{}' voted '{}' on comment ID {}", currentUsername, voteValue, discussionId);
+
+            // Publish event
+            eventPublisher.publishEvent(new DiscussionVotedEvent(this, discussion, currentUsername, voteValue));
+
+            return ServiceResponse.success("Vote registered successfully.");
+        } catch (Exception e) {
+            logger.error("Error while registering vote for user '%s' on discussion ID %d".formatted(currentUsername, discussionId), e);
+
+            // Rollback will happen due to @Transactional
+            return ServiceResponse.failure("An error occurred while registering your vote.");
         }
     }
 }

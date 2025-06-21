@@ -2,6 +2,7 @@ package com.github.chipolaris.bootforum2.service;
 
 import com.github.chipolaris.bootforum2.dao.*;
 import com.github.chipolaris.bootforum2.domain.Comment;
+import com.github.chipolaris.bootforum2.domain.CommentVote;
 import com.github.chipolaris.bootforum2.domain.Discussion;
 import com.github.chipolaris.bootforum2.domain.FileInfo;
 import com.github.chipolaris.bootforum2.dto.*;
@@ -57,7 +58,6 @@ public class CommentService {
             MultipartFile[] images,
             MultipartFile[] attachments) {
 
-        ServiceResponse<CommentDTO> response = new ServiceResponse<>();
         String username = authenticationFacade.getCurrentUsername().orElse("system");
 
         try {
@@ -65,8 +65,7 @@ public class CommentService {
             Discussion discussion = genericDAO.find(Discussion.class, commentCreateDTO.discussionId());
 
             if (discussion == null) {
-                return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                        .addMessage("Discussion not found. Cannot create comment.");
+                return ServiceResponse.failure("Discussion not found. Cannot create comment.");
             }
 
             Comment replyTo = null;
@@ -76,7 +75,8 @@ public class CommentService {
 
                 // check if the replyTo is actually part of the discussion
                 if(replyTo != null && replyTo.getDiscussion().getId() != discussion.getId()) {
-                    return response.setAckCode(ServiceResponse.AckCodeType.FAILURE).addMessage("Discussion/replyToId mismatch.");
+                    logger.warn("Discussion/replyToId mismatch.");
+                    return ServiceResponse.failure("Discussion/replyToId mismatch.");
                 }
             }
 
@@ -87,6 +87,8 @@ public class CommentService {
             comment.setDiscussion(discussion);
             comment.setReplyTo(replyTo);
             comment.setCreateBy(username); // Set creator here
+            comment.setUpdateBy(username); // Set creator here
+            comment.setCommentVote(new CommentVote());
 
             // 3. Process Files
             List<FileInfo> imageInfos = processFiles(images, "image");
@@ -102,15 +104,11 @@ public class CommentService {
             eventPublisher.publishEvent(new CommentCreatedEvent(this, comment));
 
             CommentDTO commentDTO = commentMapper.toCommentDTO(comment);
-            response.setDataObject(commentDTO);
-            response.addMessage("Comment created successfully.");
+            return ServiceResponse.success("Comment created successfully.", commentDTO);
         } catch (Exception e) {
             logger.error("Error creating comment: " + commentCreateDTO.title(), e);
-            response.setAckCode(ServiceResponse.AckCodeType.FAILURE);
-            response.addMessage("An unexpected error occurred while creating the comment: " + e.getMessage());
+            return ServiceResponse.failure("An unexpected error occurred while creating the comment: %s".formatted(e.getMessage()));
         }
-
-        return response;
     }
 
     private List<FileInfo> processFiles(MultipartFile[] files, String fileType) {
@@ -141,12 +139,9 @@ public class CommentService {
     public ServiceResponse<PageResponseDTO<CommentDTO>> findPaginatedComments(
             Long discussionId, Pageable pageable) {
 
-        ServiceResponse<PageResponseDTO<CommentDTO>> response = new ServiceResponse<>();
-
         if (discussionId == null) {
             logger.warn("Attempted to fetch comments with null discussionId.");
-            return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("Discussion ID cannot be null.");
+            return ServiceResponse.failure("Discussion ID cannot be null.");
         }
 
         try {
@@ -185,15 +180,12 @@ public class CommentService {
 
             Page<CommentDTO> pageResult = new PageImpl<>(commentDTOs, pageable, totalElements);
 
-            response.setDataObject(PageResponseDTO.from(pageResult))
-                    .addMessage(String.format("Fetched comments for discussion ID: %d", discussionId));
+            return ServiceResponse.success("Fetched comments for discussion ID: %d".formatted(discussionId),
+                    PageResponseDTO.from(pageResult));
 
         } catch (Exception e) {
             logger.error(String.format("Error fetching comments for discussion ID %d: ", discussionId), e);
-            response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("An unexpected error occurred while fetching comments.");
+            return ServiceResponse.failure("An unexpected error occurred while fetching comments.");
         }
-
-        return response;
     }
 }

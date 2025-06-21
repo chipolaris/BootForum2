@@ -65,7 +65,6 @@ public class DiscussionService {
             MultipartFile[] images,
             MultipartFile[] attachments) {
 
-        ServiceResponse<DiscussionDTO> response = new ServiceResponse<>();
         String username = authenticationFacade.getCurrentUsername().orElse("system");
 
         try {
@@ -73,8 +72,7 @@ public class DiscussionService {
             Forum forum = genericDAO.find(Forum.class, discussionCreateDTO.forumId());
             if (forum == null) {
                 // ... error handling ...
-                return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                        .addMessage("Forum not found. Cannot create discussion.");
+                return ServiceResponse.failure("Forum not found. Cannot create discussion.");
             }
 
             // 2. create Discussion entity
@@ -105,15 +103,12 @@ public class DiscussionService {
 
             // 6. Map persisted Discussion to DTO for response
             DiscussionDTO discussionDTO = discussionMapper.toDiscussionDTO(discussion);
-            response.setDataObject(discussionDTO);
-            response.addMessage("Discussion created successfully.");
+            return ServiceResponse.success("Discussion created successfully.", discussionDTO);
 
         } catch (Exception e) {
             logger.error("Error creating discussion: " + discussionCreateDTO.title(), e);
-            response.setAckCode(ServiceResponse.AckCodeType.FAILURE);
-            response.addMessage("An unexpected error occurred while creating the discussion: " + e.getMessage());
+            return ServiceResponse.failure("An unexpected error occurred while creating the discussion: %s".formatted(e.getMessage()));
         }
-        return response;
     }
 
     private void initializeDiscussionStatistics(Discussion discussion) {
@@ -157,34 +152,24 @@ public class DiscussionService {
     public ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> findPaginatedDiscussionSummaries(
             long forumId, Pageable pageable) {
 
-        ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> response = new ServiceResponse<>();
-
         try {
-
             long discussionCount = discussionRepository.countDiscussionsByForumId(forumId);
-
             List<DiscussionSummaryDTO> discussionSummaryDTOs = discussionRepository
                     .findDiscussionSummariesByForumId(forumId, pageable);
 
             Page<DiscussionSummaryDTO> pageResult = new PageImpl<>(discussionSummaryDTOs, pageable, discussionCount);
-
-            response.setDataObject(PageResponseDTO.from(pageResult))
-                    .addMessage("Fetched Discussion Summaries for forum: " + forumId);
+            return ServiceResponse.success("Fetched Discussion Summaries for forum: %d".formatted(forumId),
+                    PageResponseDTO.from(pageResult));
         }
         catch (Exception e) {
             logger.error("Error fetching Discussion Summaries for forum: " + forumId, e);
-            response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("An unexpected error occurred while fetching discussion summary for forum: " + forumId);
+            return ServiceResponse.failure("An unexpected error occurred while fetching discussion summary for forum: %d".formatted(forumId));
         }
-
-        return response;
     }
 
     @Transactional(readOnly = true)
     public ServiceResponse<PageResponseDTO<DiscussionDTO>> findPaginatedDiscussions(
             long forumId, Pageable pageable) {
-
-        ServiceResponse<PageResponseDTO<DiscussionDTO>> response = new ServiceResponse<>();
 
         try {
             // Fetch total elements for pagination
@@ -217,16 +202,13 @@ public class DiscussionService {
 
             Page<DiscussionDTO> pageResult = new PageImpl<>(discussionDTOs, pageable, totalElements);
 
-            response.setDataObject(PageResponseDTO.from(pageResult))
-                    .addMessage("Fetched discussions for forum: " + forumId);
+            return ServiceResponse.success("Fetched discussions for forum %d".formatted(forumId),
+                    PageResponseDTO.from(pageResult));
         }
         catch (Exception e) {
             logger.error("Error fetching discussions for forum: " + forumId, e);
-            response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                .addMessage("An unexpected error occurred while fetching discussions for forum: " + forumId);
+            return ServiceResponse.failure("An unexpected error occurred while fetching discussions: %d".formatted(forumId));
         }
-
-        return response;
     }
 
     /**
@@ -238,12 +220,10 @@ public class DiscussionService {
      */
     @Transactional(readOnly = true)
     public ServiceResponse<DiscussionDTO> findDiscussion(Long discussionId) {
-        ServiceResponse<DiscussionDTO> response = new ServiceResponse<>();
 
         if (discussionId == null) {
             logger.warn("Attempted to fetch discussion view with null ID.");
-            return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("Discussion ID cannot be null.");
+            return ServiceResponse.failure("Discussion ID cannot be null.");
         }
 
         try {
@@ -251,8 +231,7 @@ public class DiscussionService {
 
             if (discussion == null) {
                 logger.warn("No discussion found with ID: {}", discussionId);
-                return response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                        .addMessage(String.format("Discussion with ID %d not found.", discussionId));
+                return ServiceResponse.failure("Discussion with ID %d not found.".formatted(discussionId));
             }
 
             // Ensure comments are loaded if they are lazy.
@@ -263,19 +242,15 @@ public class DiscussionService {
             // The DiscussionMapper should handle mapping to DiscussionViewDTO,
             // including mapping the comments list using CommentMapper.
             DiscussionDTO discussionDTO = discussionMapper.toDiscussionDTO(discussion);
-            response.setDataObject(discussionDTO);
-            response.addMessage("Discussion view retrieved successfully.");
 
             // Publish an event to update view count and last viewed time asynchronously
             eventPublisher.publishEvent(new DiscussionViewedEvent(this, discussion));
             logger.debug("Published DiscussionViewedEvent for discussion ID: {}", discussionId);
 
+            return ServiceResponse.success("Discussion view retrieved successfully.", discussionDTO);
         } catch (Exception e) {
             logger.error(String.format("Error retrieving discussion view for ID %d: ", discussionId), e);
-            response.setAckCode(ServiceResponse.AckCodeType.FAILURE)
-                    .addMessage("An unexpected error occurred while retrieving the discussion: " + e.getMessage());
+            return ServiceResponse.failure("An unexpected error occurred while retrieving the discussion: %s".formatted(e.getMessage()));
         }
-
-        return response;
     }
 }
