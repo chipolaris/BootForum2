@@ -209,6 +209,39 @@ export interface UserDTO {
   updatedBy?: string;
 }
 
+export interface UserProfileDiscussionDTO {
+  discussionId: number;
+  discussionTitle: string; // Note: backend DTO has Long, but string is more likely correct
+  createdDate: string; // ISO date string
+  title: string;
+  content: string; // Truncated content
+}
+
+export interface UserProfileCommentDTO {
+  commentId: number;
+  createdDate: string; // ISO date string
+  commentTitle: string;
+  content: string; // Truncated content
+  discussionId: number;
+  discussionTitle: string;
+}
+
+export interface UserProfileDTO {
+  username: string;
+  firstName: string;
+  lastName: string;
+  joinDate: string; // ISO date string
+  discussionCreatedCount: number;
+  commentCount: number;
+  imageUploaded: number;
+  attachmentUploaded: number;
+  reputation: number;
+  profileViewed: number;
+  lastLogin: string; // ISO date string
+  comments: UserProfileCommentDTO[];
+  discussions: UserProfileDiscussionDTO[];
+}
+
 // Model for the registration payload (matches SignUpRequest without confirmPassword)
 export interface RegistrationPayload {
   username: string;
@@ -238,3 +271,4 @@ export interface ApiResponse<T> {
   errors?: string[] | null;
   timestamp: string;
 }
+

@@ -1,13 +1,12 @@
 package com.github.chipolaris.bootforum2.service;
 
-import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.dao.DynamicDAO;
 import com.github.chipolaris.bootforum2.dao.FilterSpec;
+import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.dto.UserDTO;
 import com.github.chipolaris.bootforum2.mapper.UserMapper;
-import com.github.chipolaris.bootforum2.service.ServiceResponse.AckCodeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -38,37 +37,15 @@ public class UserService {
 
 	@Transactional(readOnly = true)
 	public ServiceResponse<UserDTO> getUser(String username) {
-		
-		ServiceResponse<UserDTO> response = new ServiceResponse<>();
 
 		QuerySpec userNameQuery = QuerySpec.builder(User.class).filter(FilterSpec.eq("username", username)).build();
 		User user =	dynamicDAO.<User>findOptional(userNameQuery).orElse(null);
 
 		if(user == null) {
-			response.setAckCode(AckCodeType.FAILURE).addMessage("User not found");
+			return ServiceResponse.failure("User not found");
 		}
 		else {
-			response.setDataObject(userMapper.toDTO(user)).addMessage(String.format("Found user '%s'", username));;
+			return ServiceResponse.success("Found user %s".formatted(username), userMapper.toDTO(user));
 		}
-
-		return response;
-	}
-	
-	@Transactional(readOnly = false)
-	public ServiceResponse<User> addUser(User user) {
-	
-		ServiceResponse<User> response = new ServiceResponse<>();
-		
-		try {
-			user.setPassword(passwordEncoder.encode(user.getPassword()));
-			genericDAO.persist(user);
-			response.setDataObject(user);
-		}
-		catch(Exception e) {
-			response.setAckCode(AckCodeType.FAILURE);
-			response.addMessage("Exception " + e.toString());
-		}
-		
-		return response;
 	}
 }

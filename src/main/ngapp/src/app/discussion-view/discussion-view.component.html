@@ -25,7 +25,11 @@
         <header class="mb-4">
           <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100">{{ discussionDetails.title }}</h2>
           <p class="text-sm text-slate-600 dark:text-slate-300">
-            By <span class="font-bold">{{ discussionDetails.createBy }}</span>
+            By
+            <a [routerLink]="['/app/users', discussionDetails.createBy, 'profile']"
+               class="font-bold hover:underline cursor-pointer">
+              {{ discussionDetails.createBy }}
+            </a>
             on {{ discussionDetails.createDate | date:'medium' }}
           </p>
         </header>
@@ -81,7 +85,11 @@
           <header class="mb-2">
             <h4 class="text-lg font-semibold text-gray-800 dark:text-slate-100">{{ comment.title }}</h4>
             <p class="text-xs text-gray-500 dark:text-slate-400">
-              By: <span class="font-bold">{{ comment.createBy }}</span>
+              By:
+              <a [routerLink]="['/app/users', comment.createBy, 'profile']"
+                 class="font-bold hover:underline cursor-pointer">
+                {{ comment.createBy }}
+              </a>
               on {{ comment.createDate | date:'mediumDate' }} at {{ comment.createDate | date:'shortTime' }}
             </p>
           </header>

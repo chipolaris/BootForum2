@@ -25,4 +25,6 @@ public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
         """)
     long countDiscussionsByForumId(@Param("forumId") Long forumId);
 
+    // New method to find latest discussions by a user
+    List<Discussion> findTop5ByCreateByOrderByCreateDateDesc(String createBy);
 }

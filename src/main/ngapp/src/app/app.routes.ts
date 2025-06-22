@@ -17,6 +17,7 @@ import { RegistrationComponent } from './registration/registration.component';
 import { RegistrationConfirmationComponent } from './registration-confirmation/registration-confirmation.component';
 import { EmailConfirmationComponent } from './email-confirmation/email-confirmation.component';
 import { LoginComponent } from './login/login.component';
+import { UserProfileComponent } from './user-profile/user-profile.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { authGuard } from './_guards/auth.guard';
 
@@ -70,6 +71,7 @@ export const routes: Routes = [
   { path: 'app/confirm-email/:registrationKey', component: EmailConfirmationComponent },
   { path: 'app/login', component: LoginComponent },
   { path: 'app/dashboard', component: DashboardComponent, canActivate: [authGuard] },
-  { path: 'app/not-found', component: ResourceNotFoundComponent }, // Optional direct route
+    { path: 'app/users/:username/profile', component: UserProfileComponent },
+  { path: 'app/not-found', component: ResourceNotFoundComponent },
   { path: '**', component: ResourceNotFoundComponent }, // Wildcard route for any unmatched paths
 ];

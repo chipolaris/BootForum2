@@ -1,20 +1,14 @@
 package com.github.chipolaris.bootforum2.listener; // Create this package if it doesn't exist
 
-import com.github.chipolaris.bootforum2.dao.DynamicDAO;
-import com.github.chipolaris.bootforum2.dao.FilterSpec;
-import com.github.chipolaris.bootforum2.dao.GenericDAO;
-import com.github.chipolaris.bootforum2.dao.QuerySpec;
-import com.github.chipolaris.bootforum2.domain.User;
-import com.github.chipolaris.bootforum2.domain.UserStat;
 import com.github.chipolaris.bootforum2.event.UserLoginSuccessEvent;
+import com.github.chipolaris.bootforum2.event.UserProfileViewedEvent;
+import com.github.chipolaris.bootforum2.repository.UserStatRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 /**
  * Component to listen to User events
@@ -24,12 +18,10 @@ public class UserEventsListener {
 
     private static final Logger logger = LoggerFactory.getLogger(UserEventsListener.class);
 
-    private final GenericDAO genericDAO;
-    private final DynamicDAO dynamicDAO;
+    private final UserStatRepository userStatRepository;
 
-    public UserEventsListener(GenericDAO genericDAO, DynamicDAO dynamicDAO) {
-        this.genericDAO = genericDAO;
-        this.dynamicDAO = dynamicDAO;
+    public UserEventsListener(UserStatRepository userStatRepository) {
+        this.userStatRepository = userStatRepository;
     }
 
     @EventListener
@@ -37,25 +29,27 @@ public class UserEventsListener {
     @Async
     public void handleUserLoginSuccess(UserLoginSuccessEvent event) {
         String username = event.getUsername();
-        logger.info(String.format("Handling UserLoginSuccessEvent for user: %s", username));
+        logger.info("Handling UserLoginSuccessEvent for user: %s".formatted(username));
 
-        try {
-            QuerySpec querySpec = QuerySpec.builder(User.class).filter(FilterSpec.eq("username", username)).build();
-            User user = dynamicDAO.<User>findOptional(querySpec).orElse(null);
+        int updatedRows = userStatRepository.updateLastLoginToNowByUsername(username);
 
-            if (user != null) {
-                UserStat userStat = user.getStat();
+        if(updatedRows == 0) {
+            logger.warn("Not able to update lastLogin for username '%s'".formatted(username));
+        }
+    }
 
-                userStat.setLastLogin(LocalDateTime.now());
+    @EventListener
+    @Transactional(readOnly = false) // Ensure the update is part of a transaction
+    @Async
+    public void handleUserProfileViewed(UserProfileViewedEvent event) {
+        String viewedUsername = event.getViewedUsername();
+        logger.info("Handling UserProfileViewedEvent for user: %s".formatted(viewedUsername));
 
-                genericDAO.merge(userStat);
+        // add 1 to user profile viewed count
+        int updatedRows = userStatRepository.addProfileViewedByUsername(viewedUsername, (short) 1);
 
-                logger.info(String.format("Updated lastLogin for user: %s to %s", username, userStat.getLastLogin()));
-            } else {
-                logger.warn(String.format("User not found for username: %s", username));
-            }
-        } catch (Exception e) {
-            logger.error(String.format("Error updating lastLogin for user %s: ", username), e);
+        if (updatedRows == 0) {
+            logger.warn("Not able to update profile viewed count for username '%s'".formatted(viewedUsername));
         }
     }
 }
