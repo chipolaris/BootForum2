@@ -51,7 +51,7 @@ public class DiscussionEventsListener {
 
     private void updateUserStat(UserStat userStat, Discussion discussion) {
         userStat.addDiscussionCount(1);
-        userStat.addThumbnailCount(discussion.getThumbnails().size());
+        userStat.addImageCount(discussion.getImages().size());
         userStat.addAttachmentCount(discussion.getAttachments().size());
         
         DiscussionInfo lastDiscussion = userStat.getLastDiscussion();

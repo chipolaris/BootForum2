@@ -24,6 +24,10 @@ import { APP_ICONS } from '../shared/hero-icons';
 
 import { MarkdownModule } from 'ngx-markdown';
 
+// PrimeNG Modules for Galleria
+import { GalleriaModule } from 'primeng/galleria'; // Import GalleriaModule
+import { DialogModule } from 'primeng/dialog';     // Import DialogModule
+
 @Component({
   selector: 'app-discussion-view',
   standalone: true,
@@ -34,7 +38,9 @@ import { MarkdownModule } from 'ngx-markdown';
     NgIcon,
     DatePipe,
     MarkdownModule,
-    FileListComponent
+    FileListComponent,
+    GalleriaModule, // Add GalleriaModule to imports
+    DialogModule    // Add DialogModule to imports
   ],
   providers: [
     provideIcons(APP_ICONS)
@@ -69,6 +75,26 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
   discussionError: string | null = null;
 
   private subscriptions = new Subscription();
+
+  // --- Galleria Properties ---
+  galleriaVisible: boolean = false; // Controls the visibility of the Galleria dialog
+  currentGalleriaImages: any[] = []; // Holds the images to display in the Galleria
+
+  // Responsive options for Galleria (optional, but good for different screen sizes)
+  responsiveOptions: any[] = [
+    {
+      breakpoint: '1024px',
+      numVisible: 5
+    },
+    {
+      breakpoint: '768px',
+      numVisible: 3
+    },
+    {
+      breakpoint: '560px',
+      numVisible: 1
+    }
+  ];
 
   // --- No changes to other lifecycle hooks or data fetching methods ---
 
@@ -352,5 +378,53 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     console.log('[ngOnDestroy] Called. Unsubscribing.');
     this.subscriptions.unsubscribe();
+  }
+
+  // --- Galleria Methods ---
+
+  /**
+   * Formats FileInfoDTO array into a structure suitable for PrimeNG Galleria.
+   * @param files The array of FileInfoDTO.
+   * @returns An array of objects with 'image', 'thumbnail', 'alt', 'title' properties.
+   */
+  private formatImagesForGalleria(files: FileInfoDTO[] | null | undefined): any[] {
+    if (!files || files.length === 0) {
+      return [];
+    }
+    return files.map(file => ({
+      image: `/api/public/files/${file.id}`, // URL for the full image
+      thumbnail: `/api/public/files/${file.id}`, // URL for the thumbnail (can be same if no dedicated thumbnail endpoint)
+      alt: file.originalFilename, // Alt text for accessibility
+      title: file.originalFilename // Title for caption
+    }));
+  }
+
+  /**
+   * Opens the Galleria dialog for discussion images.
+   */
+  openDiscussionGalleria(): void {
+    if (this.discussionDetails?.images && this.discussionDetails.images.length > 0) {
+      this.currentGalleriaImages = this.formatImagesForGalleria(this.discussionDetails.images);
+      this.galleriaVisible = true;
+    }
+  }
+
+  /**
+   * Opens the Galleria dialog for comment images.
+   * @param comment The CommentDTO containing the images.
+   */
+  openCommentGalleria(comment: CommentDTO): void {
+    if (comment.images && comment.images.length > 0) {
+      this.currentGalleriaImages = this.formatImagesForGalleria(comment.images);
+      this.galleriaVisible = true;
+    }
+  }
+
+  /**
+   * Closes the Galleria dialog.
+   */
+  closeGalleria(): void {
+    this.galleriaVisible = false;
+    this.currentGalleriaImages = []; // Clear images when closing
   }
 }

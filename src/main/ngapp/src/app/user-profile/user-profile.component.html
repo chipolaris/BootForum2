@@ -1,0 +1,104 @@
+<div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-10">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+    <p class="ml-3 text-lg text-gray-600">Loading user profile...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error && !isLoading"
+       class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md mb-6" role="alert">
+    <p class="font-bold">Error</p>
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Main Content: Profile -->
+  <div *ngIf="userProfile && !isLoading && !error" class="flex flex-col md:flex-row gap-8">
+
+    <!-- Left Column: Activity Feed (75%) -->
+    <div class="md:w-3/4 space-y-8">
+      <!-- Latest Discussions -->
+      <div>
+        <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">Latest Discussions</h2>
+        <div *ngIf="userProfile.discussions.length > 0; else noDiscussions" class="space-y-4">
+          <div *ngFor="let discussion of userProfile.discussions"
+               class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <a [routerLink]="['/app/discussions', discussion.discussionId, 'view']"
+               class="text-lg font-semibold text-indigo-600 hover:underline dark:text-indigo-400">
+              {{ discussion.title }}
+            </a>
+            <p class="text-sm text-gray-500 dark:text-slate-400 mt-1">
+              Posted on {{ discussion.createdDate | date:'medium' }}
+            </p>
+            <p class="mt-2 text-gray-700 dark:text-slate-300 text-sm">{{ discussion.content }}</p>
+          </div>
+        </div>
+        <ng-template #noDiscussions>
+          <p class="text-gray-500 dark:text-slate-400">This user has not started any discussions yet.</p>
+        </ng-template>
+      </div>
+
+      <!-- Latest Comments -->
+      <div>
+        <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">Latest Comments</h2>
+        <div *ngIf="userProfile.comments.length > 0; else noComments" class="space-y-4">
+          <div *ngFor="let comment of userProfile.comments"
+               class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <p class="text-gray-700 dark:text-slate-300 text-sm">"{{ comment.content }}"</p>
+            <p class="text-sm text-gray-500 dark:text-slate-400 mt-2">
+              Commented on
+              <a [routerLink]="['/app/discussions', comment.discussionId, 'view']"
+                 class="font-semibold text-indigo-600 hover:underline dark:text-indigo-400">
+                {{ comment.discussionTitle }}
+              </a>
+              on {{ comment.createdDate | date:'medium' }}
+            </p>
+          </div>
+        </div>
+        <ng-template #noComments>
+          <p class="text-gray-500 dark:text-slate-400">This user has not posted any comments yet.</p>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Right Column: User Stats (25%) -->
+    <aside class="md:w-1/4">
+      <div class="bg-slate-50 dark:bg-slate-700 p-4 rounded-lg shadow-md sticky top-4">
+        <div class="text-center mb-4">
+          <h3 class="text-xl font-bold text-gray-800 dark:text-slate-100">
+            {{ userProfile.firstName }} {{ userProfile.lastName }}
+          </h3>
+          <p class="text-md text-gray-600 dark:text-slate-300">{{ '@' + userProfile.username }}</p>
+        </div>
+
+        <dl class="space-y-3 text-sm">
+          <div class="flex justify-between">
+            <dt class="font-medium text-gray-600 dark:text-slate-300">Joined:</dt>
+            <dd class="text-gray-800 dark:text-slate-100">{{ userProfile.joinDate | date:'longDate' }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="font-medium text-gray-600 dark:text-slate-300">Last Login:</dt>
+            <dd class="text-gray-800 dark:text-slate-100">{{ userProfile.lastLogin | date:'medium' }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="font-medium text-gray-600 dark:text-slate-300">Reputation:</dt>
+            <dd class="text-gray-800 dark:text-slate-100 font-bold text-green-600 dark:text-green-400">{{ userProfile.reputation }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="font-medium text-gray-600 dark:text-slate-300">Profile Views:</dt>
+            <dd class="text-gray-800 dark:text-slate-100">{{ userProfile.profileViewed }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="font-medium text-gray-600 dark:text-slate-300">Discussions Started:</dt>
+            <dd class="text-gray-800 dark:text-slate-100">{{ userProfile.discussionCreatedCount }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="font-medium text-gray-600 dark:text-slate-300">Total Comments:</dt>
+            <dd class="text-gray-800 dark:text-slate-100">{{ userProfile.commentCount }}</dd>
+          </div>
+        </dl>
+      </div>
+    </aside>
+  </div>
+</div>

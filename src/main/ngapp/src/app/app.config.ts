@@ -12,6 +12,8 @@ import { AuthenticationService } from './_services/authentication.service'; // I
 import { Observable } from 'rxjs';
 
 import { MarkdownModule } from 'ngx-markdown';
+import { GalleriaModule } from 'primeng/galleria'; // Import GalleriaModule
+import { DialogModule } from 'primeng/dialog';     // Import DialogModule
 
 // Factory function for APP_INITIALIZER
 export function initializeAppFactory(authService: AuthenticationService): () => Observable<any> {
@@ -37,6 +39,8 @@ export const appConfig: ApplicationConfig = {
       multi: true // Required for APP_INITIALIZER
     },
     MessageService,
-    importProvidersFrom(MarkdownModule.forRoot()) // Import MarkdownModule ngx-markdown
+    importProvidersFrom(MarkdownModule.forRoot()), // Import MarkdownModule ngx-markdown
+    importProvidersFrom(GalleriaModule), // Provide GalleriaModule
+    importProvidersFrom(DialogModule)     // Provide DialogModule
   ]
 };

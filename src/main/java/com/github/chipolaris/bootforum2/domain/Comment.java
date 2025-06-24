@@ -90,18 +90,18 @@ public class Comment extends BaseEntity {
     private List<FileInfo> attachments;
 
     /**
-     * OK to eager fetch attachments as only a handful thumbnails are expected for each comment
+     * OK to eager fetch attachments as only a handful images are expected for each comment
      */
     @OneToMany(cascade=CascadeType.ALL, fetch=FetchType.EAGER)
-    @JoinTable(name="COMMENT_THUMBNAIL_T",
-            joinColumns={@JoinColumn(name="COMMENT_ID", foreignKey = @ForeignKey(name="FK_COMMEN_THUMB_COMMEN"))},
+    @JoinTable(name="COMMENT_IMAGE_T",
+            joinColumns={@JoinColumn(name="COMMENT_ID", foreignKey = @ForeignKey(name="FK_COMMEN_IMG_COMMEN"))},
             inverseJoinColumns={@JoinColumn(name="FILE_INFO_ID", foreignKey = @ForeignKey(name="FK_COMMEN_ATTACH_FILE_INFO"))},
-            indexes = {@Index(name="IDX_COMMEN_THUMBN", columnList = "COMMENT_ID,FILE_INFO_ID")})
+            indexes = {@Index(name="IDX_COMMEN_IMG", columnList = "COMMENT_ID,FILE_INFO_ID")})
     @OrderColumn(name="SORT_ORDER")
     // Experimental
     //@IndexedEmbedded(includePaths = {"originalFilename"})
     //@IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    private List<FileInfo> thumbnails;
+    private List<FileInfo> images;
 
     @Column(name="HIDDEN")
     private boolean hidden;
@@ -167,11 +167,11 @@ public class Comment extends BaseEntity {
         this.attachments = attachments;
     }
 
-    public List<FileInfo> getThumbnails() {
-        return thumbnails;
+    public List<FileInfo> getImages() {
+        return images;
     }
-    public void setThumbnails(List<FileInfo> thumbnails) {
-        this.thumbnails = thumbnails;
+    public void setImages(List<FileInfo> images) {
+        this.images = images;
     }
 
     public boolean getHidden() {

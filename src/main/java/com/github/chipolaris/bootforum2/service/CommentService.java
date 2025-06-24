@@ -92,7 +92,7 @@ public class CommentService {
 
             // 3. Process Files
             List<FileInfo> imageInfos = processFiles(images, "image");
-            comment.setThumbnails(imageInfos);
+            comment.setImages(imageInfos);
 
             List<FileInfo> attachmentInfos = processFiles(attachments, "attachment");
             comment.setAttachments(attachmentInfos);

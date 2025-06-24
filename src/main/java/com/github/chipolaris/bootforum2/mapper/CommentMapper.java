@@ -22,7 +22,7 @@ public interface CommentMapper {
     // 'discussion' is ignored by not having a target field in CommentDTO
     // and not being explicitly mapped.
     // 'replies' will be mapped recursively by MapStruct.
-    // 'attachments', 'thumbnails', 'commentVote' will use their respective mappers.
+    // 'attachments', 'images', 'commentVote' will use their respective mappers.
     @Mapping(target = "replyToId", source = "replyTo.id")
     CommentDTO toCommentDTO(Comment comment);
 

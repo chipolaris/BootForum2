@@ -59,7 +59,7 @@ public class CommentEventsListener {
 
         UserStat userStat = user.getStat();
         userStat.addCommentCount(1);
-        userStat.addThumbnailCount(comment.getThumbnails().size());
+        userStat.addImageCount(comment.getImages().size());
         userStat.addAttachmentCount(comment.getAttachments().size());
 
         CommentInfo lastComment = userStat.getLastComment();
@@ -103,7 +103,7 @@ public class CommentEventsListener {
     private void updateDiscussionStat(DiscussionStat discussionStat, Comment comment) {
         discussionStat.addCommentCount(1);
         discussionStat.addAttachmentCount(comment.getAttachments().size());
-        discussionStat.addThumbnailCount(comment.getThumbnails().size());
+        discussionStat.addImageCount(comment.getImages().size());
         discussionStat.addParticipant(comment.getCreateBy());
 
         CommentInfo lastComment = discussionStat.getLastComment();

@@ -30,8 +30,8 @@ public class DiscussionStat extends BaseEntity {
     @Column(name="LAST_VIEWED")
     private LocalDateTime lastViewed;
 
-    @Column(name="THUMBNAIL_COUNT")
-    private long thumbnailCount;
+    @Column(name="IMAGE_COUNT")
+    private long imageCount;
 
     @Column(name="ATTACHMENT_COUNT")
     private long attachmentCount;
@@ -98,14 +98,14 @@ public class DiscussionStat extends BaseEntity {
         this.lastViewed = lastViewed;
     }
 
-    public long getThumbnailCount() {
-        return thumbnailCount;
+    public long getImageCount() {
+        return imageCount;
     }
-    public void setThumbnailCount(long thumbnailCount) {
-        this.thumbnailCount = thumbnailCount;
+    public void setImageCount(long imageCount) {
+        this.imageCount = imageCount;
     }
-    public void addThumbnailCount(long number) {
-        this.thumbnailCount += number;
+    public void addImageCount(long number) {
+        this.imageCount += number;
     }
 
     public long getAttachmentCount() {

@@ -74,15 +74,15 @@ public class Discussion extends BaseEntity {
     private List<FileInfo> attachments;
 
     /**
-     * OK to eager fetch attachments as only a handful thumbnails are expected for each comment
+     * OK to eager fetch attachments as only a handful images are expected for each comment
      */
     @OneToMany(cascade=CascadeType.ALL, fetch=FetchType.EAGER)
-    @JoinTable(name="DISCUSSION_THUMBNAIL_T",
-            joinColumns={@JoinColumn(name="DISCUSSION_ID", foreignKey = @ForeignKey(name="FK_DISCUS_THUMB_DISCUS"))},
+    @JoinTable(name="DISCUSSION_IMAGE_T",
+            joinColumns={@JoinColumn(name="DISCUSSION_ID", foreignKey = @ForeignKey(name="FK_DISCUS_IMG_DISCUS"))},
             inverseJoinColumns={@JoinColumn(name="FILE_INFO_ID", foreignKey = @ForeignKey(name="FK_DISCUS_ATTACH_FILE_INFO"))},
-            indexes = {@Index(name="IDX_DISCUS_THUMBN", columnList = "DISCUSSION_ID,FILE_INFO_ID")})
+            indexes = {@Index(name="IDX_DISCUS_IMG", columnList = "DISCUSSION_ID,FILE_INFO_ID")})
     @OrderColumn(name="SORT_ORDER")
-    private List<FileInfo> thumbnails;
+    private List<FileInfo> images;
 
     @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
     @JoinColumn(name="DISCUSSION_STAT_ID")
@@ -156,11 +156,11 @@ public class Discussion extends BaseEntity {
         this.attachments = attachments;
     }
 
-    public List<FileInfo> getThumbnails() {
-        return thumbnails;
+    public List<FileInfo> getImages() {
+        return images;
     }
-    public void setThumbnails(List<FileInfo> thumbnails) {
-        this.thumbnails = thumbnails;
+    public void setImages(List<FileInfo> images) {
+        this.images = images;
     }
 
     public DiscussionStat getStat() {

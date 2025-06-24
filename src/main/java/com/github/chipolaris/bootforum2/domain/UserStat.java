@@ -43,8 +43,8 @@ public class UserStat extends BaseEntity {
     @JoinColumn(name="LAST_DISCUSSION_INFO_ID", foreignKey = @ForeignKey(name="FK_USER_STAT_LAST_DISCUSSION"))
     private DiscussionInfo lastDiscussion; // info about last discussion, used for display
 
-    @Column(name="THUMBNAIL_COUNT")
-    private long thumbnailCount;
+    @Column(name="IMAGE_COUNT")
+    private long imageCount;
 
     @Column(name="ATTACHMENT_COUNT")
     private long attachmentCount;
@@ -85,15 +85,13 @@ public class UserStat extends BaseEntity {
         this.lastDiscussion = lastDiscussion;
     }
 
-    public long getThumbnailCount() {
-        return thumbnailCount;
+    public long getImageCount() {
+        return imageCount;
     }
-    public void setThumbnailCount(long thumbnailCount) {
-        this.thumbnailCount = thumbnailCount;
+    public void setImageCount(long imageCount) {
+        this.imageCount = imageCount;
     }
-    public void addThumbnailCount(long value) {
-        this.thumbnailCount += value;
-    }
+    public void addImageCount(long value) { this.imageCount += value; }
 
     public long getAttachmentCount() {
         return attachmentCount;
@@ -109,9 +107,7 @@ public class UserStat extends BaseEntity {
     public void setCommentCount(long commentCount) {
         this.commentCount = commentCount;
     }
-    public void addCommentCount(long value) {
-        this.commentCount += value;
-    }
+    public void addCommentCount(long value) { this.commentCount += value; }
 
     public long getDiscussionCount() {
         return discussionCount;
@@ -119,9 +115,7 @@ public class UserStat extends BaseEntity {
     public void setDiscussionCount(long discussionCount) {
         this.discussionCount = discussionCount;
     }
-    public void addDiscussionCount(long value) {
-        this.discussionCount += value;
-    }
+    public void addDiscussionCount(long value) { this.discussionCount += value; }
 
     public long getReputation() {
         return reputation;

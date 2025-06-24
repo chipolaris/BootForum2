@@ -84,7 +84,7 @@ public class DiscussionService {
 
             // 3. Process Files
             List<FileInfo> imageInfos = processFiles(images, "image");
-            discussion.setThumbnails(imageInfos);
+            discussion.setImages(imageInfos);
 
             List<FileInfo> attachmentInfos = processFiles(attachments, "attachment");
             discussion.setAttachments(attachmentInfos);
@@ -117,8 +117,8 @@ public class DiscussionService {
         discussionStat.setViewCount(0);
         discussionStat.setParticipants(Map.of(discussion.getCreateBy(), 1));
 
-        if (discussion.getThumbnails() != null) {
-            discussionStat.setThumbnailCount(discussion.getThumbnails().size());
+        if (discussion.getImages() != null) {
+            discussionStat.setImageCount(discussion.getImages().size());
         }
         if (discussion.getAttachments() != null) {
             discussionStat.setAttachmentCount(discussion.getAttachments().size());

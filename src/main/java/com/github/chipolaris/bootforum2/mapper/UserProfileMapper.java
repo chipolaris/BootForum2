@@ -21,7 +21,7 @@ public interface UserProfileMapper {
     @Mapping(source = "user.createDate", target = "joinDate")
     @Mapping(source = "user.stat.discussionCount", target = "discussionCreatedCount")
     @Mapping(source = "user.stat.commentCount", target = "commentCount")
-    @Mapping(source = "user.stat.thumbnailCount", target = "imageUploaded") // Assuming thumbnails are images
+    @Mapping(source = "user.stat.imageCount", target = "imageUploaded")
     @Mapping(source = "user.stat.attachmentCount", target = "attachmentUploaded")
     @Mapping(source = "user.stat.reputation", target = "reputation")
     @Mapping(source = "user.stat.profileViewed", target = "profileViewed")

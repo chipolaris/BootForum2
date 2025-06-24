@@ -7,7 +7,7 @@ public record DiscussionStatDTO(
         Long commentCount,
         Long viewCount,
         LocalDateTime lastViewed,
-        Long thumbnailCount,
+        Long imageCount,
         Long attachmentCount,
         CommentInfoDTO lastComment,
         Map<String, Integer> participants,

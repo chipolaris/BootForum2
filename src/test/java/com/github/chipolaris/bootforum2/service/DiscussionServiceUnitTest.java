@@ -200,9 +200,9 @@ class DiscussionServiceUnitTest {
         verify(genericDAO).persist(discussionCaptor.capture());
         Discussion persistedDiscussion = discussionCaptor.getValue();
 
-        // Assert that the discussion's initial comment has no thumbnails due to storage failure
-        assertTrue(persistedDiscussion.getThumbnails().isEmpty(), "Thumbnails should be empty on storage failure.");
-        assertEquals(0, persistedDiscussion.getStat().getThumbnailCount(), "Thumbnail count in stat should be 0.");
+        // Assert that the discussion's initial comment has no images due to storage failure
+        assertTrue(persistedDiscussion.getImages().isEmpty(), "Images should be empty on storage failure.");
+        assertEquals(0, persistedDiscussion.getStat().getImageCount(), "Image count in stat should be 0.");
 
         verify(eventPublisher).publishEvent(any(DiscussionCreatedEvent.class)); // Event should still be published
     }

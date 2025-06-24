@@ -130,7 +130,7 @@ export interface CommentDTO {
   replyToId?: number | null;     // Corresponds to Long replyToId, can be null
   ipAddress?: string | null;       // Optional and nullable
   attachments?: FileInfoDTO[] | null; // List of FileInfoDTO
-  thumbnails?: FileInfoDTO[] | null;  // List of FileInfoDTO
+  images?: FileInfoDTO[] | null;  // List of FileInfoDTO
   hidden: boolean;
   commentVote?: CommentVoteDTO | null; // Reference to CommentVoteDTO
 }
@@ -147,7 +147,7 @@ export interface DiscussionStatDTO {
   commentCount?: number;
   viewCount?: number;
   lastViewed?: Date | string | null; // Date for client-side, string if received as ISO string
-  thumbnailCount?: number;
+  imageCount?: number;
   attachmentCount?: number;
   lastComment?: CommentInfoDTO | null;
   participants?: { [key: string]: number } | null; // Equivalent to Map<String, Integer>
@@ -163,7 +163,7 @@ export interface DiscussionDTO {
   title: string;
   content: string;
   attachments?: FileInfoDTO[] | null; // Array of FileInfoDTO
-  thumbnails?: FileInfoDTO[] | null; // Array of FileInfoDTO
+  images?: FileInfoDTO[] | null; // Array of FileInfoDTO
   tags?: TagDTO[] | null; // Array of TagDTO
   stat?: DiscussionStatDTO | null; // Reference to DiscussionStatDTO
 }

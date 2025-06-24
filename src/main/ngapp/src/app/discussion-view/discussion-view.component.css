@@ -10,3 +10,26 @@
 
 /* You can add custom styles for the jumbotron effect if needed,
    but Tailwind classes in the HTML should cover most of it. */
+
+/* Example of deep styling for PrimeNG components if needed */
+:host ::ng-deep .p-galleria-content {
+  background-color: var(--surface-card);
+}
+
+:host ::ng-deep .p-dialog .p-dialog-header {
+  background-color: var(--surface-card);
+  color: var(--text-color);
+}
+
+/* my-galleria.component.css */
+.ui-galleria {
+  max-width: 500px; /* Example: Default max width */
+}
+
+@media screen and (max-width: 768px) {
+  .ui-galleria {
+    max-width: 90%; /* Adjust for smaller screens */
+  }
+}
+/* You can add custom styles for the jumbotron effect if needed,
+   but Tailwind classes in the HTML should cover most of it. */
