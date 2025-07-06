@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,9 +41,9 @@ public class UserProfileService {
 
     public ServiceResponse<UserProfileDTO> getUserProfile(String username) {
 
-        User user = userRepository.findByUsername(username);
+        Optional<User> userOpt = userRepository.findByUsername(username);
 
-        if (user == null) {
+        if (userOpt.isEmpty()) {
             return ServiceResponse.failure("User not found: '%s'".formatted(username));
         }
 
@@ -59,7 +60,7 @@ public class UserProfileService {
                 .collect(Collectors.toList());
 
         // Map to final DTO
-        UserProfileDTO userProfileDTO = userProfileMapper.toUserProfileDTO(user, discussionDTOs, commentDTOs);
+        UserProfileDTO userProfileDTO = userProfileMapper.toUserProfileDTO(userOpt.get(), discussionDTOs, commentDTOs);
 
         applicationEventPublisher.publishEvent(new UserProfileViewedEvent(this, username));
 

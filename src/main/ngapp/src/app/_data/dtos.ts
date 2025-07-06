@@ -262,6 +262,34 @@ export interface SystemStatisticDTO {
   lastDiscussion: DiscussionInfoDTO;
 }
 
+/**
+ * DTO for updating a user's personal information.
+ * Corresponds to Java's PersonUpdateDTO.
+ */
+export interface PersonUpdateDTO {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+/**
+ * DTO for the password change payload.
+ * Corresponds to Java's PasswordChangeDTO.
+ */
+export interface PasswordChangeDTO {
+  oldPassword: string;
+  newPassword: string;
+}
+
+/**
+ * DTO for the avatar upload response.
+ * Corresponds to Java's AvatarDTO.
+ */
+export interface AvatarDTO {
+  username: string;
+  fileInfo: FileInfoDTO;
+}
+
 // Define an interface for the generic API response structure
 export interface ApiResponse<T> {
   success: boolean;

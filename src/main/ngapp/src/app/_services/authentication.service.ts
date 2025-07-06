@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
-import { map, catchError, tap, shareReplay, switchMap, first } from 'rxjs/operators'; // Added first
+import { map, catchError, tap, shareReplay, switchMap, first } from 'rxjs/operators';
 
-import { UserDTO } from '../_data/dtos';
+import { UserDTO, ApiResponse } from '../_data/dtos'; // Make sure ApiResponse is imported
 
 interface AuthResponse {
   accessToken: string;
@@ -14,29 +14,31 @@ interface AuthResponse {
 export class AuthenticationService {
 	private currentUserSubject: BehaviorSubject<UserDTO | null>;
 	public currentUser: Observable<UserDTO | null>;
-	// Remove profileRequest$ caching from here if APP_INITIALIZER handles the first call
-	// private profileRequest$: Observable<UserDTO | null> | null = null;
 
 	private authUrl = '/api/authenticate';
-	private profileUrl = '/api/user/profile';
+	private profileUrl = '/api/user/my-profile';
 	private readonly TOKEN_KEY = 'authToken';
 
 	constructor(private http: HttpClient) {
 		this.currentUserSubject = new BehaviorSubject<UserDTO | null>(null);
 		this.currentUser = this.currentUserSubject.asObservable();
-		// We will move the initial profile fetch to an explicit init method
-		// for APP_INITIALIZER
 	}
 
-	// NEW METHOD: To be called by APP_INITIALIZER
+	// Corrected initializeAuthState method
 	public initializeAuthState(): Observable<UserDTO | null> {
 		const token = this.getCurrentUserToken();
 		if (token) {
 			// Fetch profile and ensure the observable completes for APP_INITIALIZER
-			return this.http.get<UserDTO>(this.profileUrl).pipe(
-				tap(user => {
-					console.log("User profile fetched during init:", user);
-					this.currentUserSubject.next(user);
+			return this.http.get<ApiResponse<UserDTO>>(this.profileUrl).pipe( // 1. Correctly type the response
+				map(response => { // 2. Use map to extract the data
+					if (response.success && response.data) {
+						console.log("User profile fetched during init:", response.data);
+						this.currentUserSubject.next(response.data); // 3. Store the correct UserDTO object
+						return response.data;
+					}
+					// If API call is successful but data is missing, treat as an error
+					this.logout();
+					return null;
 				}),
 				catchError(error => {
 					console.error("Failed to fetch user profile during init (token might be invalid/expired):", error.status);
@@ -66,22 +68,26 @@ export class AuthenticationService {
 		return !!this.currentUserSubject.value;
 	}
 
-	// Modified getUserProfile to not rely on its own caching if APP_INITIALIZER handles first call
+	// Corrected getUserProfile method
 	getUserProfile(): Observable<UserDTO | null> {
 		if (!this.hasToken()) {
 			this.currentUserSubject.next(null);
 			return of(null);
 		}
 		// If already authenticated, return current user to avoid redundant calls
-		// This can happen if called after APP_INITIALIZER or during navigation
 		if (this.isAuthenticated()) {
 			return of(this.currentUserValue);
 		}
 
-		return this.http.get<UserDTO>(this.profileUrl).pipe(
-			tap(user => {
-				console.log("User profile fetched:", user);
-				this.currentUserSubject.next(user);
+		return this.http.get<ApiResponse<UserDTO>>(this.profileUrl).pipe( // 1. Correctly type the response
+			map(response => { // 2. Use map to extract the data
+				if (response.success && response.data) {
+					console.log("User profile fetched:", response.data);
+					this.currentUserSubject.next(response.data); // 3. Store the correct UserDTO object
+					return response.data;
+				}
+				this.logout();
+				return null;
 			}),
 			catchError(error => {
 				console.error("Failed to fetch user profile (token might be invalid/expired):", error.status);
@@ -105,7 +111,7 @@ export class AuthenticationService {
 						throw new Error("Invalid login response from server.");
 					}
 				}),
-				switchMap(() => this.getUserProfile()), // Fetch profile after login
+				switchMap(() => this.getUserProfile()), // This now calls the corrected getUserProfile
 				catchError(error => {
 					console.error("Login failed:", error);
 					this.removeToken();
@@ -126,5 +132,22 @@ export class AuthenticationService {
 
 	private removeToken(): void {
 		localStorage.removeItem(this.TOKEN_KEY);
+	}
+
+	/**
+	 * Updates the current user's state within the application.
+	 * This is useful after a profile update to ensure all components
+	 * subscribed to the current user receive the latest data without a full refresh.
+	 * @param updatedUser The complete, updated UserDTO object.
+	 */
+	public updateCurrentUser(updatedUser: UserDTO): void {
+		const currentUser = this.currentUserValue;
+		// Ensure we are updating the state for the currently logged-in user.
+		if (currentUser && updatedUser && currentUser.username === updatedUser.username) {
+			this.currentUserSubject.next(updatedUser);
+			console.log("Current user state updated in AuthenticationService:", updatedUser);
+		} else {
+			console.warn("Attempted to update current user with mismatched data or when no user is logged in.");
+		}
 	}
 }
