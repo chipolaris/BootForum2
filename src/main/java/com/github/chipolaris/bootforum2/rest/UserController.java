@@ -66,8 +66,7 @@ public class UserController {
 	@PostMapping("/my-profile/change-password")
 	public ApiResponse<?> changePassword(@Valid @RequestBody PasswordChangeDTO passwordChangeDTO) {
 
-		ServiceResponse<Void> serviceResponse = userService.updatePassword(
-				passwordChangeDTO.oldPassword(), passwordChangeDTO.newPassword());
+		ServiceResponse<Void> serviceResponse = userService.updatePassword(passwordChangeDTO);
 
 		if (serviceResponse.isSuccess()) {
 			return ApiResponse.success("Password changed successfully");

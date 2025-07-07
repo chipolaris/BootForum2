@@ -279,6 +279,7 @@ export interface PersonUpdateDTO {
 export interface PasswordChangeDTO {
   oldPassword: string;
   newPassword: string;
+  confirmNewPassword: string;
 }
 
 /**
@@ -298,5 +299,25 @@ export interface ApiResponse<T> {
   //errors?: { [key: string]: string } | null; // TypeScript equivalent of Map<String, String>
   errors?: string[] | null;
   timestamp: string;
+}
+
+export function errorMessageFromApiResponse(apiResponse: ApiResponse<any>): string {
+
+  let message = '';
+  if (apiResponse.message) {
+    message = apiResponse.message;
+  }
+  if (apiResponse.errors && apiResponse.errors.length > 0) {
+    if(!message) { // Falsiness check: if message is empty, null, undefined, 0, false, or NaN
+      // remove empty strings from errors and trim then assign to message
+      message = apiResponse.errors.filter(e => e && e.trim()).join('\n');
+    }
+    else {
+      // append message with errors
+      message += '\n' + apiResponse.errors.filter(e => e && e.trim()).join('\n');
+    }
+  }
+
+  return message;
 }
 

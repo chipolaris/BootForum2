@@ -9,5 +9,8 @@ public record PasswordChangeDTO(
 
         @NotBlank
         @Size(min = 8, message = "New password must be at least 8 characters long")
-        String newPassword
+        String newPassword,
+
+        @NotBlank
+        String confirmNewPassword
 ) {}

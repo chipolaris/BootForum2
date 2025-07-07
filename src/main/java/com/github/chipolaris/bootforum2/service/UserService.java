@@ -1,6 +1,7 @@
 package com.github.chipolaris.bootforum2.service;
 
 import com.github.chipolaris.bootforum2.domain.User;
+import com.github.chipolaris.bootforum2.dto.PasswordChangeDTO;
 import com.github.chipolaris.bootforum2.dto.PersonUpdateDTO;
 import com.github.chipolaris.bootforum2.dto.UserDTO;
 import com.github.chipolaris.bootforum2.mapper.PersonMapper;
@@ -75,17 +76,21 @@ public class UserService {
 	/**
 	 * Updates the password for the currently authenticated user after verifying the old password.
 	 *
-	 * @param oldPassword The user's current password.
-	 * @param newPassword The new password to set.
+	 * @param passwordChangeDTO The DTO containing old, new, and confirmation passwords.
 	 * @return A ServiceResponse indicating success or failure.
 	 */
-	public ServiceResponse<Void> updatePassword(String oldPassword, String newPassword) {
+	public ServiceResponse<Void> updatePassword(PasswordChangeDTO passwordChangeDTO) {
 
 		Optional<String> currentUsernameOpt = authenticationFacade.getCurrentUsername();
 		if (currentUsernameOpt.isEmpty()) {
 			return ServiceResponse.failure("User not authenticated.");
 		}
 		String username = currentUsernameOpt.get();
+
+		// Add validation for password match
+		if (!passwordChangeDTO.newPassword().equals(passwordChangeDTO.confirmNewPassword())) {
+			return ServiceResponse.failure("New password and confirmation do not match.");
+		}
 
 		Optional<User> userOpt = userRepository.findByUsername(username);
 		if (userOpt.isEmpty()) {
@@ -95,12 +100,12 @@ public class UserService {
 		User user = userOpt.get();
 
 		// Verify the old password
-		if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+		if (!passwordEncoder.matches(passwordChangeDTO.oldPassword(), user.getPassword())) {
 			return ServiceResponse.failure("Incorrect old password.");
 		}
 
 		// Encode and set the new password
-		user.setPassword(passwordEncoder.encode(newPassword));
+		user.setPassword(passwordEncoder.encode(passwordChangeDTO.newPassword()));
 		user.setUpdateBy(username); // Set the updater
 
 		userRepository.save(user);

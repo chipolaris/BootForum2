@@ -1,12 +1,26 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { AccountService } from '../_services/account.service';
 import { AuthenticationService } from '../_services/authentication.service';
-import { UserDTO } from '../_data/dtos';
+import { UserDTO, errorMessageFromApiResponse } from '../_data/dtos';
 import { finalize } from 'rxjs';
+
+// Custom validator function
+export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const newPassword = control.get('newPassword');
+  const confirmNewPassword = control.get('confirmNewPassword');
+
+  // Don't validate if controls are not yet available or pristine
+  if (!newPassword || !confirmNewPassword || !newPassword.value || !confirmNewPassword.value) {
+    return null;
+  }
+
+  return newPassword.value === confirmNewPassword.value ? null : { passwordMismatch: true };
+};
+
 
 @Component({
   selector: 'app-user-account',
@@ -29,15 +43,21 @@ export class UserAccountComponent implements OnInit {
   passwordForm!: FormGroup;
 
   // Loading states
-  isProfileLoading = true; // Add a loading state for the initial profile fetch
+  isProfileLoading = true;
   isPersonInfoLoading = false;
   isPasswordLoading = false;
   isAvatarLoading = false;
 
+  // --- NEW: Password visibility states ---
+  oldPasswordVisible = false;
+  newPasswordVisible = false;
+  confirmNewPasswordVisible = false;
+  // --- END NEW ---
+
   ngOnInit(): void {
     this.initForms();
     this.loadUserProfile();
-    this.loadAvatar(); // Fetch avatar on component initialization
+    this.loadAvatar();
   }
 
   private initForms(): void {
@@ -49,13 +69,15 @@ export class UserAccountComponent implements OnInit {
 
     this.passwordForm = this.fb.group({
       oldPassword: ['', [Validators.required]],
-      newPassword: ['', [Validators.required, Validators.minLength(8)]]
+      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      confirmNewPassword: ['', [Validators.required]]
+    }, {
+      validators: passwordMatchValidator
     });
   }
 
   private loadUserProfile(): void {
     this.isProfileLoading = true;
-    // Use the auth service's current user if available, otherwise fetch
     const userFromAuth = this.authService.currentUserValue;
     if (userFromAuth) {
       console.log('UserAccountComponent: Populating from AuthenticationService cache.');
@@ -81,17 +103,12 @@ export class UserAccountComponent implements OnInit {
     }
   }
 
-  /**
-   * Fetches the user's avatar information and updates the avatarUrl.
-   */
   private loadAvatar(): void {
     this.accountService.getMyAvatar().subscribe({
       next: (response) => {
         if (response.success && response.data?.fileInfo?.id) {
-          // Construct the URL to the FileController's serveFile method
           this.avatarUrl = `/api/public/files/${response.data.fileInfo.id}`;
         } else {
-          // If no avatar is found or the request fails, use the default
           this.avatarUrl = '/assets/images/default-avatar.png';
         }
       },
@@ -102,15 +119,10 @@ export class UserAccountComponent implements OnInit {
     });
   }
 
-  /**
-   * Updates the component's state and populates forms with user data.
-   * @param user The DTO of the currently authenticated user.
-   */
   private updateComponentState(user: UserDTO): void {
     console.log('UserAccountComponent: Updating state with user object:', user);
     this.currentUser = user;
 
-    // Safely patch the form with person info, guarding against null
     if (user && user.person) {
       this.personInfoForm.patchValue(user.person);
       console.log('UserAccountComponent: Form patched successfully with:', user.person);
@@ -131,7 +143,7 @@ export class UserAccountComponent implements OnInit {
       .subscribe({
         next: response => {
           if (response.success && response.data) {
-            this.authService.updateCurrentUser(response.data); // Update global state
+            this.authService.updateCurrentUser(response.data);
             this.updateComponentState(response.data);
             this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Your profile has been updated.' });
           } else {
@@ -147,18 +159,15 @@ export class UserAccountComponent implements OnInit {
     if (input.files && input.files[0]) {
       const file = input.files[0];
 
-      // Basic validation
       if (!file.type.startsWith('image/')) {
         this.messageService.add({ severity: 'error', summary: 'Invalid File', detail: 'Please select an image file.' });
         return;
       }
 
-      // Show preview
       const reader = new FileReader();
       reader.onload = () => this.avatarUrl = reader.result;
       reader.readAsDataURL(file);
 
-      // Upload file
       this.isAvatarLoading = true;
       this.accountService.uploadAvatar(file)
         .pipe(finalize(() => this.isAvatarLoading = false))
@@ -166,18 +175,14 @@ export class UserAccountComponent implements OnInit {
           next: response => {
             if (response.success && response.data?.fileInfo.id) {
               this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Avatar updated successfully!' });
-              // After a successful upload, update the avatar URL immediately
-              // using the ID from the response.
               this.avatarUrl = `/api/public/files/${response.data.fileInfo.id}`;
             } else {
               this.messageService.add({ severity: 'error', summary: 'Upload Failed', detail: response.message || 'Could not upload avatar.' });
-              // If upload fails, reload the last known good avatar
               this.loadAvatar();
             }
           },
           error: err => {
             this.messageService.add({ severity: 'error', summary: 'Error', detail: 'An unexpected error occurred during upload.' });
-            // If upload fails, reload the last known good avatar
             this.loadAvatar();
           }
         });
@@ -199,7 +204,8 @@ export class UserAccountComponent implements OnInit {
             this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Your password has been changed.' });
             this.passwordForm.reset();
           } else {
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: response.message || 'Failed to change password.' });
+            const errorMessage = errorMessageFromApiResponse(response);
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage || 'Failed to change password.' });
           }
         },
         error: err => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'An unexpected error occurred.' })
