@@ -31,7 +31,7 @@ export class CommentService {
       .set('size', size.toString())
       .set('sort', `${sortProperty},${sortDirection}`);
 
-    const commentsUrl = `${this.basePublicApiUrl}/discussion/${discussionId}/comments`;
+    const commentsUrl = `${this.basePublicApiUrl}/comments/by-discussion/${discussionId}`;
 
     return this.http.get<ApiResponse<Page<CommentDTO>>>(commentsUrl, { params })
       .pipe(

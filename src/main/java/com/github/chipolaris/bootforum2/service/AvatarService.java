@@ -4,15 +4,20 @@ import com.github.chipolaris.bootforum2.domain.Avatar;
 import com.github.chipolaris.bootforum2.domain.FileInfo;
 import com.github.chipolaris.bootforum2.dto.AvatarDTO;
 import com.github.chipolaris.bootforum2.dto.FileCreatedDTO;
+import com.github.chipolaris.bootforum2.dto.FileResourceDTO;
 import com.github.chipolaris.bootforum2.mapper.AvatarMapper;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
 import com.github.chipolaris.bootforum2.repository.AvatarRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -108,5 +113,41 @@ public class AvatarService {
         return avatarRepository.findByUserName(username)
                 .map(avatar -> ServiceResponse.success("Found avatar for user %s".formatted(username), avatarMapper.toDTO(avatar)))
                 .orElse(ServiceResponse.failure("Avatar not found"));
+    }
+
+    /**
+     * Retrieves the avatar for a specific user as a resource.
+     *
+     * @param username The username of the user whose avatar is requested.
+     * @return the avatar associated with username, or the file default-avatar.png if not found.
+     */
+    @Transactional(readOnly = true)
+    public ServiceResponse<FileResourceDTO> getAvatarResource(String username) {
+        return avatarRepository.findByUserName(username).map(avatar -> {
+            FileInfo avatarFileInfo = avatar.getFile();
+            FileResourceDTO fileResourceDTO = fileService.getFileResourceById(avatarFileInfo.getId()).getDataObject();
+            return ServiceResponse.success("Found avatar resource for user %s".formatted(username), fileResourceDTO);
+        }).orElseGet(() -> {
+            return ServiceResponse.success("Avatar not found for user %s. Return the default avatar".formatted(username),
+                new FileResourceDTO(new ClassPathResource("static/images/default-avatar.png"), "default-avatar.png", "image/png"));
+        }
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public ServiceResponse<Long> getAvatarFileId(String userName) {
+        return avatarRepository.findByUserName(userName).map(avatar -> {
+            FileInfo avatarFileInfo = avatar.getFile();
+            return ServiceResponse.success("Found avatar file id for user %s".formatted(userName), avatarFileInfo.getId());
+        }).orElseGet( () -> {
+            /* return success anyway with null payload */
+            return ServiceResponse.success("Avatar doesn't exist for user %s".formatted(userName), null);
+        });
+    }
+
+    @Transactional(readOnly = true)
+    public ServiceResponse<Map<String, Long>> getAvatarFileIds(List<String> userNames) {
+        return ServiceResponse.success("Retrieve avatar file ids",
+                avatarRepository.findAvatarFileIdsByUserNames(userNames));
     }
 }

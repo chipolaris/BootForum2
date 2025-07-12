@@ -31,7 +31,8 @@
             <p class="text-sm text-gray-500 dark:text-slate-400 mt-1">
               Posted on {{ discussion.createdDate | date:'medium' }}
             </p>
-            <p class="mt-2 text-gray-700 dark:text-slate-300 text-sm">{{ discussion.content }}</p>
+            <markdown [data]="discussion.content" class="toastui-viewer-styling text-gray-700 dark:text-slate-300 text-sm"></markdown>
+            <!--<p class="mt-2 text-gray-700 dark:text-slate-300 text-sm">{{ discussion.content }}</p>-->
           </div>
         </div>
         <ng-template #noDiscussions>
@@ -45,7 +46,7 @@
         <div *ngIf="userProfile.comments.length > 0; else noComments" class="space-y-4">
           <div *ngFor="let comment of userProfile.comments"
                class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-            <p class="text-gray-700 dark:text-slate-300 text-sm">"{{ comment.content }}"</p>
+            <markdown [data]="comment.content" class="toastui-viewer-styling text-gray-700 dark:text-slate-300 text-sm"></markdown>
             <p class="text-sm text-gray-500 dark:text-slate-400 mt-2">
               Commented on
               <a [routerLink]="['/app/discussions', comment.discussionId, 'view']"
@@ -66,6 +67,13 @@
     <aside class="md:w-1/4">
       <div class="bg-slate-50 dark:bg-slate-700 p-4 rounded-lg shadow-md sticky top-4">
         <div class="text-center mb-4">
+          <!-- AVATAR IMAGE -->
+          <div class="flex justify-center mb-4">
+            <img [src]="getAvatarUrl()" [alt]="userProfile.username + '\'s avatar'"
+                 class="h-18 w-18 rounded-full object-cover ring-2 ring-white dark:ring-slate-500">
+          </div>
+          <!-- END AVATAR IMAGE -->
+
           <h3 class="text-xl font-bold text-gray-800 dark:text-slate-100">
             {{ userProfile.firstName }} {{ userProfile.lastName }}
           </h3>
@@ -83,7 +91,7 @@
           </div>
           <div class="flex justify-between">
             <dt class="font-medium text-gray-600 dark:text-slate-300">Reputation:</dt>
-            <dd class="text-gray-800 dark:text-slate-100 font-bold text-green-600 dark:text-green-400">{{ userProfile.reputation }}</dd>
+            <dd class="font-bold text-green-600 dark:text-green-400">{{ userProfile.reputation }}</dd>
           </div>
           <div class="flex justify-between">
             <dt class="font-medium text-gray-600 dark:text-slate-300">Profile Views:</dt>

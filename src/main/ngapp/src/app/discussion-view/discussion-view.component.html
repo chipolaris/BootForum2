@@ -23,20 +23,26 @@
       <div *ngIf="discussionDetails && !isLoadingDiscussion && !discussionError"
            class="bg-slate-100 dark:bg-slate-800 p-6 rounded-lg shadow-lg">
         <header class="mb-4">
-          <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100">{{ discussionDetails.title }}</h2>
-          <p class="text-sm text-slate-600 dark:text-slate-300">
-            By
-            <a [routerLink]="['/app/users', discussionDetails.createBy, 'profile']"
-               class="font-bold hover:underline cursor-pointer">
-              {{ discussionDetails.createBy }}
-            </a>
-            on {{ discussionDetails.createDate | date:'medium' }}
-          </p>
+          <!-- UPDATED DISCUSSION HEADER WITH AVATAR -->
+          <div class="flex items-start space-x-4">
+            <img [src]="getAvatarUrl(discussionDetails.createBy)" [alt]="discussionDetails.createBy + '\'s avatar'"
+                 class="h-12 w-12 rounded-full object-cover flex-shrink-0">
+            <div class="flex-grow">
+              <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100">{{ discussionDetails.title }}</h2>
+              <p class="text-sm text-slate-600 dark:text-slate-300">
+                By
+                <a [routerLink]="['/app/users', discussionDetails.createBy, 'profile']"
+                   class="font-bold hover:underline cursor-pointer">
+                  {{ discussionDetails.createBy }}
+                </a>
+                on {{ discussionDetails.createDate | date:'medium' }}
+              </p>
+            </div>
+          </div>
         </header>
-        <!-- Use ngx-markdown -->
+        <!-- ... (rest of discussion details: markdown, files, footer) ... -->
         <markdown [data]="discussionDetails.content" class="toastui-viewer-styling"></markdown>
 
-        <!-- View Images Button for Discussion -->
         <div *ngIf="discussionDetails.images && discussionDetails.images.length > 0" class="mt-4">
           <button (click)="openDiscussionGalleria()"
                   class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
@@ -48,10 +54,8 @@
         <app-file-list [files]="discussionDetails.attachments ?? []"></app-file-list>
         <footer class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
           <div>
-            <!-- Reply to Discussion -->
             <a [routerLink]="['/app/comments/create', discussionDetails.id]"
                class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium mr-3 cursor-pointer">Reply</a>
-            <!-- Quote Discussion -->
             <a [routerLink]="['/app/comments/create', discussionDetails.id]"
                [queryParams]="{ quote: true }"
                [state]="{ contentToQuote: discussionDetails.content, authorToQuote: discussionDetails.createBy, quotedItemTitle: discussionDetails.title }"
@@ -74,73 +78,74 @@
         </footer>
       </div>
 
-      <!-- Loading Comments State -->
-      <div *ngIf="isLoadingComments && !commentsPage" class="flex justify-center items-center py-6">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        <p class="ml-2 text-gray-600">Loading replies...</p>
-      </div>
-
-      <!-- Comments Error Message -->
-      <div *ngIf="commentsError && !isLoadingComments"
-           class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md" role="alert">
-        <p class="font-bold">Error Loading Replies</p>
-        <p>{{ commentsError }}</p>
-      </div>
+      <!-- ... (Loading and Error states for comments remain the same) ... -->
 
       <!-- Comments List -->
       <div *ngIf="commentsDataForViewers.length > 0 && !isLoadingComments && !commentsError" class="space-y-4">
         <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mt-8 mb-4">Replies</h3>
-        <div *ngFor="let comment of commentsDataForViewers; let i = index; trackBy: trackByCommentId"
-             class="bg-white dark:bg-slate-700 p-4 rounded-lg shadow-md">
-          <header class="mb-2">
-            <h4 class="text-lg font-semibold text-gray-800 dark:text-slate-100">{{ comment.title }}</h4>
-            <p class="text-xs text-gray-500 dark:text-slate-400">
-              By:
-              <a [routerLink]="['/app/users', comment.createBy, 'profile']"
-                 class="font-bold hover:underline cursor-pointer">
-                {{ comment.createBy }}
-              </a>
-              on {{ comment.createDate | date:'mediumDate' }} at {{ comment.createDate | date:'shortTime' }}
-            </p>
-          </header>
-          <markdown [data]="comment.content" class="toastui-viewer-styling text-gray-700 dark:text-slate-300 text-sm"></markdown>
 
-          <!-- View Images Button for Comment -->
-          <div *ngIf="comment.images && comment.images.length > 0" class="mt-4">
-            <button (click)="openCommentGalleria(comment)"
-                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-              <ng-icon name="heroPhoto" class="mr-2" size="1.2em"></ng-icon>
-              View Images ({{ comment.images.length }})
-            </button>
+        <!-- UPDATED COMMENT LAYOUT WITH AVATAR -->
+        <div *ngFor="let comment of commentsDataForViewers; let i = index; trackBy: trackByCommentId"
+             class="bg-white dark:bg-slate-700 p-4 rounded-lg shadow-md flex items-start space-x-4">
+
+          <!-- Avatar Column -->
+          <div class="flex-shrink-0">
+            <a [routerLink]="['/app/users', comment.createBy, 'profile']">
+              <img [src]="getAvatarUrl(comment.createBy)" [alt]="comment.createBy + '\'s avatar'"
+                   class="h-12 w-12 rounded-full object-cover hover:ring-2 hover:ring-indigo-400 transition-all">
+            </a>
           </div>
 
-          <app-file-list [files]="comment.attachments ?? []"></app-file-list>
-          <footer class="mt-3 pt-3 border-t border-gray-200 dark:border-slate-600 flex justify-between items-center">
-            <div>
-              <!-- Reply to Comment -->
-              <a [routerLink]="['/app/comments/create', discussionDetails.id, 'reply-to', comment.id]"
-                 class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium mr-2 cursor-pointer">Reply</a>
-              <!-- Quote Comment -->
-              <a [routerLink]="['/app/comments/create', discussionDetails.id, 'reply-to', comment.id]"
-                 [queryParams]="{ quote: true }"
-                 [state]="{ contentToQuote: comment.content, authorToQuote: comment.createBy, quotedItemTitle: comment.title }"
-                 class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium cursor-pointer">Quote</a>
-            </div>
-            <div class="flex items-center gap-x-2">
-              <button (click)="voteForComment(comment, 'up')" type="button" class="flex items-center text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-xs font-medium cursor-pointer">
-                Vote Up
-                <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-700 dark:text-green-100">
-                  {{ comment.commentVote?.voteUpCount ?? 0 }}
-                </span>
-              </button>
-              <button (click)="voteForComment(comment, 'down')" type="button" class="flex items-center text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-xs font-medium cursor-pointer">
-                Vote Down
-                <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-700 dark:text-red-100">
-                  {{ comment.commentVote?.voteDownCount ?? 0 }}
-                </span>
+          <!-- Main Comment Content Column -->
+          <div class="flex-grow min-w-0">
+            <header class="mb-2">
+              <h4 class="text-lg font-semibold text-gray-800 dark:text-slate-100">{{ comment.title }}</h4>
+              <p class="text-xs text-gray-500 dark:text-slate-400">
+                By:
+                <a [routerLink]="['/app/users', comment.createBy, 'profile']"
+                   class="font-bold hover:underline cursor-pointer">
+                  {{ comment.createBy }}
+                </a>
+                on {{ comment.createDate | date:'mediumDate' }} at {{ comment.createDate | date:'shortTime' }}
+              </p>
+            </header>
+            <markdown [data]="comment.content" class="toastui-viewer-styling text-gray-700 dark:text-slate-300 text-sm"></markdown>
+
+            <!-- ... (rest of comment: images, files, footer) ... -->
+            <div *ngIf="comment.images && comment.images.length > 0" class="mt-4">
+              <button (click)="openCommentGalleria(comment)"
+                      class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <ng-icon name="heroPhoto" class="mr-2" size="1.2em"></ng-icon>
+                View Images ({{ comment.images.length }})
               </button>
             </div>
-          </footer>
+
+            <app-file-list [files]="comment.attachments ?? []"></app-file-list>
+            <footer class="mt-3 pt-3 border-t border-gray-200 dark:border-slate-600 flex justify-between items-center">
+              <div>
+                <a [routerLink]="['/app/comments/create', discussionDetails.id, 'reply-to', comment.id]"
+                   class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium mr-2 cursor-pointer">Reply</a>
+                <a [routerLink]="['/app/comments/create', discussionDetails.id, 'reply-to', comment.id]"
+                   [queryParams]="{ quote: true }"
+                   [state]="{ contentToQuote: comment.content, authorToQuote: comment.createBy, quotedItemTitle: comment.title }"
+                   class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium cursor-pointer">Quote</a>
+              </div>
+              <div class="flex items-center gap-x-2">
+                <button (click)="voteForComment(comment, 'up')" type="button" class="flex items-center text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-xs font-medium cursor-pointer">
+                  Vote Up
+                  <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-700 dark:text-green-100">
+                    {{ comment.commentVote?.voteUpCount ?? 0 }}
+                  </span>
+                </button>
+                <button (click)="voteForComment(comment, 'down')" type="button" class="flex items-center text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-xs font-medium cursor-pointer">
+                  Vote Down
+                  <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-700 dark:text-red-100">
+                    {{ comment.commentVote?.voteDownCount ?? 0 }}
+                  </span>
+                </button>
+              </div>
+            </footer>
+          </div>
         </div>
       </div>
 

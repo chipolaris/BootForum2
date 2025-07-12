@@ -31,7 +31,7 @@ public class FileController {
     }
 
     @GetMapping("/{fileId}")
-    public ResponseEntity<Resource> serveFile(@PathVariable Long fileId, HttpServletRequest request) {
+    public ResponseEntity<Resource> serveFile(@PathVariable Long fileId) {
         logger.debug("Received request to serve file with ID: {}", fileId);
 
         ServiceResponse<FileResourceDTO> serviceResponse =

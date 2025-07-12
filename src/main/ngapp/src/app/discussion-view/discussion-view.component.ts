@@ -8,7 +8,7 @@ import {
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription, distinctUntilChanged, tap, of } from 'rxjs';
+import { Subscription, distinctUntilChanged, tap, of, forkJoin } from 'rxjs'; // Import forkJoin
 import { catchError } from 'rxjs/operators';
 import { MessageService } from 'primeng/api';
 
@@ -16,6 +16,7 @@ import { DiscussionService } from '../_services/discussion.service';
 import { CommentService } from '../_services/comment.service';
 import { VoteService } from '../_services/vote.service';
 import { AuthenticationService } from '../_services/authentication.service';
+import { AvatarService } from '../_services/avatar.service'; // <-- IMPORT NEW SERVICE
 import { DiscussionDTO, CommentDTO, FileInfoDTO, Page, ApiResponse } from '../_data/dtos';
 import { FileListComponent } from '../file-list/file-list.component'
 
@@ -25,8 +26,8 @@ import { APP_ICONS } from '../shared/hero-icons';
 import { MarkdownModule } from 'ngx-markdown';
 
 // PrimeNG Modules for Galleria
-import { GalleriaModule } from 'primeng/galleria'; // Import GalleriaModule
-import { DialogModule } from 'primeng/dialog';     // Import DialogModule
+import { GalleriaModule } from 'primeng/galleria';
+import { DialogModule } from 'primeng/dialog';
 
 @Component({
   selector: 'app-discussion-view',
@@ -39,8 +40,8 @@ import { DialogModule } from 'primeng/dialog';     // Import DialogModule
     DatePipe,
     MarkdownModule,
     FileListComponent,
-    GalleriaModule, // Add GalleriaModule to imports
-    DialogModule    // Add DialogModule to imports
+    GalleriaModule,
+    DialogModule
   ],
   providers: [
     provideIcons(APP_ICONS)
@@ -50,11 +51,12 @@ import { DialogModule } from 'primeng/dialog';     // Import DialogModule
 })
 export class DiscussionViewComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
-  private router = inject(Router); // Inject Router
+  private router = inject(Router);
   private discussionService = inject(DiscussionService);
   private commentService = inject(CommentService);
   private voteService = inject(VoteService);
-  private authService = inject(AuthenticationService); // Inject AuthenticationService
+  private authService = inject(AuthenticationService);
+  private avatarService = inject(AvatarService); // <-- INJECT NEW SERVICE
   private messageService = inject(MessageService);
   private cdr = inject(ChangeDetectorRef);
 
@@ -74,33 +76,23 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
   isLoadingDiscussion = true;
   discussionError: string | null = null;
 
+  // --- NEW: Property to store the avatar map ---
+  avatarFileIdMap: Map<string, number | null> = new Map();
+
   private subscriptions = new Subscription();
 
   // --- Galleria Properties ---
-  galleriaVisible: boolean = false; // Controls the visibility of the Galleria dialog
-  currentGalleriaImages: any[] = []; // Holds the images to display in the Galleria
+  galleriaVisible: boolean = false;
+  currentGalleriaImages: any[] = [];
 
-  // Responsive options for Galleria (optional, but good for different screen sizes)
   responsiveOptions: any[] = [
-    {
-      breakpoint: '1024px',
-      numVisible: 5
-    },
-    {
-      breakpoint: '768px',
-      numVisible: 3
-    },
-    {
-      breakpoint: '560px',
-      numVisible: 1
-    }
+    { breakpoint: '1024px', numVisible: 5 },
+    { breakpoint: '768px', numVisible: 3 },
+    { breakpoint: '560px', numVisible: 1 }
   ];
-
-  // --- No changes to other lifecycle hooks or data fetching methods ---
 
   ngOnInit(): void {
     const routeParamsSub = this.route.paramMap.pipe(
-      tap(params => console.log('[OnInit] Route params changed', params.get('id'))),
       distinctUntilChanged((prev, curr) => prev.get('id') === curr.get('id'))
     ).subscribe(params => {
       const idParam = params.get('id');
@@ -123,97 +115,129 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
   }
 
   private resetDataStates(): void {
-    console.log('[resetDataStates] Resetting component data states.');
     this.discussionDetails = null;
     this.commentsPage = null;
     this.commentsDataForViewers = [];
-
+    this.avatarFileIdMap.clear(); // Clear the avatar map on reset
     this.currentCommentsPage = 0;
     this.displayableCommentPageNumbers = [];
-
     this.isLoadingDiscussion = true;
     this.discussionError = null;
-
     this.isLoadingComments = true;
     this.commentsError = null;
   }
 
   private loadDiscussionData(discussionId: number): void {
-    console.log(`[loadDiscussionData] Loading data for discussion ID: ${discussionId}`);
-    this.fetchDiscussionDetails(discussionId);
-    this.fetchComments(discussionId, 0, this.commentsPageSize, this.commentsSortField, this.commentsSortDirection);
-  }
-
-  fetchDiscussionDetails(id: number): void {
     this.isLoadingDiscussion = true;
-    this.discussionError = null;
-    const sub = this.discussionService.getDiscussionById(id).subscribe({
-      next: (response: ApiResponse<DiscussionDTO>) => {
-        if (response.success && response.data) {
-          this.discussionDetails = response.data;
+    this.isLoadingComments = true;
+
+    // Use forkJoin to wait for both discussion and comments to load before fetching avatars
+    const discussion$ = this.discussionService.getDiscussionById(discussionId);
+    const comments$ = this.commentService.listComments(discussionId, 0, this.commentsPageSize, this.commentsSortField, this.commentsSortDirection);
+
+    const loadSub = forkJoin([discussion$, comments$]).subscribe({
+      next: ([discussionResponse, commentsResponse]) => {
+        // Process discussion
+        if (discussionResponse.success && discussionResponse.data) {
+          this.discussionDetails = discussionResponse.data;
         } else {
-          this.handleError(response.message || 'Failed to load discussion details.', 'discussion', response.errors);
+          this.handleError(discussionResponse.message || 'Failed to load discussion details.', 'discussion', discussionResponse.errors);
         }
         this.isLoadingDiscussion = false;
+
+        // Process comments
+        if (commentsResponse?.success && commentsResponse.data) {
+          this.commentsPage = commentsResponse.data;
+          this.commentsDataForViewers = this.commentsPage.content;
+          this.currentCommentsPage = this.commentsPage.number;
+          this.displayableCommentPageNumbers = this._calculateDisplayablePageNumbers(this.commentsPage);
+        } else if (commentsResponse && !commentsResponse.success) {
+          this.handleError(commentsResponse.message || 'Failed to load comments.', 'comments', commentsResponse.errors);
+        }
+        this.isLoadingComments = false;
+
+        // After both are loaded, collect usernames and fetch avatar IDs
+        this.fetchAvatarFileIds();
       },
-      error: (err) => this.handleError(err.message || 'Error fetching discussion.', 'discussion')
+      error: (err) => {
+        this.handleError(err.message || 'Error loading discussion or comments.', 'discussion');
+        this.isLoadingDiscussion = false;
+        this.isLoadingComments = false;
+      }
     });
-    this.subscriptions.add(sub);
+    this.subscriptions.add(loadSub);
   }
 
+  // This method is now called from within loadDiscussionData after comments are fetched
   fetchComments(discussionId: number, pageForComments: number, size: number, sortProperty: string, sortDirection: string): void {
-    console.log(`[fetchComments] Fetching comments for discussion ID: ${discussionId}, page: ${pageForComments} using NEW endpoint.`);
     this.isLoadingComments = true;
     this.commentsError = null;
 
-    // No need for pageForBackend, pageForComments is directly used for the new endpoint
     const sub = this.commentService.listComments(discussionId, pageForComments, size, sortProperty, sortDirection)
       .pipe(catchError(err => {
         this.handleError(err.message || 'Error fetching comments.', 'comments');
-        if (this.commentsDataForViewers.length > 0 || this.commentsPage !== null) {
-            this.commentsDataForViewers = [];
-            this.commentsPage = null;
-            this.cdr.detectChanges();
-        }
         return of(null);
       }))
       .subscribe(response => {
-        let newCommentsData: CommentDTO[] = [];
-        let newCommentsPage: Page<CommentDTO> | null = null;
-
-        if (response && response.success && response.data) {
-          // The data from listComments is already filtered by the backend
-          // No client-side 'shift()' or processing of rawPageData is needed here.
-          newCommentsPage = response.data;
-          newCommentsData = newCommentsPage.content; // Directly use the content
-
-          console.log('[fetchComments] Raw data received for replies (from new endpoint):', response.data);
-
+        if (response?.success && response.data) {
+          this.commentsPage = response.data;
+          this.commentsDataForViewers = this.commentsPage.content;
+          this.currentCommentsPage = this.commentsPage.number;
+          this.displayableCommentPageNumbers = this._calculateDisplayablePageNumbers(this.commentsPage);
+          this.fetchAvatarFileIds(); // Fetch avatars for the new page of comments
         } else if (response && !response.success) {
           this.handleError(response.message || 'Failed to load comments.', 'comments', response.errors);
         }
-
-        this.commentsPage = newCommentsPage;
-        this.commentsDataForViewers = newCommentsData;
-        this.currentCommentsPage = newCommentsPage ? newCommentsPage.number : 0;
-        this.displayableCommentPageNumbers = this._calculateDisplayablePageNumbers(newCommentsPage);
-
-        if (!this.commentsError) {
-            this.isLoadingComments = false;
-        }
-
-        console.log(`[fetchComments] Updated commentsDataForViewers. Length: ${this.commentsDataForViewers.length}. isLoading: ${this.isLoadingComments}`);
-        console.log('[Debug Before DetectChanges] isLoadingComments:', this.isLoadingComments,
-                    'commentsError:', this.commentsError,
-                    'commentsDataForViewers.length:', this.commentsDataForViewers.length,
-                    'commentsPage:', this.commentsPage ? 'Exists' : 'null',
-                    'commentsPage.empty:', this.commentsPage?.empty);
-
+        this.isLoadingComments = false;
         this.cdr.detectChanges();
       });
     this.subscriptions.add(sub);
   }
 
+  /**
+   * NEW: Collects all unique usernames and fetches their avatar file IDs.
+   */
+  private fetchAvatarFileIds(): void {
+    const usernames = new Set<string>();
+    if (this.discussionDetails) {
+      usernames.add(this.discussionDetails.createBy);
+    }
+    this.commentsDataForViewers.forEach(comment => usernames.add(comment.createBy));
+
+    if (usernames.size === 0) {
+      return; // Nothing to fetch
+    }
+
+    const avatarSub = this.avatarService.getAvatarFileIds(Array.from(usernames)).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          // The backend returns a plain object, which we convert to a Map
+          this.avatarFileIdMap = new Map(Object.entries(response.data));
+          this.cdr.detectChanges(); // Manually trigger change detection
+        }
+      },
+      error: (err) => console.error('Failed to fetch avatar file IDs:', err)
+    });
+    this.subscriptions.add(avatarSub);
+  }
+
+  /**
+   * NEW: Generates the correct avatar URL using the fetched file ID map.
+   */
+  getAvatarUrl(username: string): string {
+    if (this.avatarFileIdMap.has(username)) {
+      const fileId = this.avatarFileIdMap.get(username);
+      if (fileId) {
+        // Use the direct file serving endpoint for a permanent, cacheable URL
+        return `/api/public/files/${fileId}`;
+      }
+    }
+    // If user is not in the map or their fileId is null, return the default avatar
+    return '/assets/images/default-avatar.png';
+  }
+
+  // ... (rest of the component methods: voteForDiscussion, voteForComment, handleError, etc.)
+  // ... (No changes needed for the rest of the file)
   voteForDiscussion(voteValue: 'up' | 'down'): void {
 
     if (!this.authService.isAuthenticated()) {

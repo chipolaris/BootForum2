@@ -43,7 +43,7 @@ public class CommentController {
      *                     Defaults: size=10, sort='createDate' ASC.
      * @return ApiResponse containing a PageResponseDTO of CommentDTOs or error details.
      */
-    @GetMapping("/public/discussion/{discussionId}/comments")
+    @GetMapping("/public/comments/by-discussion/{discussionId}")
     public ApiResponse<?> listCommentsByDiscussion(
             @PathVariable Long discussionId,
             @PageableDefault(size = 10, sort = "createDate", direction = Sort.Direction.ASC) Pageable pageable) {
