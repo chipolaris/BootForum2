@@ -20,6 +20,7 @@ import { LoginComponent } from './login/login.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
 import { UserAccountComponent } from './user-account/user-account.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { SearchViewComponent } from './search-view/search-view.component';
 import { authGuard } from './_guards/auth.guard';
 
 export const routes: Routes = [
@@ -59,6 +60,7 @@ export const routes: Routes = [
     path: 'app/discussions/create/:forumId',
     component: DiscussionCreateComponent, canActivate: [authGuard]
   },
+  { path: 'app/discussions/search', component: SearchViewComponent },
   {
     path: 'app/comments/create/:discussionId', // For replying to discussion
     component: CommentCreateComponent, canActivate: [authGuard]

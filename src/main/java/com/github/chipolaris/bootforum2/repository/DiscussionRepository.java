@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
 
@@ -27,4 +28,6 @@ public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
 
     // New method to find latest discussions by a user
     List<Discussion> findTop5ByCreateByOrderByCreateDateDesc(String createBy);
+
+    Optional<Discussion> findTopByOrderByCreateDateDesc();
 }

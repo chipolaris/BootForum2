@@ -117,7 +117,7 @@ public class DiscussionController {
         }
 
         try {
-            ServiceResponse<DiscussionDTO> serviceResponse = discussionService.findDiscussion(discussionId);
+            ServiceResponse<DiscussionDTO> serviceResponse = discussionService.getDiscussion(discussionId);
 
             if (serviceResponse.isSuccess()) {
                 return ApiResponse.success(serviceResponse.getDataObject(), "Discussion retrieved successfully.");
@@ -127,6 +127,39 @@ public class DiscussionController {
         } catch (Exception e) {
             logger.error(String.format("Unexpected error while retrieving discussion with ID %d", discussionId), e);
             return ApiResponse.error(String.format("An unexpected error occurred while retrieving discussion with ID %d.", discussionId));
+        }
+    }
+
+    /**
+     * NEW: Performs a full-text search for discussions.
+     *
+     * @param keyword  The keyword to search for in discussion titles and content.
+     * @param pageable Spring Data Pageable object for pagination. Note: Sorting is handled by relevance in the service.
+     * @return ApiResponse containing a PageResponseDTO of matching DiscussionInfoDTOs.
+     */
+    @GetMapping("/public/discussions/search")
+    public ApiResponse<?> searchDiscussions(
+            @RequestParam("keyword") String keyword,
+            @PageableDefault(size = 10) Pageable pageable) {
+
+        logger.info("Received request to search discussions with keyword: '{}'", keyword);
+
+        if (keyword == null || keyword.isBlank()) {
+            return ApiResponse.error("Search keyword cannot be empty.");
+        }
+
+        try {
+            ServiceResponse<PageResponseDTO<DiscussionInfoDTO>> serviceResponse =
+                    discussionService.searchDiscussions(keyword, pageable);
+
+            if (serviceResponse.isSuccess()) {
+                return ApiResponse.success(serviceResponse.getDataObject(), "Search completed successfully.");
+            } else {
+                return ApiResponse.error(serviceResponse.getMessages(), "Failed to perform search.");
+            }
+        } catch (Exception e) {
+            logger.error(String.format("Unexpected error while searching discussions for keyword '%s': ", keyword), e);
+            return ApiResponse.error("An unexpected error occurred during the search.");
         }
     }
 }

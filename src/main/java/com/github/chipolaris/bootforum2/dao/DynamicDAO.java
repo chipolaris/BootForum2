@@ -16,7 +16,7 @@ import java.util.Optional;
 @Repository
 public class DynamicDAO {
 
-    private static final Logger log = LoggerFactory.getLogger(DynamicDAO.class);
+    private static final Logger logger = LoggerFactory.getLogger(DynamicDAO.class);
 
     @PersistenceContext
     protected EntityManager entityManager;
@@ -207,7 +207,7 @@ public class DynamicDAO {
             try {
                 predicates.add(buildPredicate(criteriaBuilder, root, filter));
             } catch (IllegalArgumentException e) {
-                log.warn("Skipping invalid filter: {} due to {}", filter, e.getMessage());
+                logger.warn("Skipping invalid filter: {} due to {}", filter, e.getMessage());
             }
         }
 

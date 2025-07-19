@@ -36,6 +36,39 @@ public class CommentController {
     }
 
     /**
+     * NEW: Performs a full-text search for comments.
+     *
+     * @param keyword  The keyword to search for in comment titles and content.
+     * @param pageable Spring Data Pageable object for pagination and sorting.
+     * @return ApiResponse containing a PageResponseDTO of matching CommentDTOs or error details.
+     */
+    @GetMapping("/public/comments/search")
+    public ApiResponse<?> searchComments(
+            @RequestParam("keyword") String keyword,
+            @PageableDefault(size = 10, sort = "createDate", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        logger.info("Received request to search comments with keyword: '{}'", keyword);
+
+        if (keyword == null || keyword.isBlank()) {
+            return ApiResponse.error("Search keyword cannot be empty.");
+        }
+
+        try {
+            ServiceResponse<PageResponseDTO<CommentDTO>> serviceResponse =
+                    commentService.searchComments(keyword, pageable);
+
+            if (serviceResponse.isSuccess()) {
+                return ApiResponse.success(serviceResponse.getDataObject(), "Search completed successfully.");
+            } else {
+                return ApiResponse.error(serviceResponse.getMessages(), "Failed to perform search.");
+            }
+        } catch (Exception e) {
+            logger.error(String.format("Unexpected error while searching comments for keyword '%s': ", keyword), e);
+            return ApiResponse.error("An unexpected error occurred during the search.");
+        }
+    }
+
+    /**
      * Retrieves a paginated list of comments for a specific discussion.
      *
      * @param discussionId The ID of the discussion whose comments are to be retrieved.

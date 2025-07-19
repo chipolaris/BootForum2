@@ -23,6 +23,8 @@ export interface CommentInfoDTO {
   commentId: number;
   commentor: string;
   commentDate: Date;
+  discussionId: number;
+  discussionTitle: string;
 }
 
 export interface CommentCreateDTO {

@@ -13,11 +13,14 @@
             <li>
               <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/forums/tree-table"> Forums </a>
             </li>
+            <li>
+              <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/discussions/search"> Search </a>
+            </li>
             <li *ngIf="(isLoggedIn$ | async)">
               <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/dashboard"> Dashboard </a>
             </li>
             <li *ngIf="(isLoggedIn$ | async) && (isAdmin$ | async)">
-              <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/admin/forums/all"> Forums </a>
+              <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/admin/forums/all"> Manage Forums </a>
             </li>
             <li *ngIf="(isLoggedIn$ | async) && (isAdmin$ | async)">
               <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/admin/forums/create"> Create Forum </a>
@@ -122,10 +125,18 @@
             <dt class="font-medium text-gray-600 dark:text-slate-400">Latest Activity:</dt>
             <ng-container *ngIf="systemStats.lastComment && systemStats.lastComment.commentId > 0; else noRecentActivity">
               <dd class="text-gray-800 dark:text-slate-200">
-                <span class="font-semibold">Comment:</span> "{{ systemStats.lastComment.title }}"
+                <span class="font-semibold">Comment:</span> "{{ systemStats.lastComment.title }}" by
+                <a [routerLink]="['/app/users', systemStats.lastComment.commentor, 'profile']"
+                   class="font-bold hover:underline cursor-pointer">
+                  {{ systemStats.lastComment.commentor }}
+                </a>
                 <span class="block text-xs text-gray-500 dark:text-slate-500">
-                  by {{ systemStats.lastComment.commentor }} on {{ systemStats.lastComment.commentDate | date:'medium' }}
-                </span>
+                  on {{ systemStats.lastComment.commentDate | date:'medium' }}
+                </span> in discussion
+                <a [routerLink]="['/app/discussions', systemStats.lastComment.discussionId, 'view']"
+                   class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                  {{ systemStats.lastComment.discussionTitle }}
+                </a>
               </dd>
             </ng-container>
             <ng-template #noRecentActivity>

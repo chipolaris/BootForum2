@@ -11,6 +11,9 @@ import com.github.chipolaris.bootforum2.event.DiscussionViewedEvent;
 import com.github.chipolaris.bootforum2.mapper.DiscussionMapper;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
 import com.github.chipolaris.bootforum2.repository.DiscussionRepository;
+import jakarta.persistence.EntityManager;
+import org.hibernate.search.mapper.orm.Search;
+import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -19,6 +22,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
@@ -31,6 +35,7 @@ public class DiscussionService {
 
     private static final Logger logger = LoggerFactory.getLogger(DiscussionService.class);
 
+    private final EntityManager entityManager;
     private final GenericDAO genericDAO;
     private final DynamicDAO dynamicDAO;
     private final DiscussionRepository discussionRepository;
@@ -41,14 +46,12 @@ public class DiscussionService {
     private final ApplicationEventPublisher eventPublisher;
 
     // Note: in Spring version >= 4.3, @AutoWired is implied for beans with single constructor
-    public DiscussionService(GenericDAO genericDAO,
-                                 DynamicDAO dynamicDAO,
-                                 DiscussionRepository discussionRepository,
-                                 DiscussionMapper discussionMapper,
-                                 FileService fileService,
-                                 FileInfoMapper fileInfoMapper,
-                                 AuthenticationFacade authenticationFacade,
-                                 ApplicationEventPublisher eventPublisher) {
+    public DiscussionService(EntityManager entityManager, GenericDAO genericDAO,
+                             DynamicDAO dynamicDAO, DiscussionRepository discussionRepository,
+                             DiscussionMapper discussionMapper, FileService fileService,
+                             FileInfoMapper fileInfoMapper, AuthenticationFacade authenticationFacade,
+                             ApplicationEventPublisher eventPublisher) {
+        this.entityManager = entityManager;
         this.genericDAO = genericDAO;
         this.dynamicDAO = dynamicDAO;
         this.discussionRepository = discussionRepository;
@@ -219,7 +222,7 @@ public class DiscussionService {
      * @return ServiceResponse containing the DiscussionViewDTO or error details.
      */
     @Transactional(readOnly = true)
-    public ServiceResponse<DiscussionDTO> findDiscussion(Long discussionId) {
+    public ServiceResponse<DiscussionDTO> getDiscussion(Long discussionId) {
 
         if (discussionId == null) {
             logger.warn("Attempted to fetch discussion view with null ID.");
@@ -251,6 +254,54 @@ public class DiscussionService {
         } catch (Exception e) {
             logger.error(String.format("Error retrieving discussion view for ID %d: ", discussionId), e);
             return ServiceResponse.failure("An unexpected error occurred while retrieving the discussion: %s".formatted(e.getMessage()));
+        }
+    }
+
+    /**
+     * NEW: Performs a full-text search for discussions.
+     *
+     * @param keyword  The keyword to search for in discussion titles and content.
+     * @param pageable Pagination information.
+     * @return A ServiceResponse containing a paginated list of matching DiscussionInfoDTOs.
+     */
+    @Transactional(readOnly = true)
+    public ServiceResponse<PageResponseDTO<DiscussionInfoDTO>> searchDiscussions(String keyword, Pageable pageable) {
+        logger.info("Searching discussions with keyword: '{}', pageable: {}", keyword, pageable);
+
+        SearchSession searchSession = Search.session(entityManager);
+
+        try {
+            var searchResult = searchSession.search(Discussion.class)
+                    .where(f -> f.bool(b -> {
+                        // Search in title with a higher weight (boost)
+                        b.should(f.match().field("title").boost(2.0f).matching(keyword));
+                        // Search in content with normal weight
+                        b.should(f.match().field("content").matching(keyword));
+                    }))
+                    //.sort(f -> f.score().then().field("createDate").desc()) // Sort by relevance, then by date
+                    .fetch((int) pageable.getOffset(), pageable.getPageSize());
+
+            long totalHits = searchResult.total().hitCount();
+            List<Discussion> discussions = searchResult.hits();
+
+            // Manually project to DiscussionInfoDTO, truncating the content
+            List<DiscussionInfoDTO> discussionInfoDTOs = discussions.stream()
+                    .map(discussion -> new DiscussionInfoDTO(
+                            discussion.getId(),
+                            discussion.getTitle(),
+                            StringUtils.truncate(discussion.getContent(), 255), // Truncate content for summary
+                            discussion.getCreateBy(),
+                            discussion.getCreateDate()
+                    ))
+                    .collect(Collectors.toList());
+
+            Page<DiscussionInfoDTO> pageResult = new PageImpl<>(discussionInfoDTOs, pageable, totalHits);
+
+            return ServiceResponse.success("Search successful", PageResponseDTO.from(pageResult));
+
+        } catch (Exception e) {
+            logger.error(String.format("Error during discussion search for keyword '%s': ", keyword), e);
+            return ServiceResponse.failure("An unexpected error occurred during the search.");
         }
     }
 }

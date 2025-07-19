@@ -7,7 +7,8 @@ import com.github.chipolaris.bootforum2.dto.CommentInfoDTO;
 import com.github.chipolaris.bootforum2.dto.DiscussionInfoDTO;
 import com.github.chipolaris.bootforum2.dto.SystemStatisticDTO;
 import com.github.chipolaris.bootforum2.event.*;
-import com.github.chipolaris.bootforum2.mapper.CommentInfoMapper;
+import com.github.chipolaris.bootforum2.repository.CommentRepository;
+import com.github.chipolaris.bootforum2.repository.DiscussionRepository;
 import io.micrometer.common.util.StringUtils;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -20,12 +21,27 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 public class SystemStatistic {
 
     private static final Logger logger = LoggerFactory.getLogger(SystemStatistic.class);
+
+    private final GenericDAO genericDAO; // Used for initial loading
+    private final DynamicDAO dynamicDAO;
+    private final CommentRepository commentRepository;
+    private final DiscussionRepository discussionRepository;
+
+    @Autowired
+    public SystemStatistic(GenericDAO genericDAO, DynamicDAO dynamicDAO,
+                           CommentRepository commentRepository, DiscussionRepository discussionRepository) {
+        this.genericDAO = genericDAO;
+        this.dynamicDAO = dynamicDAO;
+        this.commentRepository = commentRepository;
+        this.discussionRepository = discussionRepository;
+    }
 
     // --- Data Attributes ---
     private volatile CommentInfoDTO lastComment;
@@ -39,15 +55,6 @@ public class SystemStatistic {
 
     private volatile String lastRegisteredUser;
     private volatile LocalDateTime lastUserRegisteredDate;
-
-    @Autowired
-    private GenericDAO genericDAO; // Used for initial loading
-
-    @Autowired
-    private DynamicDAO dynamicDAO;
-
-    @Autowired
-    private CommentInfoMapper commentInfoMapper; // For mapping Comment to CommentInfo
 
     // --- Initialization ---
     @PostConstruct
@@ -65,19 +72,23 @@ public class SystemStatistic {
         // Example: this.chatRoomCount.set(genericDAO.count(ChatRoom.class));
 
         // Load last comment
-        Comment latestDbComment = genericDAO.greatest(Comment.class, "createDate");
-        if (latestDbComment != null) {
-            String truncatedContent = StringUtils.truncate(latestDbComment.getContent(), 255);
-            this.lastComment = new CommentInfoDTO(latestDbComment.getId(), latestDbComment.getTitle(), truncatedContent,
-                    latestDbComment.getCreateBy(), latestDbComment.getCreateDate()); // Ensure lastComment is initialized
+        Optional<Comment> latestDbCommentOptional = commentRepository.findLatestCommentWithDiscussion();
+        if (latestDbCommentOptional.isPresent()) {
+            Comment latestComment = latestDbCommentOptional.get();
+            String truncatedContent = StringUtils.truncate(latestComment.getContent(), 255);
+            // This now works because the session is still open
+            this.lastComment = new CommentInfoDTO(latestComment.getId(), latestComment.getTitle(),
+                    truncatedContent, latestComment.getCreateBy(), latestComment.getCreateDate(),
+                    latestComment.getDiscussion().getId(), latestComment.getDiscussion().getTitle());
         }
 
         // Load last discussion
-        Discussion latestDbDiscussion = genericDAO.greatest(Discussion.class, "createDate");
-        if(latestDbDiscussion != null) {
-            String truncatedContent = StringUtils.truncate(latestDbDiscussion.getContent(), 255);
-            this.lastDiscussion = new DiscussionInfoDTO(latestDbDiscussion.getId(), latestDbDiscussion.getTitle(),
-                    truncatedContent, latestDbDiscussion.getCreateBy(), latestDbDiscussion.getCreateDate());
+        Optional<Discussion> latestDdDiscussionOptional = discussionRepository.findTopByOrderByCreateDateDesc();
+        if (latestDdDiscussionOptional.isPresent()) {
+            Discussion latestDiscussion = latestDdDiscussionOptional.get();
+            String truncatedContent = StringUtils.truncate(latestDiscussion.getContent(), 255);
+            this.lastDiscussion = new DiscussionInfoDTO(latestDiscussion.getId(), latestDiscussion.getTitle(),
+                    truncatedContent, latestDiscussion.getCreateBy(), latestDiscussion.getCreateDate());
         }
 
         // Load last registered user
@@ -110,6 +121,8 @@ public class SystemStatistic {
     public long getDiscussionCount() {
         return discussionCount.get();
     }
+
+
 
     public long getForumCount() {
         return forumCount.get();
@@ -146,7 +159,8 @@ public class SystemStatistic {
                 newComment.getCreateDate().isAfter(this.lastComment.commentDate())) {
             String truncatedContent = StringUtils.truncate(newComment.getContent(), 255);
             this.lastComment = new CommentInfoDTO(newComment.getId(), newComment.getTitle(),
-                    truncatedContent, newComment.getCreateBy(), newComment.getCreateDate()); // Assuming newComment is a complete, new object
+                    truncatedContent, newComment.getCreateBy(), newComment.getCreateDate(),
+                    newComment.getDiscussion().getId(), newComment.getDiscussion().getTitle()); // Assuming newComment is a complete, new object
             logger.debug("Updated last comment to: {}", newComment.getId());
         }
     }
@@ -262,6 +276,7 @@ public class SystemStatistic {
 
     @EventListener
     @Async // Uncomment for asynchronous execution (requires @EnableAsync in a config class)
+    // @Transactional // No DB operation, no need for @Transactional annotation
     public void handleDiscussionCreatedEvent(DiscussionCreatedEvent event) {
 
         /*
@@ -280,6 +295,7 @@ public class SystemStatistic {
 
     @EventListener
     @Async
+    // @Transactional(readOnly = true) // No DB operation, no need for @Transactional annotation
     public void handleForumCreatedEvent(ForumCreatedEvent event) {
 
         Forum forum = event.getForum();
@@ -289,6 +305,7 @@ public class SystemStatistic {
 
     @EventListener
     @Async
+    // @Transactional // No DB operation, no need for @Transactional annotation
     public void handleForumGroupCreatedEvent(ForumGroupCreatedEvent event) {
 
         ForumGroup forumGroup = event.getForumGroup();
@@ -298,6 +315,7 @@ public class SystemStatistic {
 
     @EventListener
     @Async
+    // @Transactional // No DB operation, no need for @Transactional annotation
     public void handleUserCreatedEvent(UserCreatedEvent event) {
 
         /*

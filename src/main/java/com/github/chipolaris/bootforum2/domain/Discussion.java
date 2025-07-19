@@ -40,6 +40,7 @@ public class Discussion extends BaseEntity {
     @GeneratedValue(strategy=GenerationType.TABLE, generator="DiscussionIdGenerator")
     private Long id;
 
+    @FullTextField
     @Column(name="TITLE", length=255, nullable=false)
     private String title;
 

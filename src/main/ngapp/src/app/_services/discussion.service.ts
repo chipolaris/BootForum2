@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'; // Added HttpParams
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { ApiResponse, DiscussionDTO, DiscussionSummaryDTO, Page } from '../_data/dtos'; // Adjust path as needed, Added Page
+import { ApiResponse, DiscussionDTO, DiscussionInfoDTO, DiscussionSummaryDTO, Page } from '../_data/dtos'; // Adjust path as needed, Added Page
 
 @Injectable({
   providedIn: 'root'
@@ -85,6 +85,36 @@ export class DiscussionService {
             console.log(`Discussion with id ${id} fetched successfully via service`, response.data);
           } else {
             console.error(`Failed to fetch discussion with id ${id} via service`, response.message, response.errors);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Searches for discussions based on a keyword.
+   * @param keyword The search term.
+   * @param page The page number to retrieve (0-indexed).
+   * @param size The number of discussions per page.
+   * @returns An Observable of ApiResponse containing a Page of DiscussionInfoDTOs.
+   */
+  searchDiscussions(
+    keyword: string,
+    page: number = 0,
+    size: number = 10
+  ): Observable<ApiResponse<Page<DiscussionInfoDTO>>> {
+    const params = new HttpParams()
+      .set('keyword', keyword)
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    return this.http.get<ApiResponse<Page<DiscussionInfoDTO>>>(`${this.basePublicApiUrl}/search`, { params })
+      .pipe(
+        tap(response => {
+          if (response.success) {
+            console.log('Discussions searched successfully via service', response.data);
+          } else {
+            console.error('Failed to search discussions via service', response.message, response.errors);
           }
         }),
         catchError(this.handleError)

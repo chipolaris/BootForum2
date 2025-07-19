@@ -9,6 +9,9 @@ import com.github.chipolaris.bootforum2.dto.*;
 import com.github.chipolaris.bootforum2.event.CommentCreatedEvent;
 import com.github.chipolaris.bootforum2.mapper.CommentMapper;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
+import jakarta.persistence.EntityManager;
+import org.hibernate.search.mapper.orm.Search;
+import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -28,6 +31,7 @@ public class CommentService {
 
     private static final Logger logger = LoggerFactory.getLogger(CommentService.class);
 
+    private final EntityManager entityManager;
     private final DynamicDAO dynamicDAO;
     private final GenericDAO genericDAO;
     private final CommentMapper commentMapper;
@@ -37,12 +41,14 @@ public class CommentService {
     private final ApplicationEventPublisher eventPublisher;
 
     // Note: in Spring version >= 4.3, @AutoWired is implied for beans with single constructor
-    public CommentService(GenericDAO genericDAO, DynamicDAO dynamicDAO,
+    public CommentService(EntityManager entityManager,
+                          GenericDAO genericDAO, DynamicDAO dynamicDAO,
                           CommentMapper commentMapper,
                           FileService fileService,
                           FileInfoMapper fileInfoMapper,
                           AuthenticationFacade authenticationFacade,
                           ApplicationEventPublisher eventPublisher) {
+        this.entityManager = entityManager;
         this.genericDAO = genericDAO;
         this.dynamicDAO = dynamicDAO;
         this.commentMapper = commentMapper;
@@ -186,6 +192,44 @@ public class CommentService {
         } catch (Exception e) {
             logger.error(String.format("Error fetching comments for discussion ID %d: ", discussionId), e);
             return ServiceResponse.failure("An unexpected error occurred while fetching comments.");
+        }
+    }
+
+    /**
+     * NEW: Performs a full-text search for comments based on a keyword.
+     * The search is performed on the 'title' and 'content' fields of the Comment entity.
+     *
+     * @param keyword  The keyword(s) to search for.
+     * @param pageable Pagination information.
+     * @return A ServiceResponse containing a paginated list of matching CommentDTOs.
+     */
+    @Transactional(readOnly = true)
+    public ServiceResponse<PageResponseDTO<CommentDTO>> searchComments(String keyword, Pageable pageable) {
+        logger.info("Searching comments with keyword: '{}'", keyword);
+
+        SearchSession searchSession = Search.session(entityManager);
+
+        try {
+            var searchResult = searchSession.search(Comment.class)
+                    .where(f -> f.match()
+                            .fields("title", "content")
+                            .matching(keyword))
+                    .fetch((int) pageable.getOffset(), pageable.getPageSize());
+
+            List<Comment> comments = searchResult.hits();
+            long totalHits = searchResult.total().hitCount();
+
+            List<CommentDTO> commentDTOs = comments.stream()
+                    .map(commentMapper::toCommentDTO)
+                    .collect(Collectors.toList());
+
+            Page<CommentDTO> pageResult = new PageImpl<>(commentDTOs, pageable, totalHits);
+
+            return ServiceResponse.success("Search successful", PageResponseDTO.from(pageResult));
+
+        } catch (Exception e) {
+            logger.error(String.format("Error during comment search for keyword '%s': ", keyword), e);
+            return ServiceResponse.failure("An unexpected error occurred during the search.");
         }
     }
 }
