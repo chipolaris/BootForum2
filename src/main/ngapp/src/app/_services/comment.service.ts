@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { ApiResponse, CommentDTO, Page, CommentThreadDTO } from '../_data/dtos'; // Adjust path as needed
+import { ApiResponse, CommentDTO, Page, CommentThreadDTO } from '../_data/dtos';
 
 @Injectable({
   providedIn: 'root'
@@ -86,6 +86,37 @@ export class CommentService {
         catchError(this.handleError)
       );
   }
+
+  /**
+   * Searches for comments based on a keyword.
+   * @param keyword The search term.
+   * @param page The page number to retrieve (0-indexed).
+   * @param size The number of comments per page.
+   * @returns An Observable of ApiResponse containing a Page of CommentDTOs.
+   */
+  searchComments(
+    keyword: string,
+    page: number = 0,
+    size: number = 20
+  ): Observable<ApiResponse<Page<CommentDTO>>> {
+    const params = new HttpParams()
+      .set('keyword', keyword)
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    return this.http.get<ApiResponse<Page<CommentDTO>>>(`${this.basePublicApiUrl}/comments/search`, { params })
+      .pipe(
+        tap(response => {
+          if (response.success) {
+            console.log('Comments searched successfully via service', response.data);
+          } else {
+            console.error('Failed to search comments via service', response.message, response.errors);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
+
 
   /**
    * Fetches a comment thread, which includes the parent discussion and the

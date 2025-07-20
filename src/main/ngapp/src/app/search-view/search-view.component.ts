@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { DiscussionService } from '../_services/discussion.service';
-import { Page, DiscussionInfoDTO } from '../_data/dtos';
+import { CommentService } from '../_services/comment.service';
+import { Page, DiscussionInfoDTO, CommentDTO } from '../_data/dtos';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { APP_ICONS } from '../shared/hero-icons';
 
@@ -17,6 +18,7 @@ import { APP_ICONS } from '../shared/hero-icons';
 })
 export class SearchViewComponent {
   private discussionService = inject(DiscussionService);
+  private commentService = inject(CommentService); // <-- INJECT
   private cdr = inject(ChangeDetectorRef);
 
   // Search form state
@@ -26,13 +28,22 @@ export class SearchViewComponent {
   // Results state
   isLoading = false;
   error: string | null = null;
-  resultsPage: Page<DiscussionInfoDTO> | null = null;
+  discussionResultsPage: Page<DiscussionInfoDTO> | null = null;
+  commentResultsPage: Page<CommentDTO> | null = null;
   displayablePageNumbers: number[] = [];
 
   // To track if a search has been performed, so we can show "No results" message correctly
   searchPerformed = false;
 
   constructor() {}
+
+  /**
+   * Returns the currently active results page based on the searchType.
+   * This simplifies the template logic for pagination and result display.
+   */
+  get activeResultsPage(): Page<any> | null {
+    return this.searchType === 'discussion' ? this.discussionResultsPage : this.commentResultsPage;
+  }
 
   performSearch(page: number = 0): void {
     if (!this.keyword.trim()) {
@@ -42,17 +53,18 @@ export class SearchViewComponent {
 
     this.isLoading = true;
     this.error = null;
-    this.resultsPage = null;
+    this.discussionResultsPage = null; // Reset both
+    this.commentResultsPage = null;  // Reset both
     this.searchPerformed = true;
 
     if (this.searchType === 'discussion') {
       this.discussionService.searchDiscussions(this.keyword, page).subscribe({
         next: (response) => {
           if (response.success && response.data) {
-            this.resultsPage = response.data;
-            this.displayablePageNumbers = this._calculateDisplayablePageNumbers(this.resultsPage);
+            this.discussionResultsPage = response.data;
+            this.displayablePageNumbers = this._calculateDisplayablePageNumbers(this.discussionResultsPage);
           } else {
-            this.error = response.message || 'Failed to fetch search results.';
+            this.error = response.message || 'Failed to fetch discussion search results.';
           }
           this.isLoading = false;
           this.cdr.detectChanges();
@@ -63,28 +75,42 @@ export class SearchViewComponent {
           this.cdr.detectChanges();
         }
       });
-    } else {
-      // Placeholder for comment search
-      this.error = 'Comment search is not yet implemented.';
-      this.isLoading = false;
+    } else if (this.searchType === 'comment') {
+      this.commentService.searchComments(this.keyword, page).subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.commentResultsPage = response.data;
+            this.displayablePageNumbers = this._calculateDisplayablePageNumbers(this.commentResultsPage);
+          } else {
+            this.error = response.message || 'Failed to fetch comment search results.';
+          }
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.error = err.message || 'An unexpected error occurred during the search.';
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
     }
   }
 
   goToPage(pageNumber: number): void {
-    if (this.resultsPage === null || pageNumber < 0 || pageNumber >= this.resultsPage.totalPages) {
+    if (this.activeResultsPage === null || pageNumber < 0 || pageNumber >= this.activeResultsPage.totalPages) {
       return;
     }
     this.performSearch(pageNumber);
   }
 
-  // Reusable pagination logic
+  // Reusable pagination logic - no changes needed here
   private _calculateDisplayablePageNumbers(pageData: Page<any> | null): number[] {
     if (!pageData || typeof pageData.totalPages !== 'number' || pageData.totalPages <= 0) {
       return [];
     }
     const totalPages = pageData.totalPages;
     const currentPage = pageData.number;
-    const maxPagesToShow = 5;
+    const maxPagesToShow = 10;
     const pages: number[] = [];
 
     if (totalPages <= maxPagesToShow) {

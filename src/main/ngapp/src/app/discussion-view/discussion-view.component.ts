@@ -195,7 +195,7 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * NEW: Collects all unique usernames and fetches their avatar file IDs.
+   * Collects all unique usernames and fetches their avatar file IDs.
    */
   private fetchAvatarFileIds(): void {
     const usernames = new Set<string>();
@@ -222,7 +222,7 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * NEW: Generates the correct avatar URL using the fetched file ID map.
+   * Generates the correct avatar URL using the fetched file ID map.
    */
   getAvatarUrl(username: string): string {
     if (this.avatarFileIdMap.has(username)) {

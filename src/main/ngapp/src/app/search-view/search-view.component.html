@@ -1,5 +1,4 @@
-<!--<div class="mx-auto max-w-screen-lg px-4 sm:px-6 lg:px-8 py-8">-->
-  <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+<div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
 
   <!-- Search Input Area -->
   <div class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-lg mb-8">
@@ -28,8 +27,8 @@
       <div>
         <label for="keyword" class="sr-only">Search Keyword</label>
         <input type="text" id="keyword" name="keyword" [(ngModel)]="keyword" required
-          class="block w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200"
-          placeholder="Enter keywords..."
+               class="block w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200"
+               placeholder="Enter keywords..."
         />
       </div>
 
@@ -65,27 +64,27 @@
     </div>
 
     <!-- Results -->
-    <div *ngIf="resultsPage && !isLoading && !error">
+    <div *ngIf="activeResultsPage && !isLoading && !error">
       <!-- Results Header -->
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-xl font-semibold text-gray-800 dark:text-slate-100">
           Search Results
         </h3>
         <p class="text-sm text-gray-600 dark:text-slate-400">
-          Found {{ resultsPage.totalElements }} results
+          Found {{ activeResultsPage.totalElements }} results
         </p>
       </div>
 
       <!-- No Results Message -->
-      <div *ngIf="resultsPage.empty" class="text-center py-10 bg-gray-50 dark:bg-slate-700 rounded-lg">
+      <div *ngIf="activeResultsPage.empty" class="text-center py-10 bg-gray-50 dark:bg-slate-700 rounded-lg">
         <ng-icon name="heroMagnifyingGlass" size="3rem" class="mx-auto text-gray-400"></ng-icon>
         <p class="mt-2 text-lg text-gray-500 dark:text-slate-400">No results found for "{{ keyword }}".</p>
         <p class="text-sm text-gray-400 dark:text-slate-500">Try searching for something else.</p>
       </div>
 
-      <!-- Results List -->
-      <div *ngIf="!resultsPage.empty" class="space-y-4">
-        <div *ngFor="let result of resultsPage.content"
+      <!-- Discussion Results List -->
+      <div *ngIf="searchType === 'discussion' && discussionResultsPage && !discussionResultsPage.empty" class="space-y-4">
+        <div *ngFor="let result of discussionResultsPage.content"
              class="bg-white dark:bg-slate-700 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow">
           <a [routerLink]="['/app/discussions', result.discussionId, 'view']"
              class="text-lg font-semibold text-indigo-600 hover:underline dark:text-indigo-400">
@@ -100,24 +99,41 @@
         </div>
       </div>
 
+      <!-- Comment Results List -->
+      <div *ngIf="searchType === 'comment' && commentResultsPage && !commentResultsPage.empty" class="space-y-4">
+        <div *ngFor="let result of commentResultsPage.content"
+             class="bg-white dark:bg-slate-700 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+          <a [routerLink]="['/app/comments', result.id, 'thread']"
+             class="text-lg font-semibold text-indigo-600 hover:underline dark:text-indigo-400">
+            {{ result.title }}
+          </a>
+          <p class="text-sm text-gray-500 dark:text-slate-400 mt-1">
+            By {{ result.createBy }} on {{ result.createDate | date:'mediumDate' }}
+          </p>
+          <p class="mt-2 text-gray-700 dark:text-slate-300 text-sm">
+            {{ result.content | slice:0:255 }}...
+          </p>
+        </div>
+      </div>
+
       <!-- Pagination Controls -->
-      <nav *ngIf="!resultsPage.empty && resultsPage.totalPages > 1"
+      <nav *ngIf="activeResultsPage && !activeResultsPage.empty && activeResultsPage.totalPages > 1"
            class="mt-6 flex items-center justify-between border-t border-gray-200 dark:border-slate-600 px-4 py-3 sm:px-0"
            aria-label="Search Results Pagination">
         <div class="hidden sm:block">
           <p class="text-sm text-gray-700 dark:text-gray-300">
             Showing
-            <span class="font-medium">{{ resultsPage.number * resultsPage.size + 1 }}</span>
+            <span class="font-medium">{{ activeResultsPage.number * activeResultsPage.size + 1 }}</span>
             to
-            <span class="font-medium">{{ resultsPage.number * resultsPage.size + resultsPage.numberOfElements }}</span>
+            <span class="font-medium">{{ activeResultsPage.number * activeResultsPage.size + activeResultsPage.numberOfElements }}</span>
             of
-            <span class="font-medium">{{ resultsPage.totalElements }}</span>
+            <span class="font-medium">{{ activeResultsPage.totalElements }}</span>
             results
           </p>
         </div>
         <div class="flex-1 flex justify-between sm:justify-end items-center space-x-1">
-          <button (click)="goToPage(resultsPage.number - 1)"
-                  [disabled]="resultsPage.first || isLoading"
+          <button (click)="goToPage(activeResultsPage.number - 1)"
+                  [disabled]="activeResultsPage.first || isLoading"
                   class="relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 dark:bg-slate-700 dark:text-gray-300 dark:hover:bg-slate-600">
             Prev
           </button>
@@ -125,14 +141,14 @@
             <button *ngIf="pageNum !== -1"
                     (click)="goToPage(pageNum)"
                     [disabled]="isLoading"
-                    [ngClass]="{'z-10 bg-indigo-50 border-indigo-500 text-indigo-600 dark:bg-indigo-600 dark:text-white dark:border-indigo-500': pageNum === resultsPage.number, 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 dark:hover:bg-slate-600': pageNum !== resultsPage.number}"
+                    [ngClass]="{'z-10 bg-indigo-50 border-indigo-500 text-indigo-600 dark:bg-indigo-600 dark:text-white dark:border-indigo-500': pageNum === activeResultsPage.number, 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 dark:hover:bg-slate-600': pageNum !== activeResultsPage.number}"
                     class="relative inline-flex items-center px-3 py-1.5 border text-sm font-medium">
               {{ pageNum + 1 }}
             </button>
             <span *ngIf="pageNum === -1" class="relative inline-flex items-center px-3 py-1.5 border border-gray-300 bg-white text-sm font-medium text-gray-700 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500">...</span>
           </ng-container>
-          <button (click)="goToPage(resultsPage.number + 1)"
-                  [disabled]="resultsPage.last || isLoading"
+          <button (click)="goToPage(activeResultsPage.number + 1)"
+                  [disabled]="activeResultsPage.last || isLoading"
                   class="relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 dark:bg-slate-700 dark:text-gray-300 dark:hover:bg-slate-600">
             Next
           </button>
@@ -141,4 +157,4 @@
 
     </div>
   </div>
-  </div>
+</div>

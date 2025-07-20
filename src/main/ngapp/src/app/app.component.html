@@ -114,11 +114,17 @@
           </div>
           <div>
             <dt class="font-medium text-gray-600 dark:text-slate-400">Last Registered User:</dt>
-            <dd class="text-gray-800 dark:text-slate-200">
-              {{ systemStats.lastRegisteredUser || 'N/A' }}
-              <span *ngIf="systemStats.lastUserRegisteredDate" class="block text-xs text-gray-500 dark:text-slate-500">
+            <dd *ngIf="systemStats.lastUserRegisteredDate" class="text-gray-800 dark:text-slate-200">
+              <a [routerLink]="['/app/users', systemStats.lastRegisteredUser, 'profile']"
+                 class="font-bold hover:underline cursor-pointer">
+                {{ systemStats.lastRegisteredUser }}
+              </a>
+              <span class="block text-xs text-gray-500 dark:text-slate-500">
                 on {{ systemStats.lastUserRegisteredDate | date:'mediumDate' }}
               </span>
+            </dd>
+            <dd *ngIf="!systemStats.lastUserRegisteredDate" class="text-gray-800 dark:text-slate-200">
+              N/A
             </dd>
           </div>
           <div class="md:col-span-2 lg:col-span-1"> <!-- Adjust span for different screen sizes -->

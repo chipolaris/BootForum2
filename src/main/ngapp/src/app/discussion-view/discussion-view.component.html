@@ -250,9 +250,13 @@
                   class="text-gray-800 dark:text-slate-100">
                 <a [routerLink]="['/app/comments', stat.lastComment?.commentId, 'thread']"
                    class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
-                  Comment
+                  Comment on {{ stat.lastComment?.commentDate | date:'medium' }}
                 </a>
-                on {{ stat.lastComment?.commentDate | date:'medium' }} by {{ stat.lastComment?.commentor }}
+                 by
+                <a [routerLink]="['/app/users', stat.lastComment?.commentor, 'profile']"
+                   class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                  {{ stat.lastComment?.commentor }}
+                </a>
               </dd>
               <ng-template #discussionCreated class="text-gray-800 dark:text-slate-100">
                 Discussion created on {{ discussionDetails.createDate | date:'medium' }} by {{ discussionDetails.createBy }}
