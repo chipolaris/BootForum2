@@ -1,23 +1,20 @@
 package com.github.chipolaris.bootforum2.rest;
 
 import com.github.chipolaris.bootforum2.domain.Comment;
-import com.github.chipolaris.bootforum2.dto.ApiResponse;
-import com.github.chipolaris.bootforum2.dto.CommentCreateDTO; // Make sure this is imported
-import com.github.chipolaris.bootforum2.dto.CommentDTO;
-import com.github.chipolaris.bootforum2.dto.PageResponseDTO;
+import com.github.chipolaris.bootforum2.dto.*;
 import com.github.chipolaris.bootforum2.mapper.CommentMapper;
 import com.github.chipolaris.bootforum2.service.CommentService;
 import com.github.chipolaris.bootforum2.service.GenericService;
 import com.github.chipolaris.bootforum2.service.ServiceResponse;
-import jakarta.validation.Valid; // For @Valid
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.MediaType; // For MediaType
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile; // For MultipartFile
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api") // Base path for public comment-related APIs
@@ -152,6 +149,23 @@ public class CommentController {
         catch (Exception e) {
             logger.error("Unexpected error while getting comment with ID: " + commentId, e);
             return ApiResponse.error("An unexpected error occurred while retrieving the comment.");
+        }
+    }
+
+    @GetMapping("/public/comments/{commentId}/thread")
+    public ApiResponse<?> getCommentThread(@PathVariable Long commentId) {
+        logger.info("Received request to get comment thread for comment ID: {}", commentId);
+
+        try {
+            ServiceResponse<CommentThreadDTO> serviceResponse = commentService.getCommentThread(commentId);
+
+            if (serviceResponse.isFailure()) {
+                return ApiResponse.error(serviceResponse.getMessages(), "Failed to retrieve comment");
+            }
+            return ApiResponse.success(serviceResponse.getDataObject(), "Comment thread retrieved successfully.");
+        } catch (Exception e) {
+            logger.error("Unexpected error while getting comment thread for comment id {}", commentId);
+            return ApiResponse.error("An unexpected error occurred while retrieving the comment thread.");
         }
     }
 }

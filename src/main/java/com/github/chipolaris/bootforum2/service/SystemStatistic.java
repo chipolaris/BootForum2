@@ -72,14 +72,13 @@ public class SystemStatistic {
         // Example: this.chatRoomCount.set(genericDAO.count(ChatRoom.class));
 
         // Load last comment
-        Optional<Comment> latestDbCommentOptional = commentRepository.findLatestCommentWithDiscussion();
+        Optional<Comment> latestDbCommentOptional = commentRepository.findTopByOrderByCreateDateDesc();
         if (latestDbCommentOptional.isPresent()) {
             Comment latestComment = latestDbCommentOptional.get();
             String truncatedContent = StringUtils.truncate(latestComment.getContent(), 255);
             // This now works because the session is still open
             this.lastComment = new CommentInfoDTO(latestComment.getId(), latestComment.getTitle(),
-                    truncatedContent, latestComment.getCreateBy(), latestComment.getCreateDate(),
-                    latestComment.getDiscussion().getId(), latestComment.getDiscussion().getTitle());
+                    truncatedContent, latestComment.getCreateBy(), latestComment.getCreateDate());
         }
 
         // Load last discussion
@@ -159,8 +158,7 @@ public class SystemStatistic {
                 newComment.getCreateDate().isAfter(this.lastComment.commentDate())) {
             String truncatedContent = StringUtils.truncate(newComment.getContent(), 255);
             this.lastComment = new CommentInfoDTO(newComment.getId(), newComment.getTitle(),
-                    truncatedContent, newComment.getCreateBy(), newComment.getCreateDate(),
-                    newComment.getDiscussion().getId(), newComment.getDiscussion().getTitle()); // Assuming newComment is a complete, new object
+                    truncatedContent, newComment.getCreateBy(), newComment.getCreateDate()); // Assuming newComment is a complete, new object
             logger.debug("Updated last comment to: {}", newComment.getId());
         }
     }

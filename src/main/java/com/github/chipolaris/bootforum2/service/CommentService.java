@@ -8,6 +8,7 @@ import com.github.chipolaris.bootforum2.domain.FileInfo;
 import com.github.chipolaris.bootforum2.dto.*;
 import com.github.chipolaris.bootforum2.event.CommentCreatedEvent;
 import com.github.chipolaris.bootforum2.mapper.CommentMapper;
+import com.github.chipolaris.bootforum2.mapper.DiscussionMapper;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
 import jakarta.persistence.EntityManager;
 import org.hibernate.search.mapper.orm.Search;
@@ -35,6 +36,7 @@ public class CommentService {
     private final DynamicDAO dynamicDAO;
     private final GenericDAO genericDAO;
     private final CommentMapper commentMapper;
+    private final DiscussionMapper discussionMapper;
     private final FileService fileService;
     private final FileInfoMapper fileInfoMapper; // To map FileInfoDTO from FileStorageService to FileInfo entity
     private final AuthenticationFacade authenticationFacade;
@@ -44,6 +46,7 @@ public class CommentService {
     public CommentService(EntityManager entityManager,
                           GenericDAO genericDAO, DynamicDAO dynamicDAO,
                           CommentMapper commentMapper,
+                          DiscussionMapper discussionMapper,
                           FileService fileService,
                           FileInfoMapper fileInfoMapper,
                           AuthenticationFacade authenticationFacade,
@@ -52,6 +55,7 @@ public class CommentService {
         this.genericDAO = genericDAO;
         this.dynamicDAO = dynamicDAO;
         this.commentMapper = commentMapper;
+        this.discussionMapper = discussionMapper;
         this.fileService = fileService;
         this.fileInfoMapper = fileInfoMapper;
         this.authenticationFacade = authenticationFacade;
@@ -195,8 +199,33 @@ public class CommentService {
         }
     }
 
+    public ServiceResponse<CommentThreadDTO> getCommentThread(long commentId) {
+
+        Comment comment = genericDAO.find(Comment.class, commentId);
+        if (comment == null) {
+            logger.error("Comment not found for id {}", commentId);
+            return ServiceResponse.failure("Comment not found for id %d".formatted(commentId));
+        }
+
+        try {
+            DiscussionDTO discussionDTO = discussionMapper.toDiscussionDTO(comment.getDiscussion());
+            List<CommentDTO> commentThread = new ArrayList<>();
+            Comment currentComment = comment;
+            while (currentComment != null) {
+                commentThread.add(0, commentMapper.toCommentDTO(currentComment));
+                currentComment = currentComment.getReplyTo();
+            }
+
+            return ServiceResponse.success("Comment thread retrieved successfully.",
+                    new CommentThreadDTO(discussionDTO, commentThread));
+        } catch (Exception e) {
+            logger.error(String.format("Error fetching comment thread for comment ID %d: ", commentId), e);
+            return ServiceResponse.failure("An unexpected error occurred while fetching comments.");
+        }
+    }
+
     /**
-     * NEW: Performs a full-text search for comments based on a keyword.
+     * Performs a full-text search for comments based on a keyword.
      * The search is performed on the 'title' and 'content' fields of the Comment entity.
      *
      * @param keyword  The keyword(s) to search for.

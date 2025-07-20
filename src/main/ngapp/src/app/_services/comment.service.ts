@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { ApiResponse, CommentDTO, Page } from '../_data/dtos'; // Adjust path as needed
+import { ApiResponse, CommentDTO, Page, CommentThreadDTO } from '../_data/dtos'; // Adjust path as needed
 
 @Injectable({
   providedIn: 'root'
@@ -87,6 +87,25 @@ export class CommentService {
       );
   }
 
+  /**
+   * Fetches a comment thread, which includes the parent discussion and the
+   * chain of comments leading to the specified comment.
+   * @param commentId The ID of the comment to start the thread from.
+   */
+  getCommentThread(commentId: number): Observable<ApiResponse<CommentThreadDTO>> {
+    const url = `${this.basePublicApiUrl}/comments/${commentId}/thread`;
+    return this.http.get<ApiResponse<CommentThreadDTO>>(url)
+      .pipe(
+        tap(response => {
+          if (response.success) {
+            console.log(`Comment thread for comment ${commentId} fetched successfully.`, response.data);
+          } else {
+            console.error(`Failed to fetch comment thread for comment ${commentId}.`, response.message, response.errors);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('An error occurred in CommentService:', error);

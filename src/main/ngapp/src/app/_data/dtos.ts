@@ -18,13 +18,11 @@ export interface ForumStatDTO {
 }
 
 export interface CommentInfoDTO {
+  commentId: number;
   title: string;
   contentAbbr: string;
-  commentId: number;
   commentor: string;
   commentDate: Date;
-  discussionId: number;
-  discussionTitle: string;
 }
 
 export interface CommentCreateDTO {
@@ -186,6 +184,11 @@ export interface DiscussionSummaryDTO {
   createDate: Date;
   createBy: string;
   lastCommentDate: Date;
+}
+
+export interface CommentThreadDTO {
+  discussionDTO: DiscussionDTO;
+  commentDTOs: CommentDTO[];
 }
 
 export interface PersonDTO {

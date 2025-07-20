@@ -125,18 +125,20 @@
             <dt class="font-medium text-gray-600 dark:text-slate-400">Latest Activity:</dt>
             <ng-container *ngIf="systemStats.lastComment && systemStats.lastComment.commentId > 0; else noRecentActivity">
               <dd class="text-gray-800 dark:text-slate-200">
-                <span class="font-semibold">Comment:</span> "{{ systemStats.lastComment.title }}" by
+                <span class="font-semibold">Comment:</span>
+                <a [routerLink]="['/app/comments', systemStats.lastComment.commentId, 'thread']"
+                   class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                  {{ systemStats.lastComment.title }}
+                </a>
+                by
                 <a [routerLink]="['/app/users', systemStats.lastComment.commentor, 'profile']"
                    class="font-bold hover:underline cursor-pointer">
                   {{ systemStats.lastComment.commentor }}
                 </a>
                 <span class="block text-xs text-gray-500 dark:text-slate-500">
                   on {{ systemStats.lastComment.commentDate | date:'medium' }}
-                </span> in discussion
-                <a [routerLink]="['/app/discussions', systemStats.lastComment.discussionId, 'view']"
-                   class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
-                  {{ systemStats.lastComment.discussionTitle }}
-                </a>
+                </span>
+
               </dd>
             </ng-container>
             <ng-template #noRecentActivity>

@@ -2,6 +2,7 @@ package com.github.chipolaris.bootforum2.mapper;
 
 import com.github.chipolaris.bootforum2.domain.Comment;
 import com.github.chipolaris.bootforum2.dto.CommentDTO;
+import com.github.chipolaris.bootforum2.dto.CommentInfoDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -25,6 +26,9 @@ public interface CommentMapper {
     // 'attachments', 'images', 'commentVote' will use their respective mappers.
     @Mapping(target = "replyToId", source = "replyTo.id")
     CommentDTO toCommentDTO(Comment comment);
+
+    @Mapping(target = "commentDate", source = "createDate")
+    CommentInfoDTO toCommentInfoDTO(Comment comment);
 
     @Mapping(target = "createDate", ignore = true) // Typically set by @PrePersist
     @Mapping(target = "createBy", ignore = true)   // Typically set by system/security context

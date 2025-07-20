@@ -1,5 +1,13 @@
 package com.github.chipolaris.bootforum2.domain;
 
+/**
+ * This CommentInfo class is used to keep track of last comment for
+ * - UserStat
+ * - DiscussionStat
+ * - ForumStat
+ *
+ * It is not used to store the comment itself. The {@link com.github.chipolaris.bootforum2.domain.Comment} does that
+ */
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;

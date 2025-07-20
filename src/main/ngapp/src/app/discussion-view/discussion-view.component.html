@@ -128,7 +128,9 @@
                 <a [routerLink]="['/app/comments/create', discussionDetails.id, 'reply-to', comment.id]"
                    [queryParams]="{ quote: true }"
                    [state]="{ contentToQuote: comment.content, authorToQuote: comment.createBy, quotedItemTitle: comment.title }"
-                   class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium cursor-pointer">Quote</a>
+                   class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium mr-2 cursor-pointer">Quote</a>
+                <a [routerLink]="['/app/comments', comment.id, 'thread']"
+                   class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium cursor-pointer">View Thread</a>
               </div>
               <div class="flex items-center gap-x-2">
                 <button (click)="voteForComment(comment, 'up')" type="button" class="flex items-center text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-xs font-medium cursor-pointer">
@@ -246,7 +248,11 @@
               <dt class="font-medium text-gray-600 dark:text-slate-300">Last Activity:</dt>
               <dd *ngIf="stat.lastComment?.commentDate && stat.lastComment?.commentor; else discussionCreated"
                   class="text-gray-800 dark:text-slate-100">
-                Comment on {{ stat.lastComment?.commentDate | date:'medium' }} by {{ stat.lastComment?.commentor }}
+                <a [routerLink]="['/app/comments', stat.lastComment?.commentId, 'thread']"
+                   class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                  Comment
+                </a>
+                on {{ stat.lastComment?.commentDate | date:'medium' }} by {{ stat.lastComment?.commentor }}
               </dd>
               <ng-template #discussionCreated class="text-gray-800 dark:text-slate-100">
                 Discussion created on {{ discussionDetails.createDate | date:'medium' }} by {{ discussionDetails.createBy }}

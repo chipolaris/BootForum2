@@ -21,6 +21,7 @@ import { UserProfileComponent } from './user-profile/user-profile.component';
 import { UserAccountComponent } from './user-account/user-account.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { SearchViewComponent } from './search-view/search-view.component';
+import { CommentThreadComponent } from './comment-thread/comment-thread.component';
 import { authGuard } from './_guards/auth.guard';
 
 export const routes: Routes = [
@@ -70,6 +71,7 @@ export const routes: Routes = [
     component: CommentCreateComponent, canActivate: [authGuard]
   },
   { path: 'app/registration', component: RegistrationComponent },
+  { path: 'app/comments/:id/thread', component: CommentThreadComponent },
   { path: 'app/registration-confirmation', component: RegistrationConfirmationComponent },
   { path: 'app/confirm-email/:registrationKey', component: EmailConfirmationComponent },
   { path: 'app/login', component: LoginComponent },
