@@ -8,6 +8,7 @@ import { ForumViewComponent } from './forum-view/forum-view.component';
 import { ForumGroupCreateComponent } from './admin/forum-group-create/forum-group-create.component';
 import { ForumGroupEditComponent } from './admin/forum-group-edit/forum-group-edit.component';
 import { ForumStructureTreeComponent } from './admin/forum-structure-tree/forum-structure-tree.component';
+import { AdminIndexComponent } from './admin/admin-index/admin-index.component';
 import { ForumCreateComponent } from './admin/forum-create/forum-create.component';
 import { ForumEditComponent } from './admin/forum-edit/forum-edit.component';
 import { ForumListComponent } from './admin/forum-list/forum-list.component';
@@ -31,6 +32,10 @@ export const routes: Routes = [
   { path: 'app/forums/tree-table', component: ForumTreeTableComponent },
   {
     path: 'app/admin/forum-structure', component: ForumStructureTreeComponent, canActivate: [authGuard],
+    data: { roles: ['ADMIN'] }
+  },
+  {
+    path: 'app/admin/indexing', component: AdminIndexComponent, canActivate: [authGuard],
     data: { roles: ['ADMIN'] }
   },
   { path: 'app/discussions/:id/view', component: DiscussionViewComponent },

@@ -31,6 +31,9 @@
             <li *ngIf="(isLoggedIn$ | async) && (isAdmin$ | async)">
               <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/admin/forum-structure"> Forum Structure </a>
             </li>
+            <li *ngIf="(isLoggedIn$ | async) && (isAdmin$ | async)">
+              <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/admin/indexing"> Rebuild Index </a>
+            </li>
           </ul>
         </nav>
 

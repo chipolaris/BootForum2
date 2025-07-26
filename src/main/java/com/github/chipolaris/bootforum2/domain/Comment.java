@@ -26,7 +26,9 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
 
+import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 @Entity
@@ -186,5 +188,15 @@ public class Comment extends BaseEntity {
     }
     public void setCommentVote(CommentVote commentVote) {
         this.commentVote = commentVote;
+    }
+
+    /**
+     * Override getCreateDate to add @GenericField annotation
+     * @return
+     */
+    @Override
+    @GenericField(sortable = Sortable.YES)
+    public LocalDateTime getCreateDate() {
+        return super.getCreateDate();
     }
 }

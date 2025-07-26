@@ -202,7 +202,7 @@ export class ForumEditComponent implements OnInit {
     if (this.dialogRef) {
       this.dialogRef.close();
     } else {
-      this.router.navigate(['/app/admin/forums']);
+      this.router.navigate(['/app/admin/forums/all']);
     }
   }
 }

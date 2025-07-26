@@ -47,7 +47,7 @@
           <td class="align-middle">{{ forum.title }}</td>
           <td class="max-w-xs align-middle" [pTooltip]="forum.description" tooltipPosition="top">{{ forum.description }}</td>
           <td class="text-center align-middle">
-            <div class="flex items-center justify-center">
+            <div class="flex items-center">
               <span *ngIf="forum.icon" class="mr-1" [pTooltip]="forum.icon" tooltipPosition="top">{{ forum.icon }}</span>
               <div *ngIf="forum.iconColor" class="w-4 h-4 rounded-full border border-gray-400"
                    [style.backgroundColor]="forum.iconColor" [pTooltip]="forum.iconColor" tooltipPosition="top">

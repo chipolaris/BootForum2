@@ -278,7 +278,7 @@ public class DiscussionService {
                         // Search in content with normal weight
                         b.should(f.match().field("content").matching(keyword));
                     }))
-                    //.sort(f -> f.score().then().field("createDate").desc()) // Sort by relevance, then by date
+                    .sort(f -> f.score().then().field("createDate").desc()) // Sort by relevance, then by date
                     .fetch((int) pageable.getOffset(), pageable.getPageSize());
 
             long totalHits = searchResult.total().hitCount();

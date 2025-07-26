@@ -4,7 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.*;
+import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 @Entity
@@ -183,5 +185,15 @@ public class Discussion extends BaseEntity {
     }
     public void setTags(List<Tag> tags) {
         this.tags = tags;
+    }
+
+    /**
+     * Override getCreateDate to add @GenericField annotation
+     * @return
+     */
+    @Override
+    @GenericField(sortable = Sortable.YES)
+    public LocalDateTime getCreateDate() {
+        return super.getCreateDate();
     }
 }

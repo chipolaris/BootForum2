@@ -136,7 +136,7 @@ export class ForumGroupCreateComponent implements OnInit {
     if (this.dialogRef) {
       this.dialogRef.close();
     } else {
-      this.router.navigate(['/app/dashboard']); // Fallback navigation
+      this.router.navigate(['/app/admin/forums/all']);
     }
   }
 }
