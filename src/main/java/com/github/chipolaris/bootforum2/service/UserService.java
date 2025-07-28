@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
-@Transactional
 public class UserService {
 
 	private static final Logger logger = LoggerFactory.getLogger(UserService.class);
@@ -50,6 +49,7 @@ public class UserService {
 	 * @param personUpateDTO DTO containing the new personal information.
 	 * @return A ServiceResponse containing the updated UserDTO.
 	 */
+	@Transactional(readOnly = false)
 	public ServiceResponse<UserDTO> updatePersonInfo(PersonUpdateDTO personUpateDTO) {
 
 		Optional<String> currentUsernameOpt = authenticationFacade.getCurrentUsername();
@@ -79,6 +79,7 @@ public class UserService {
 	 * @param passwordChangeDTO The DTO containing old, new, and confirmation passwords.
 	 * @return A ServiceResponse indicating success or failure.
 	 */
+	@Transactional(readOnly = false)
 	public ServiceResponse<Void> updatePassword(PasswordChangeDTO passwordChangeDTO) {
 
 		Optional<String> currentUsernameOpt = authenticationFacade.getCurrentUsername();

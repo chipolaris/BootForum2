@@ -40,7 +40,7 @@ export class ForumViewComponent implements OnInit, OnDestroy {
   discussionsErrorMessage: string | null = null;
 
   currentPage = 0; // Ensure this is always initialized to a valid number
-  pageSize = 2;
+  pageSize = 10;
 
   currentSortField: string = 'stat.lastComment.commentDate';
   currentSortOrder: string = 'DESC';

@@ -9,6 +9,7 @@ import { ForumGroupCreateComponent } from './admin/forum-group-create/forum-grou
 import { ForumGroupEditComponent } from './admin/forum-group-edit/forum-group-edit.component';
 import { ForumStructureTreeComponent } from './admin/forum-structure-tree/forum-structure-tree.component';
 import { AdminIndexComponent } from './admin/admin-index/admin-index.component';
+import { AdminDataComponent } from './admin/admin-data/admin-data.component';
 import { ForumCreateComponent } from './admin/forum-create/forum-create.component';
 import { ForumEditComponent } from './admin/forum-edit/forum-edit.component';
 import { ForumListComponent } from './admin/forum-list/forum-list.component';
@@ -36,6 +37,10 @@ export const routes: Routes = [
   },
   {
     path: 'app/admin/indexing', component: AdminIndexComponent, canActivate: [authGuard],
+    data: { roles: ['ADMIN'] }
+  },
+  {
+    path: 'app/admin/data-generation', component: AdminDataComponent, canActivate: [authGuard],
     data: { roles: ['ADMIN'] }
   },
   { path: 'app/discussions/:id/view', component: DiscussionViewComponent },

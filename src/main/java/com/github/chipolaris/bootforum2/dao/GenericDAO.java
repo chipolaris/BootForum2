@@ -70,9 +70,21 @@ public class GenericDAO {
      * @param id
      * @return
      */
-	public <E> E find(Class<E> entityClass, Object id) { 
+	public <E> E find(Class<E> entityClass, Object id) {
         return entityManager.find(entityClass, id); 
     }
+
+	/**
+	 * Find the entity given the entityType (class name, and ID, and lockModeType)
+	 * @param entityClass
+	 * @param id
+	 * @param lockModeType
+	 * @return
+	 * @param <E>
+	 */
+	public <E> E find(Class<E> entityClass, Object id, LockModeType lockModeType) {
+		return entityManager.find(entityClass, id, lockModeType);
+	}
 
 	/**
 	 * Check if an object with the given entity type and primary key

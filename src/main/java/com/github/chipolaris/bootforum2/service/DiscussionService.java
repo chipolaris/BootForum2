@@ -93,7 +93,7 @@ public class DiscussionService {
             discussion.setAttachments(attachmentInfos);
 
             // 4. Initialize Discussion Statistics
-            initializeDiscussionStatistics(discussion);
+            // initializeDiscussionStatistics(discussion);
 
             // 5. Persist Discussion
             genericDAO.persist(discussion);
@@ -102,7 +102,7 @@ public class DiscussionService {
             //updateForumStatistics(forum, initialComment, username); // Or publish an event here
             logger.info("Successfully created discussion '{}' with ID {}", discussion.getTitle(), discussion.getId());
 
-            eventPublisher.publishEvent(new DiscussionCreatedEvent(this, discussion, username));
+            eventPublisher.publishEvent(new DiscussionCreatedEvent(this, discussion));
 
             // 6. Map persisted Discussion to DTO for response
             DiscussionDTO discussionDTO = discussionMapper.toDiscussionDTO(discussion);
@@ -114,7 +114,7 @@ public class DiscussionService {
         }
     }
 
-    private void initializeDiscussionStatistics(Discussion discussion) {
+/*    private void initializeDiscussionStatistics(Discussion discussion) {
         DiscussionStat discussionStat = discussion.getStat();
         discussionStat.setCommentCount(0);
         discussionStat.setViewCount(0);
@@ -126,7 +126,7 @@ public class DiscussionService {
         if (discussion.getAttachments() != null) {
             discussionStat.setAttachmentCount(discussion.getAttachments().size());
         }
-    }
+    }*/
 
     private List<FileInfo> processFiles(MultipartFile[] files, String fileType) {
         List<FileInfo> fileInfos = new ArrayList<>();

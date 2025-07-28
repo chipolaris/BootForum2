@@ -177,9 +177,9 @@
           <label for="commentsPageSizeSelect" class="text-sm text-gray-700 dark:text-gray-300 mr-1 sr-only sm:not-sr-only">Items per page:</label>
           <select id="commentsPageSizeSelect" [ngModel]="commentsPageSize" (ngModelChange)="onCommentsPageSizeChange($event)" name="commentsPageSizeSelect"
                   class="px-2 py-1 border border-gray-300 rounded-md text-sm dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 focus:ring-indigo-500 focus:border-indigo-500">
-            <option [value]="5">5</option>
             <option [value]="10">10</option>
-            <option [value]="20">20</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
           </select>
 
           <button (click)="goToCommentsPage(currentCommentsPage - 1)"

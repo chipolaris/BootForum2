@@ -6,12 +6,15 @@ import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.*;
 import com.github.chipolaris.bootforum2.event.CommentCreatedEvent;
+import com.github.chipolaris.bootforum2.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 /**
  * Component to listen to Comment events
@@ -22,11 +25,11 @@ public class CommentEventsListener {
     private static final Logger logger = LoggerFactory.getLogger(CommentEventsListener.class);
 
     private final GenericDAO genericDAO;
-    private final DynamicDAO dynamicDAO;
+    private final UserRepository userRepository;
     
-    public CommentEventsListener(GenericDAO genericDAO, DynamicDAO dynamicDAO) {
+    public CommentEventsListener(GenericDAO genericDAO, UserRepository userRepository) {
         this.genericDAO = genericDAO;
-        this.dynamicDAO = dynamicDAO;
+        this.userRepository = userRepository;
     }
 
     @EventListener
@@ -42,20 +45,19 @@ public class CommentEventsListener {
 
         updateForumStat(discussion, comment);
 
-        updateUserStat(discussionStat, comment);
+        updateUserStat(comment);
     }
 
-    private void updateUserStat(DiscussionStat discussionStat, Comment comment) {
+    private void updateUserStat(Comment comment) {
 
-        String username = comment.getCreateBy();
+        Optional<User> userOpt = userRepository.findByUsername(comment.getCreateBy());
 
-        QuerySpec querySpec = QuerySpec.builder(User.class).filter(FilterSpec.eq("username", username)).build();
-        User user = dynamicDAO.<User>findOptional(querySpec).orElse(null);
-
-        if (user == null) {
-            logger.warn("User not found for username: {}", username);
-            return;
+        if (userOpt.isEmpty()) {
+            logger.warn("User not found for username: {}", comment.getCreateBy());
+            return;  // short circuit if user not found
         }
+
+        User user = userOpt.get();
 
         UserStat userStat = user.getStat();
         userStat.addCommentCount(1);

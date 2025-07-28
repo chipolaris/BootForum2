@@ -19,20 +19,48 @@
             <li *ngIf="(isLoggedIn$ | async)">
               <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/dashboard"> Dashboard </a>
             </li>
-            <li *ngIf="(isLoggedIn$ | async) && (isAdmin$ | async)">
-              <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/admin/forums/all"> Manage Forums </a>
+
+            <!-- Admin Links with Dropdown -->
+            <li *ngIf="(isLoggedIn$ | async) && (isAdmin$ | async)" class="relative group">
+              <a routerLink="/app/admin/forums/all" class="text-gray-500 transition hover:text-gray-500/75 flex items-center gap-1">
+                Manage Forums
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover:rotate-180" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </a>
+              <div class="absolute start-0 mt-2 w-56 rounded-md border border-gray-100 bg-white shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 dark:bg-slate-800 dark:border-slate-700">
+                <div class="p-2">
+                  <a routerLink="/app/admin/forum-structure" class="block rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-200">
+                    Forum Structure
+                  </a>
+                  <a routerLink="/app/admin/forums/create" class="block rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-200">
+                    Create Forum
+                  </a>
+                  <a routerLink="/app/admin/forum-groups/create" class="block rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-200">
+                    Create Forum Group
+                  </a>
+                </div>
+              </div>
             </li>
-            <li *ngIf="(isLoggedIn$ | async) && (isAdmin$ | async)">
-              <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/admin/forums/create"> Create Forum </a>
-            </li>
-            <li *ngIf="(isLoggedIn$ | async) && (isAdmin$ | async)">
-              <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/admin/forum-groups/create"> Create Forum Group </a>
-            </li>
-            <li *ngIf="(isLoggedIn$ | async) && (isAdmin$ | async)">
-              <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/admin/forum-structure"> Forum Structure </a>
-            </li>
-            <li *ngIf="(isLoggedIn$ | async) && (isAdmin$ | async)">
-              <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/admin/indexing"> Rebuild Index </a>
+
+            <!-- Admin Tools Dropdown -->
+            <li *ngIf="(isLoggedIn$ | async) && (isAdmin$ | async)" class="relative group">
+              <span class="text-gray-500 transition hover:text-gray-500/75 flex items-center gap-1 cursor-pointer">
+                Admin Tools
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover:rotate-180" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </span>
+              <div class="absolute start-0 mt-2 w-56 rounded-md border border-gray-100 bg-white shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 dark:bg-slate-800 dark:border-slate-700">
+                <div class="p-2">
+                  <a routerLink="/app/admin/indexing" class="block rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-200">
+                    Rebuild Index
+                  </a>
+                  <a routerLink="/app/admin/data-generation" class="block rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-200">
+                    Generate Data
+                  </a>
+                </div>
+              </div>
             </li>
           </ul>
         </nav>
@@ -116,7 +144,7 @@
             <dd class="text-gray-800 dark:text-slate-200 text-lg font-semibold">{{ systemStats.commentCount }}</dd>
           </div>
           <div>
-            <dt class="font-medium text-gray-600 dark:text-slate-400">Last Registered User:</dt>
+            <dt class="font-medium text-gray-600 dark:text-slate-400">Latest Registered User:</dt>
             <dd *ngIf="systemStats.lastUserRegisteredDate" class="text-gray-800 dark:text-slate-200">
               <a [routerLink]="['/app/users', systemStats.lastRegisteredUser, 'profile']"
                  class="font-bold hover:underline cursor-pointer">

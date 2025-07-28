@@ -21,4 +21,20 @@ export class AdminService {
     // The body is null as per the backend controller's signature.
     return this.http.post<ApiResponse<string>>(`${this.baseAdminApiUrl}/indexing/reindex`, null, { params });
   }
+
+  /**
+   * NEW: Triggers backend generation of simulated users.
+   * @param count The number of users to generate.
+   */
+  triggerUserGeneration(count: number): Observable<ApiResponse<string>> {
+    const params = new HttpParams().set('count', count.toString());
+    return this.http.post<ApiResponse<string>>(`${this.baseAdminApiUrl}/data/generate-users`, null, { params });
+  }
+
+  /**
+   * NEW: Triggers backend generation of simulated forum data (groups, forums, discussions, comments).
+   */
+  triggerDataGeneration(): Observable<ApiResponse<string>> {
+    return this.http.post<ApiResponse<string>>(`${this.baseAdminApiUrl}/data/generate`, null);
+  }
 }

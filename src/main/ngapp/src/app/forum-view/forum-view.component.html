@@ -16,12 +16,6 @@
     <!-- Forum Banner -->
     <header class="bg-slate-100 dark:bg-slate-800 p-6 rounded-lg shadow-lg mb-8">
       <div class="flex items-center">
-        <!--<span *ngIf="forumDetails.icon"
-              class="text-4xl mr-4"
-              [ngClass]="forumDetails.icon"
-              [style.color]="forumDetails.iconColor || 'inherit'"
-              aria-hidden="true">
-        </span>-->
         <ng-container *ngIf="forumDetails.icon as iconName">
           <ng-icon
             [name]="iconName"
@@ -156,9 +150,9 @@
           <label for="pageSize" class="text-sm text-gray-700 dark:text-gray-300 mr-2">Items per page:</label>
           <select id="pageSize" [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)" name="pageSizeSelect"
                   class="px-2 py-1 border border-gray-300 rounded-md text-sm dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500">
-            <option [value]="2">2</option>
             <option [value]="5">5</option>
             <option [value]="10">10</option>
+            <option [value]="25">25</option>
           </select>
 
           <button (click)="goToPage(currentPage - 1)"

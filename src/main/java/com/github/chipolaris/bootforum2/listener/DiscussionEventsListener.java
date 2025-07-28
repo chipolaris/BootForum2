@@ -7,10 +7,16 @@ import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.*;
 import com.github.chipolaris.bootforum2.event.DiscussionCreatedEvent;
 import com.github.chipolaris.bootforum2.event.DiscussionViewedEvent;
+import com.github.chipolaris.bootforum2.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Component to listen to Discussion events
@@ -18,12 +24,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class DiscussionEventsListener {
 
-    private final GenericDAO genericDAO;
-    private final DynamicDAO dynamicDAO;
+    private static final Logger logger = LoggerFactory.getLogger(DiscussionEventsListener.class);
 
-    public DiscussionEventsListener(GenericDAO genericDAO, DynamicDAO dynamicDAO) {
+    private final GenericDAO genericDAO;
+    private final UserRepository userRepository;
+
+    public DiscussionEventsListener(GenericDAO genericDAO, UserRepository userRepository) {
         this.genericDAO = genericDAO;
-        this.dynamicDAO = dynamicDAO;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -34,22 +42,42 @@ public class DiscussionEventsListener {
     @Transactional
     @Async
     public void handleDiscussionCreated(DiscussionCreatedEvent event) {
-
-        String username = event.getCreatorUsername();
+        // When a discussion is created
         Discussion discussion = event.getDiscussion();
 
-        ForumStat forumStat = discussion.getForum().getStat();
-
-        updateForumStat(forumStat, discussion);
-
-        QuerySpec querySpec = QuerySpec.builder(User.class).filter(FilterSpec.eq("username", username)).build();
-        User user = dynamicDAO.<User>findOptional(querySpec).orElse(null);
-
-        UserStat userStat = user.getStat();
-        updateUserStat(userStat, discussion);
+        updateDiscussionStat(discussion);
+        updateForumStat(discussion);
+        updateUserStat(discussion);
     }
 
-    private void updateUserStat(UserStat userStat, Discussion discussion) {
+    private void updateDiscussionStat(Discussion discussion) {
+        DiscussionStat discussionStat = discussion.getStat();
+
+        discussionStat.addParticipant(discussion.getCreateBy());
+
+        if (discussion.getImages() != null) {
+            discussionStat.setImageCount(discussion.getImages().size());
+        }
+        if (discussion.getAttachments() != null) {
+            discussionStat.setAttachmentCount(discussion.getAttachments().size());
+        }
+
+        genericDAO.merge(discussionStat);
+    }
+
+    private void updateUserStat(Discussion discussion) {
+
+        String username = discussion.getCreateBy();
+        Optional<User> userOpt = userRepository.findByUsername(username);
+
+        if(userOpt.isEmpty()) {
+            logger.warn("User not found for username: {}", username);
+            return; // short circuit if user not found
+        }
+
+        User user = userOpt.get();
+
+        UserStat userStat = user.getStat();
         userStat.addDiscussionCount(1);
         userStat.addImageCount(discussion.getImages().size());
         userStat.addAttachmentCount(discussion.getAttachments().size());
@@ -68,7 +96,8 @@ public class DiscussionEventsListener {
         genericDAO.merge(userStat);
     }
 
-    private void updateForumStat(ForumStat forumStat, Discussion discussion) {
+    private void updateForumStat(Discussion discussion) {
+        ForumStat forumStat = discussion.getForum().getStat();
         forumStat.addDiscussionCount(1);
 
         DiscussionInfo discussionInfo = forumStat.getLastDiscussion();
