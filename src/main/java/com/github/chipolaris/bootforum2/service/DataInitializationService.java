@@ -139,7 +139,7 @@ public class DataInitializationService {
             logger.info("Found {} fake users to use as authors.", fakeUsernames.size());
         }
 
-        for (int i = 0; i < 3; i++) { // Create 3 Forum Groups
+        for (int i = 0; i < 2; i++) { // Create 2 Forum Groups
             ForumGroup forumGroup = createForumGroup();
             // set root forum group as parent
             forumGroup.setParent(rootForumGroup);
@@ -148,18 +148,18 @@ public class DataInitializationService {
             genericDAO.persist(forumGroup);
             eventPublisher.publishEvent(new ForumGroupCreatedEvent(this, forumGroup));
 
-            for (int j = 0; j < 4; j++) { // Create 4 Forums in each group
+            for (int j = 0; j < 2; j++) { // Create 2 Forums in each group
                 Forum forum = createForum(forumGroup);
                 genericDAO.persist(forum);
                 eventPublisher.publishEvent(new ForumCreatedEvent(this, forum));
 
-                for (int k = 0; k < 8; k++) { // Create 8 Discussions in each forum
+                for (int k = 0; k < 2; k++) { // Create 2 Discussions in each forum
                     Discussion discussion = createDiscussion(forum, fakeUsernames); // Pass usernames
                     genericDAO.persist(discussion);
                     eventPublisher.publishEvent(new DiscussionCreatedEvent(this, discussion));
 
                     List<Comment> commentsInDiscussion = new ArrayList<>();
-                    int commentCount = 10 + random.nextInt(91); // 10 to 100 comments
+                    int commentCount = 5 + random.nextInt(5); // 5 to 10 comments
                     for (int l = 0; l < commentCount; l++) {
                         Comment comment = createComment(discussion, commentsInDiscussion, fakeUsernames); // Pass usernames
                         genericDAO.persist(comment);

@@ -1,6 +1,7 @@
 package com.github.chipolaris.bootforum2.domain;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,6 +16,10 @@ public class DiscussionStat extends BaseEntity {
     @Id
     @GeneratedValue(strategy=GenerationType.TABLE, generator="DiscussionStatIdGenerator")
     private Long id;
+
+    @Version // For concurrency control. No getter or setter is needed. Hibernate will manage this directly.
+    @Column(name="VERSION")
+    private Integer version;
 
     @OneToOne(fetch=FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name="LAST_COMMENT_INFO_ID", foreignKey = @ForeignKey(name="FK_DISC_STAT_LAST_COMMEN"))
@@ -126,11 +131,9 @@ public class DiscussionStat extends BaseEntity {
     }
     public void addParticipant(String username) {
         if (this.participants == null) {
-            this.participants = Map.of(username, 1);
+            this.participants = new HashMap<>();
         }
-        else {
-            this.participants.merge(username, 1, Integer::sum);
-        }
+        this.participants.merge(username, 1, Integer::sum);
     }
 
     public int getVoteUpCount() {

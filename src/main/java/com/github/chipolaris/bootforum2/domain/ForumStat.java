@@ -1,17 +1,6 @@
 package com.github.chipolaris.bootforum2.domain;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.TableGenerator;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name="FORUM_STAT_T")
@@ -22,6 +11,10 @@ public class ForumStat extends BaseEntity {
     @Id
     @GeneratedValue(strategy=GenerationType.TABLE, generator="ForumStatIdGenerator")
     private Long id;
+
+    @Version // For concurrency control. No getter or setter is needed. Hibernate will manage this directly.
+    @Column(name="VERSION")
+    private Integer version;
 
     @OneToOne(fetch=FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name="LAST_COMMENT_INFO_ID", foreignKey = @ForeignKey(name="FK_FORUM_STAT_LAST_COMMENT"))

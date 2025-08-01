@@ -10,8 +10,11 @@ import java.time.LocalDateTime;
         pkColumnValue="DISCUSSION_INFO_ID", valueColumnName="GEN_VALUE", initialValue = 1000, allocationSize=10)
 public class DiscussionInfo extends BaseEntity {
 
+    private static final int CONTENT_ABBR_MAX_LENGTH = 255;
+
     @PrePersist
     public void prePersist() {
+        abbreviateContent();
         LocalDateTime now = LocalDateTime.now();
         this.setCreateDate(now);
         this.setUpdateDate(now);
@@ -19,7 +22,14 @@ public class DiscussionInfo extends BaseEntity {
 
     @PreUpdate
     public void preUpdate() {
+        abbreviateContent();
         this.setUpdateDate(LocalDateTime.now());
+    }
+
+    private void abbreviateContent() {
+        if(this.contentAbbr != null && this.contentAbbr.length() > CONTENT_ABBR_MAX_LENGTH) {
+            this.contentAbbr = this.contentAbbr.substring(0, CONTENT_ABBR_MAX_LENGTH - 3) + "...";
+        }
     }
 
     @Id
