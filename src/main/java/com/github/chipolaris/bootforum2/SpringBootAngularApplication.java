@@ -7,6 +7,7 @@ import com.github.chipolaris.bootforum2.domain.Person;
 import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.security.JwtAuthenticationFilter;
 import com.github.chipolaris.bootforum2.service.ForumService;
+import com.github.chipolaris.bootforum2.service.SystemStatistic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -225,4 +226,14 @@ public class SpringBootAngularApplication {
         };
     }
 
+    /**
+     * Initialize SystemStatistic.
+     * Run this after all other CommandlineRunners.
+     * @param systemStatistic
+     * @return
+     */
+    @Bean @Order(10)
+    CommandLineRunner initializeSystemStatistic(SystemStatistic systemStatistic) {
+        return args -> systemStatistic.initializeStatistics();
+    }
 }

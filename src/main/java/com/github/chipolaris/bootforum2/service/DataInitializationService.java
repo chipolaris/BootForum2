@@ -34,8 +34,10 @@ public class DataInitializationService {
     private static final Logger logger = LoggerFactory.getLogger(DataInitializationService.class);
 
     private final GenericDAO genericDAO;
-    private final DynamicDAO dynamicDAO; // <-- ADDED
+    private final DynamicDAO dynamicDAO;
     private final FileService fileService;
+    private final StatService statService;
+    private final SystemStatistic systemStatistic;
     private final FileInfoMapper fileInfoMapper;
     private final ApplicationEventPublisher eventPublisher;
     private final PasswordEncoder passwordEncoder;
@@ -43,12 +45,15 @@ public class DataInitializationService {
     private final Faker faker = new Faker();
     private final Random random = new Random();
 
-    public DataInitializationService(GenericDAO genericDAO, DynamicDAO dynamicDAO, FileService fileService, // <-- ADDED
+    public DataInitializationService(GenericDAO genericDAO, DynamicDAO dynamicDAO, FileService fileService,
+                                     StatService statService, SystemStatistic systemStatistic,
                                      FileInfoMapper fileInfoMapper, ApplicationEventPublisher eventPublisher,
                                      PasswordEncoder passwordEncoder, UserRepository userRepository) {
         this.genericDAO = genericDAO;
-        this.dynamicDAO = dynamicDAO; // <-- ADDED
+        this.dynamicDAO = dynamicDAO;
         this.fileService = fileService;
+        this.statService = statService;
+        this.systemStatistic = systemStatistic;
         this.fileInfoMapper = fileInfoMapper;
         this.eventPublisher = eventPublisher;
         this.passwordEncoder = passwordEncoder;
@@ -139,7 +144,7 @@ public class DataInitializationService {
             logger.info("Found {} fake users to use as authors.", fakeUsernames.size());
         }
 
-        for (int i = 0; i < 2; i++) { // Create 2 Forum Groups
+        for (int i = 0; i < 2; i++) { // Create 3 Forum Groups
             ForumGroup forumGroup = createForumGroup();
             // set root forum group as parent
             forumGroup.setParent(rootForumGroup);
@@ -148,27 +153,33 @@ public class DataInitializationService {
             genericDAO.persist(forumGroup);
             eventPublisher.publishEvent(new ForumGroupCreatedEvent(this, forumGroup));
 
-            for (int j = 0; j < 2; j++) { // Create 2 Forums in each group
+            for (int j = 0; j < 3; j++) { // Create 3 Forums in each group
                 Forum forum = createForum(forumGroup);
                 genericDAO.persist(forum);
                 eventPublisher.publishEvent(new ForumCreatedEvent(this, forum));
 
-                for (int k = 0; k < 2; k++) { // Create 2 Discussions in each forum
+                for (int k = 0; k < 5; k++) { // Create 5 Discussions in each forum
                     Discussion discussion = createDiscussion(forum, fakeUsernames); // Pass usernames
                     genericDAO.persist(discussion);
-                    eventPublisher.publishEvent(new DiscussionCreatedEvent(this, discussion));
+                    //eventPublisher.publishEvent(new DiscussionCreatedEvent(this, discussion));
 
                     List<Comment> commentsInDiscussion = new ArrayList<>();
-                    int commentCount = 5 + random.nextInt(5); // 5 to 10 comments
+                    int commentCount = 10 + random.nextInt(11); // 10 to 20 comments
                     for (int l = 0; l < commentCount; l++) {
                         Comment comment = createComment(discussion, commentsInDiscussion, fakeUsernames); // Pass usernames
                         genericDAO.persist(comment);
-                        eventPublisher.publishEvent(new CommentCreatedEvent(this, comment));
+                        //eventPublisher.publishEvent(new CommentCreatedEvent(this, comment));
                         commentsInDiscussion.add(comment);
                     }
+                    // sync discussion stat
+                    statService.syncDiscussionStat(discussion);
                 }
+                // sync forum stat
+                statService.syncForumStat(forum);
             }
         }
+
+        this.systemStatistic.initializeStatistics(); // re-initialize SystemStatistic
 
         logger.info("Successfully completed simulated data generation.");
     }

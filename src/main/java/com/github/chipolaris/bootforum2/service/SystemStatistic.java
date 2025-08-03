@@ -57,7 +57,6 @@ public class SystemStatistic {
     private volatile LocalDateTime lastUserRegisteredDate;
 
     // --- Initialization ---
-    @PostConstruct
     public void initializeStatistics() {
         logger.info("Initializing System Statistics...");
 
