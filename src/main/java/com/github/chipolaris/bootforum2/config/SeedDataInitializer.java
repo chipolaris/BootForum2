@@ -23,10 +23,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 
+/**
+ * This class requires the file named seed-data.json exists in the classpath
+ */
 @Component
-@Profile({"dev", "prod"}) // Your existing profiles
-@Order(1)
-public class SeedDataInitializer implements ApplicationRunner {
+public class SeedDataInitializer {
 
     private static final Logger logger = LoggerFactory.getLogger(SeedDataInitializer.class);
 
@@ -43,9 +44,8 @@ public class SeedDataInitializer implements ApplicationRunner {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Override
     @Transactional // Ensure operations are transactional
-    public void run(ApplicationArguments args) throws Exception {
+    public void initializeSeedData() throws Exception {
         logger.info("Checking for seed data...");
 
         Resource resource = new ClassPathResource("seed-data.json");
@@ -129,6 +129,7 @@ public class SeedDataInitializer implements ApplicationRunner {
         } catch (Exception e) {
             logger.error("Error during seed data initialization: {}", e.getMessage(), e);
             // Consider re-throwing or handling more specifically if needed
+            throw e;
         }
     }
 }

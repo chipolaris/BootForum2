@@ -111,7 +111,7 @@ public class StatService {
 
     private void updateDiscussionInfo(DiscussionInfo discussionInfo, Discussion discussion) {
         discussionInfo.setDiscussionId(discussion.getId());
-        discussionInfo.setCreateBy(discussion.getCreateBy());
+        discussionInfo.setDiscussionCreator(discussion.getCreateBy());
         discussionInfo.setDiscussionCreateDate(discussionInfo.getCreateDate());
         discussionInfo.setTitle(discussion.getTitle());
         discussionInfo.setContentAbbr(discussion.getContent());

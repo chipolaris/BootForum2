@@ -1,5 +1,6 @@
 package com.github.chipolaris.bootforum2;
 
+import com.github.chipolaris.bootforum2.config.SeedDataInitializer;
 import com.github.chipolaris.bootforum2.dao.DynamicDAO;
 import com.github.chipolaris.bootforum2.dao.FilterSpec;
 import com.github.chipolaris.bootforum2.dao.QuerySpec;
@@ -176,7 +177,7 @@ public class SpringBootAngularApplication {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean @Order(2)
+    @Bean @Order(1)
     CommandLineRunner validateSchema(DataSource dataSource) {
         return args -> {
             try (Connection conn = dataSource.getConnection()) {
@@ -189,8 +190,13 @@ public class SpringBootAngularApplication {
         };
     }
 
+    @Bean @Order(2)
+    CommandLineRunner initializeSeedData(SeedDataInitializer seedDataInitializer) {
+        return args -> seedDataInitializer.initializeSeedData();
+    }
+
     @Bean @Order(3)
-    CommandLineRunner validateData(DynamicDAO dynamicDAO) {
+    CommandLineRunner validateSeedData(DynamicDAO dynamicDAO) {
         return args -> {
             logger.info("Validating data...");
 
@@ -232,7 +238,7 @@ public class SpringBootAngularApplication {
      * @param systemStatistic
      * @return
      */
-    @Bean @Order(10)
+    @Bean @Order(4)
     CommandLineRunner initializeSystemStatistic(SystemStatistic systemStatistic) {
         return args -> systemStatistic.initializeStatistics();
     }

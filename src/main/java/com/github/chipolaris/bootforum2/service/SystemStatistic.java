@@ -56,7 +56,10 @@ public class SystemStatistic {
     private volatile String lastRegisteredUser;
     private volatile LocalDateTime lastUserRegisteredDate;
 
-    // --- Initialization ---
+    /**
+     * Read statistic data from DB and populate this object's attributes.
+     */
+    @Transactional(readOnly = true)
     public void initializeStatistics() {
         logger.info("Initializing System Statistics...");
 

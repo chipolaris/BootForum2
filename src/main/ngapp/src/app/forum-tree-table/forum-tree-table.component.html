@@ -26,7 +26,7 @@
     <p-treeTable [value]="treeTableNodes" dataKey="data.id">
       <ng-template pTemplate="header">
         <tr>
-          <th style="width: 50%;">Title</th> <!-- Adjust width as needed -->
+          <th style="width: 50%;">Title</th>
           <th class="text-center">Discussions</th>
           <th class="text-center">Comments</th>
           <th class="text-right">Last Post</th>
@@ -38,7 +38,7 @@
             <p-treeTableToggler [rowNode]="rowNode" *ngIf="!rowNode.leaf"></p-treeTableToggler>
             <span [style.paddingLeft.px]="rowNode.leaf && rowNode.level > 0 ? (rowNode.level * 1.5 * 16) + 16 : (rowNode.leaf ? 16 : 0)"
                   [ngClass]="{'font-semibold': rowData.type === 'forumGroup'}">
-              <!-- You can add an icon here based on type if desired -->
+
                <i [ngClass]="rowData.type === 'forumGroup' ? 'pi pi-fw pi-folder' : 'pi pi-fw pi-comments'"></i>
                <ng-container *ngIf="rowData.type === 'forum'; else nonForumTitle">
                  <a [routerLink]="['/app/forums', rowData.originalDto.id, 'view']" class="text-indigo-600 hover:text-indigo-800 hover:underline">
