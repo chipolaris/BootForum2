@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -257,8 +258,53 @@ public class DiscussionService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public ServiceResponse<List<DiscussionDTO>> getLatestDiscussions(int count) {
+        try {
+            Pageable pageable = PageRequest.of(0, count);
+            List<Discussion> discussions = discussionRepository.findByOrderByCreateDateDesc(pageable);
+            List<DiscussionDTO> dtos = discussions.stream()
+                    .map(discussionMapper::toDiscussionDTO)
+                    .collect(Collectors.toList());
+            return ServiceResponse.success("Fetched latest discussions.", dtos);
+        } catch (Exception e) {
+            logger.error("Error fetching latest discussions", e);
+            return ServiceResponse.failure("An unexpected error occurred while fetching latest discussions.");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public ServiceResponse<List<DiscussionDTO>> getMostCommentedDiscussions(int count) {
+        try {
+            Pageable pageable = PageRequest.of(0, count);
+            List<Discussion> discussions = discussionRepository.findByOrderByStatCommentCountDesc(pageable);
+            List<DiscussionDTO> dtos = discussions.stream()
+                    .map(discussionMapper::toDiscussionDTO)
+                    .collect(Collectors.toList());
+            return ServiceResponse.success("Fetched most commented discussions.", dtos);
+        } catch (Exception e) {
+            logger.error("Error fetching most commented discussions", e);
+            return ServiceResponse.failure("An unexpected error occurred while fetching most commented discussions.");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public ServiceResponse<List<DiscussionDTO>> getMostViewedDiscussions(int count) {
+        try {
+            Pageable pageable = PageRequest.of(0, count);
+            List<Discussion> discussions = discussionRepository.findByOrderByStatViewCountDesc(pageable);
+            List<DiscussionDTO> dtos = discussions.stream()
+                    .map(discussionMapper::toDiscussionDTO)
+                    .collect(Collectors.toList());
+            return ServiceResponse.success("Fetched most viewed discussions.", dtos);
+        } catch (Exception e) {
+            logger.error("Error fetching most viewed discussions", e);
+            return ServiceResponse.failure("An unexpected error occurred while fetching most viewed discussions.");
+        }
+    }
+
     /**
-     * NEW: Performs a full-text search for discussions.
+     * Performs a full-text search for discussions.
      *
      * @param keyword  The keyword to search for in discussion titles and content.
      * @param pageable Pagination information.

@@ -13,6 +13,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api")
 public class DiscussionController {
@@ -130,8 +132,56 @@ public class DiscussionController {
         }
     }
 
+    @GetMapping("/public/discussions/latest")
+    public ApiResponse<?> getLatestDiscussions() {
+        logger.info("Received request to get latest discussions");
+        try {
+            ServiceResponse<List<DiscussionDTO>> serviceResponse = discussionService.getLatestDiscussions(5);
+            if (serviceResponse.isSuccess()) {
+                return ApiResponse.success(serviceResponse.getDataObject(), "Latest discussions retrieved successfully.");
+            } else {
+                return ApiResponse.error(serviceResponse.getMessages(), "Failed to retrieve latest discussions.");
+            }
+        } catch (Exception e) {
+            logger.error("Unexpected error while getting latest discussions", e);
+            return ApiResponse.error("An unexpected error occurred while retrieving latest discussions.");
+        }
+    }
+
+    @GetMapping("/public/discussions/most-commented")
+    public ApiResponse<?> getMostCommentedDiscussions() {
+        logger.info("Received request to get most commented discussions");
+        try {
+            ServiceResponse<List<DiscussionDTO>> serviceResponse = discussionService.getMostCommentedDiscussions(5);
+            if (serviceResponse.isSuccess()) {
+                return ApiResponse.success(serviceResponse.getDataObject(), "Most commented discussions retrieved successfully.");
+            } else {
+                return ApiResponse.error(serviceResponse.getMessages(), "Failed to retrieve most commented discussions.");
+            }
+        } catch (Exception e) {
+            logger.error("Unexpected error while getting most commented discussions", e);
+            return ApiResponse.error("An unexpected error occurred while retrieving most commented discussions.");
+        }
+    }
+
+    @GetMapping("/public/discussions/most-viewed")
+    public ApiResponse<?> getMostViewedDiscussions() {
+        logger.info("Received request to get most viewed discussions");
+        try {
+            ServiceResponse<List<DiscussionDTO>> serviceResponse = discussionService.getMostViewedDiscussions(5);
+            if (serviceResponse.isSuccess()) {
+                return ApiResponse.success(serviceResponse.getDataObject(), "Most viewed discussions retrieved successfully.");
+            } else {
+                return ApiResponse.error(serviceResponse.getMessages(), "Failed to retrieve most viewed discussions.");
+            }
+        } catch (Exception e) {
+            logger.error("Unexpected error while getting most viewed discussions", e);
+            return ApiResponse.error("An unexpected error occurred while retrieving most viewed discussions.");
+        }
+    }
+
     /**
-     * NEW: Performs a full-text search for discussions.
+     * Performs a full-text search for discussions.
      *
      * @param keyword  The keyword to search for in discussion titles and content.
      * @param pageable Spring Data Pageable object for pagination. Note: Sorting is handled by relevance in the service.

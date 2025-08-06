@@ -46,10 +46,55 @@ public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
     Optional<Discussion> findTopByOrderByCreateDateDesc();
 
     /**
-     * Finds the most recent comment for a given discussion.
+     * Finds a list of the most recent discussions in the entire system, ordered by creation date.
+     * The number of discussions returned is determined by the size of the Pageable parameter.
+     *
+     * @param pageable Use PageRequest.of(0, N) to get the top N discussions.
+     * @return A list of the latest discussions.
+     */
+    List<Discussion> findByOrderByCreateDateDesc(Pageable pageable);
+
+    /**
+     * Finds the most recent discussion for a given forum.
      *
      * @param forum The forum in which to find the latest discussion.
      * @return an Optional containing the latest Discussion in the forum, or empty if the forum has no discussions.
      */
     Optional<Discussion> findTopByForumOrderByCreateDateDesc(Forum forum);
+
+    /**
+     * Finds a list of discussions with the most comments, ordered descending.
+     * The number of discussions returned is determined by the size of the Pageable parameter.
+     *
+     * @param pageable Use PageRequest.of(0, N) to get the top N discussions.
+     * @return A list of the most commented-on discussions.
+     */
+    List<Discussion> findByOrderByStatCommentCountDesc(Pageable pageable);
+
+    /**
+     * Finds a list of discussions with the most views, ordered descending.
+     * The number of discussions returned is determined by the size of the Pageable parameter.
+     *
+     * @param pageable Use PageRequest.of(0, N) to get the top N discussions.
+     * @return A list of the most viewed discussions.
+     */
+    List<Discussion> findByOrderByStatViewCountDesc(Pageable pageable);
+
+    /**
+     * Finds all "sticky" discussions for a given forum, ordered by the most recently updated.
+     * This is typically used to display pinned discussions at the top of a forum view.
+     *
+     * @param forum The forum to search within.
+     * @return A list of sticky discussions.
+     */
+    List<Discussion> findByForumAndStickyTrueOrderByUpdateDateDesc(Forum forum);
+
+    /**
+     * Finds all "important" discussions for a given forum, ordered by the most recently updated.
+     * This can be used for announcements or other highlighted content.
+     *
+     * @param forum The forum to search within.
+     * @return A list of important discussions.
+     */
+    List<Discussion> findByForumAndImportantTrueOrderByUpdateDateDesc(Forum forum);
 }

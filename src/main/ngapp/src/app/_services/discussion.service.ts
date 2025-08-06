@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'; // Added HttpParams
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { ApiResponse, DiscussionDTO, DiscussionInfoDTO, DiscussionSummaryDTO, Page } from '../_data/dtos'; // Adjust path as needed, Added Page
+import { ApiResponse, DiscussionDTO, DiscussionInfoDTO, DiscussionSummaryDTO, Page } from '../_data/dtos';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +10,7 @@ import { ApiResponse, DiscussionDTO, DiscussionInfoDTO, DiscussionSummaryDTO, Pa
 export class DiscussionService {
   private http = inject(HttpClient);
   private baseUserApiUrl = '/api/user/discussions';
-  private basePublicApiUrl = '/api/public/discussions'; // Matches your DiscussionController @RequestMapping
+  private basePublicApiUrl = '/api/public/discussions';
 
   constructor() { }
 
@@ -119,6 +119,30 @@ export class DiscussionService {
         }),
         catchError(this.handleError)
       );
+  }
+
+  /**
+   * Fetches the 5 most recent discussions.
+   */
+  getLatestDiscussions(): Observable<ApiResponse<DiscussionDTO[]>> {
+    return this.http.get<ApiResponse<DiscussionDTO[]>>(`${this.basePublicApiUrl}/latest`)
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Fetches the 5 most commented-on discussions.
+   */
+  getMostCommentedDiscussions(): Observable<ApiResponse<DiscussionDTO[]>> {
+    return this.http.get<ApiResponse<DiscussionDTO[]>>(`${this.basePublicApiUrl}/most-commented`)
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Fetches the 5 most viewed discussions.
+   */
+  getMostViewedDiscussions(): Observable<ApiResponse<DiscussionDTO[]>> {
+    return this.http.get<ApiResponse<DiscussionDTO[]>>(`${this.basePublicApiUrl}/most-viewed`)
+      .pipe(catchError(this.handleError));
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {

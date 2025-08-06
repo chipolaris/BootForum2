@@ -28,6 +28,9 @@ import {
   heroTag,
   heroRocketLaunch,
   heroWrenchScrewdriver,
+  heroClock,
+  heroChatBubbleLeftRight,
+  heroEye,
 } from '@ng-icons/heroicons/outline';
 
 import {
@@ -59,6 +62,9 @@ import {
   heroTagSolid,
   heroRocketLaunchSolid,
   heroWrenchScrewdriverSolid,
+  heroClockSolid,
+  heroChatBubbleLeftRightSolid,
+  heroEyeSolid,
 } from '@ng-icons/heroicons/solid';
 
 /**
@@ -86,7 +92,6 @@ export const APP_PICKER_AVAILABLE_ICONS: AppIconDefinition[] = [
   { displayName: 'Lock', name: 'heroLockClosedSolid' },
   { displayName: 'Map Pin', name: 'heroMapPinSolid' },
   { displayName: 'Star', name: 'heroStarSolid' },
-
   { displayName: 'Gift', name: 'heroGiftSolid' },
   { displayName: 'Globe Alternative', name: 'heroGlobeAltSolid' },
   { displayName: 'Home Modern', name: 'heroHomeModernSolid' },
@@ -99,6 +104,9 @@ export const APP_PICKER_AVAILABLE_ICONS: AppIconDefinition[] = [
   { displayName: 'Tag', name: 'heroTagSolid' },
   { displayName: 'Rocket Launch', name: 'heroRocketLaunchSolid' },
   { displayName: 'Wrench Screwdriver', name: 'heroWrenchScrewdriverSolid' },
+  { displayName: 'Clock', name: 'heroClockSolid' },
+  { displayName: 'Chat Bubble Left Right', name: 'heroChatBubbleLeftRightSolid' },
+  { displayName: 'Eye', name: 'heroEyeSolid' },
 ];
 
 /**
@@ -135,6 +143,9 @@ export const APP_ICONS = {
   heroTag,
   heroRocketLaunch,
   heroWrenchScrewdriver,
+  heroClock,
+  heroChatBubbleLeftRight,
+  heroEye,
   // Solid icons
   heroUserSolid,
   heroHomeSolid,
@@ -163,5 +174,8 @@ export const APP_ICONS = {
   heroTagSolid,
   heroRocketLaunchSolid,
   heroWrenchScrewdriverSolid,
+  heroClockSolid,
+  heroChatBubbleLeftRightSolid,
+  heroEyeSolid,
   // Add any other globally used HeroIcons here
 };

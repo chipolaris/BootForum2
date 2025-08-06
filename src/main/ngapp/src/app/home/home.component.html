@@ -1,3 +1,109 @@
-<div class="mx-auto flex h-16 max-w-screen-xl gap-8 px-4 sm:px-6 lg:px-8">
-  <h2 class="m-8 text-2xl font-extrabold dark:text-white min-w-full text-center">Welcome to BootForum2!</h2>
+<!-- Main container -->
+<div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-8">
+
+  <!-- Welcome Header -->
+  <div class="text-center mb-12">
+    <h1 class="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 sm:text-5xl">
+      Welcome to BootForum2
+    </h1>
+    <p class="mt-4 max-w-2xl mx-auto text-xl text-slate-600 dark:text-slate-300">
+      A modern forum built with Spring Boot and Angular.
+    </p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-20">
+    <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600"></div>
+    <p class="ml-4 text-xl text-gray-600 dark:text-gray-300">Loading discussions...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !isLoading" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-6 rounded-md shadow-lg" role="alert">
+    <h3 class="font-bold text-lg">Oops! Something went wrong.</h3>
+    <p class="mt-2 whitespace-pre-wrap">{{ errorMessage }}</p>
+  </div>
+
+  <!-- Content Grid -->
+  <div *ngIf="!isLoading && !errorMessage" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+    <!-- Panel: Most Recent Discussions -->
+    <div class="bg-white dark:bg-slate-800 rounded-lg shadow-lg overflow-hidden">
+      <div class="p-6 bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
+        <h3 class="flex items-center text-lg font-semibold text-slate-900 dark:text-slate-100">
+          <ng-icon name="heroClock" class="mr-3 text-indigo-500"></ng-icon>
+          Most Recent
+        </h3>
+      </div>
+      <ul class="divide-y divide-slate-200 dark:divide-slate-700">
+        <li *ngFor="let discussion of latestDiscussions" class="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-150">
+          <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="block">
+            <p class="font-medium text-indigo-600 dark:text-indigo-400 truncate" [title]="discussion.title">{{ discussion.title }}</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400">
+              by {{ discussion.createBy }} on {{ discussion.createDate | date:'shortDate' }}
+            </p>
+          </a>
+        </li>
+        <li *ngIf="latestDiscussions.length === 0" class="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
+          No recent discussions found.
+        </li>
+      </ul>
+    </div>
+
+    <!-- Panel: Most Commented Discussions -->
+    <div class="bg-white dark:bg-slate-800 rounded-lg shadow-lg overflow-hidden">
+      <div class="p-6 bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
+        <h3 class="flex items-center text-lg font-semibold text-slate-900 dark:text-slate-100">
+          <ng-icon name="heroChatBubbleLeftRight" class="mr-3 text-teal-500"></ng-icon>
+          Most Commented
+        </h3>
+      </div>
+      <ul class="divide-y divide-slate-200 dark:divide-slate-700">
+        <li *ngFor="let discussion of mostCommentedDiscussions" class="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-150">
+          <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="block">
+            <div class="flex justify-between items-start">
+              <p class="font-medium text-teal-600 dark:text-teal-400 truncate" [title]="discussion.title">{{ discussion.title }}</p>
+              <span class="ml-2 flex-shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800 dark:bg-teal-700 dark:text-teal-100">
+                {{ discussion.stat?.commentCount | number }}
+              </span>
+            </div>
+            <p class="text-sm text-slate-500 dark:text-slate-400">
+              by {{ discussion.createBy }}
+            </p>
+          </a>
+        </li>
+        <li *ngIf="mostCommentedDiscussions.length === 0" class="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
+          No popular discussions found.
+        </li>
+      </ul>
+    </div>
+
+    <!-- Panel: Most Viewed Discussions -->
+    <div class="bg-white dark:bg-slate-800 rounded-lg shadow-lg overflow-hidden">
+      <div class="p-6 bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
+        <h3 class="flex items-center text-lg font-semibold text-slate-900 dark:text-slate-100">
+          <ng-icon name="heroEye" class="mr-3 text-sky-500"></ng-icon>
+          Most Viewed
+        </h3>
+      </div>
+      <ul class="divide-y divide-slate-200 dark:divide-slate-700">
+        <li *ngFor="let discussion of mostViewedDiscussions" class="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-150">
+          <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="block">
+            <div class="flex justify-between items-start">
+              <p class="font-medium text-sky-600 dark:text-sky-400 truncate" [title]="discussion.title">{{ discussion.title }}</p>
+              <span class="ml-2 flex-shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-800 dark:bg-sky-700 dark:text-sky-100">
+                {{ discussion.stat?.viewCount | number }}
+              </span>
+            </div>
+            <p class="text-sm text-slate-500 dark:text-slate-400">
+              by {{ discussion.createBy }}
+            </p>
+          </a>
+        </li>
+        <li *ngIf="mostViewedDiscussions.length === 0" class="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
+          No popular discussions found.
+        </li>
+      </ul>
+    </div>
+
+  </div>
 </div>
