@@ -65,6 +65,28 @@ public class DiscussionController {
         }
     }
 
+    @GetMapping("/public/discussions/list")
+    public ApiResponse<?> listDiscussions(
+            @PageableDefault(size = 20, sort = "d.createDate", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        logger.info("Received request to list discussions. Pageable: {}", pageable);
+
+        try {
+
+            ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> serviceResponse =
+                    discussionService.findPaginatedDiscussionSummaries(pageable);
+
+            if (serviceResponse.isSuccess()) {
+                return ApiResponse.success(serviceResponse.getDataObject(), "Discussions retrieved successfully.");
+            } else {
+                return ApiResponse.error(serviceResponse.getMessages(), "Failed to retrieve discussions.");
+            }
+        } catch (Exception e) {
+            logger.error("Unexpected error while listing discussions", e);
+            return ApiResponse.error("An unexpected error occurred while retrieving discussions.");
+        }
+    }
+
     /**
      * Retrieves a paginated and sorted list of discussions.
      * Spring automatically populates the Pageable object from request parameters:
@@ -76,9 +98,9 @@ public class DiscussionController {
      * @param pageable  Spring Data Pageable object automatically resolved from request parameters.
      * @return ApiResponse containing a Page of DiscussionDTOs or error details.
      */
-    @GetMapping("/public/discussions/list")
-    public ApiResponse<?> listDiscussions(
-            @RequestParam(required = true) Long forumId,
+    @GetMapping("/public/discussions/by-forum/{forumId}")
+    public ApiResponse<?> listDiscussionsByForum(
+            @PathVariable Long forumId,
             //@PageableDefault(size = 10, sort = "stat.lastComment.commentDate", direction = Sort.Direction.DESC) Pageable pageable) {
             @PageableDefault(size = 10, sort = "d.createDate", direction = Sort.Direction.DESC) Pageable pageable) {
 
@@ -87,7 +109,7 @@ public class DiscussionController {
 
         try {
 
-            ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> serviceResponse = discussionService.findPaginatedDiscussionSummaries(
+            ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> serviceResponse = discussionService.findPaginatedDiscussionSummariesForForum(
                     forumId, pageable);
 
             if (serviceResponse.isSuccess()) {

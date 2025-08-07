@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { HomeComponent } from './home/home.component';
 import { UnauthorizedComponent } from './unauthorized/unauthorized.component';
 import { ResourceNotFoundComponent } from './resource-not-found/resource-not-found.component';
+import { DiscussionListComponent } from './discussion-list/discussion-list.component';
 import { DiscussionViewComponent } from './discussion-view/discussion-view.component';
 import { ForumTreeTableComponent } from './forum-tree-table/forum-tree-table.component';
 import { ForumViewComponent } from './forum-view/forum-view.component';
@@ -43,6 +44,7 @@ export const routes: Routes = [
     path: 'app/admin/data-generation', component: AdminDataComponent, canActivate: [authGuard],
     data: { roles: ['ADMIN'] }
   },
+  { path: 'app/discussions/list', component: DiscussionListComponent },
   { path: 'app/discussions/:id/view', component: DiscussionViewComponent },
   { path: 'app/forums/:id/view', component: ForumViewComponent },
   {

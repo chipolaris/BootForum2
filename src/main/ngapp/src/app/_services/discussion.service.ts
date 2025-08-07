@@ -34,6 +34,46 @@ export class DiscussionService {
   }
 
   /**
+   * Fetches a paginated and sorted list of discussion summaries.
+   * If a forumId is provided, it fetches discussions for that specific forum.
+   * Otherwise, it fetches all discussions in the system.
+   *
+   * @param forumId Optional ID of the forum to filter discussions.
+   * @param page The page number to retrieve (0-indexed).
+   * @param size The number of discussions per page.
+   * @param sortProperty The property to sort by.
+   * @param sortDirection The direction of sorting ('ASC' or 'DESC').
+   * @returns An Observable of ApiResponse containing a Page of DiscussionSummaryDTOs.
+   */
+  listDiscussionSummaries(
+    page: number = 0,
+    size: number = 20, // Default size
+    sortProperty: string = 'createDate', // Default sort
+    sortDirection: string = 'DESC' // Default direction
+  ): Observable<ApiResponse<Page<DiscussionSummaryDTO>>> {
+
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', `${sortProperty},${sortDirection}`);
+
+    // Determine the correct endpoint based on the presence of forumId
+    const url = `${this.basePublicApiUrl}/list`;
+
+    return this.http.get<ApiResponse<Page<DiscussionSummaryDTO>>>(url, { params })
+      .pipe(
+        tap(response => {
+          if (response.success) {
+            console.log('Discussions listed successfully via service', response.data);
+          } else {
+            console.error('Failed to list discussions via service', response.message, response.errors);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  /**
    * Fetches a paginated and sorted list of discussions.
    * @param forumId Optional ID of the forum to filter discussions.
    * @param page The page number to retrieve (0-indexed).
@@ -42,7 +82,7 @@ export class DiscussionService {
    * @param sortDirection The direction of sorting ('ASC' or 'DESC').
    * @returns An Observable of ApiResponse containing a Page of DiscussionDTOs.
    */
-  listDiscussionSummaries(
+  listDiscussionSummariesByForum(
     forumId?: number | null,
     page: number = 0,
     size: number = 10,
@@ -55,11 +95,9 @@ export class DiscussionService {
       .set('size', size.toString())
       .set('sort', `${sortProperty},${sortDirection}`); // Backend expects 'sort=property,direction'
 
-    if (forumId !== null && forumId !== undefined) {
-      params = params.append('forumId', forumId.toString());
-    }
+    const discussionsUrl = `${this.basePublicApiUrl}/comments/by-forum/${forumId}`;
 
-    return this.http.get<ApiResponse<Page<DiscussionSummaryDTO>>>(`${this.basePublicApiUrl}/list`, { params })
+    return this.http.get<ApiResponse<Page<DiscussionSummaryDTO>>>(discussionsUrl, { params })
       .pipe(
         tap(response => {
           if (response.success) {

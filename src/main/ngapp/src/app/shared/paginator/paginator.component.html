@@ -1,0 +1,47 @@
+<nav *ngIf="totalPages > 1"
+     class="flex items-center justify-between border-t border-gray-200 dark:border-slate-600 px-4 py-3 sm:px-6"
+     aria-label="Pagination">
+
+  <!-- Summary text for larger screens -->
+  <div class="hidden sm:block">
+    <p class="text-sm text-gray-700 dark:text-gray-300">
+      Page <span class="font-medium">{{ currentPage + 1 }}</span> of <span class="font-medium">{{ totalPages }}</span>
+    </p>
+  </div>
+
+  <!-- Main pagination controls -->
+  <div class="flex-1 flex justify-between sm:justify-end items-center space-x-1">
+    <!-- Previous Button -->
+    <button (click)="goToPage(currentPage - 1)"
+            [disabled]="currentPage === 0"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 dark:hover:bg-slate-600">
+      Previous
+    </button>
+
+    <!-- Page Numbers -->
+    <ng-container *ngFor="let pageNum of displayablePageNumbers">
+      <!-- Ellipsis -->
+      <span *ngIf="pageNum === -1"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500">
+        ...
+      </span>
+      <!-- Actual Page Number Button -->
+      <button *ngIf="pageNum !== -1"
+              (click)="goToPage(pageNum)"
+              [ngClass]="{
+                'z-10 bg-indigo-50 border-indigo-500 text-indigo-600 dark:bg-indigo-600 dark:text-white dark:border-indigo-500': pageNum === currentPage,
+                'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 dark:hover:bg-slate-600': pageNum !== currentPage
+              }"
+              class="relative inline-flex items-center px-4 py-2 border text-sm font-medium cursor-pointer">
+        {{ pageNum + 1 }}
+      </button>
+    </ng-container>
+
+    <!-- Next Button -->
+    <button (click)="goToPage(currentPage + 1)"
+            [disabled]="currentPage >= totalPages - 1"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 dark:hover:bg-slate-600">
+      Next
+    </button>
+  </div>
+</nav>

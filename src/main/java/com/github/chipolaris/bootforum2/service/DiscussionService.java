@@ -2,7 +2,6 @@ package com.github.chipolaris.bootforum2.service;
 
 import com.github.chipolaris.bootforum2.dao.*;
 import com.github.chipolaris.bootforum2.domain.Discussion;
-import com.github.chipolaris.bootforum2.domain.DiscussionStat;
 import com.github.chipolaris.bootforum2.domain.FileInfo;
 import com.github.chipolaris.bootforum2.domain.Forum;
 import com.github.chipolaris.bootforum2.dto.*;
@@ -28,7 +27,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -115,20 +113,6 @@ public class DiscussionService {
         }
     }
 
-/*    private void initializeDiscussionStatistics(Discussion discussion) {
-        DiscussionStat discussionStat = discussion.getStat();
-        discussionStat.setCommentCount(0);
-        discussionStat.setViewCount(0);
-        discussionStat.setParticipants(Map.of(discussion.getCreateBy(), 1));
-
-        if (discussion.getImages() != null) {
-            discussionStat.setImageCount(discussion.getImages().size());
-        }
-        if (discussion.getAttachments() != null) {
-            discussionStat.setAttachmentCount(discussion.getAttachments().size());
-        }
-    }*/
-
     private List<FileInfo> processFiles(MultipartFile[] files, String fileType) {
         List<FileInfo> fileInfos = new ArrayList<>();
         if (files != null) {
@@ -153,7 +137,35 @@ public class DiscussionService {
         return fileInfos;
     }
 
-    public ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> findPaginatedDiscussionSummaries(
+    /**
+     * Find all discussions in the system
+     * @param pageable
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> findPaginatedDiscussionSummaries(Pageable pageable) {
+        try {
+            // count all discussions in the system
+            long discussionCount = discussionRepository.count();
+            // fetch discussions with pagination
+            List<DiscussionSummaryDTO> discussionSummaryDTOs = discussionRepository.findDiscussionSummaries(pageable);
+            Page<DiscussionSummaryDTO> pageResult = new PageImpl<>(discussionSummaryDTOs, pageable, discussionCount);
+            return ServiceResponse.success("Fetched Discussion Summaries", PageResponseDTO.from(pageResult));
+        }
+        catch (Exception e) {
+            logger.error("Error fetching Discussion Summaries:", e);
+            return ServiceResponse.failure("An unexpected error occurred while fetching discussion summary.");
+        }
+    }
+
+    /**
+     * Find all discussions in a given forum
+     * @param forumId
+     * @param pageable
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> findPaginatedDiscussionSummariesForForum(
             long forumId, Pageable pageable) {
 
         try {

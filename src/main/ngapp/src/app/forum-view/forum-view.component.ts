@@ -133,7 +133,7 @@ export class ForumViewComponent implements OnInit, OnDestroy {
     this.isLoadingDiscussions = true;
     this.discussionsErrorMessage = null;
 
-    const discussionsSub = this.discussionService.listDiscussionSummaries(
+    const discussionsSub = this.discussionService.listDiscussionSummariesByForum(
       forumId,
       pageToFetch, // Use the validated pageToFetch
       size,

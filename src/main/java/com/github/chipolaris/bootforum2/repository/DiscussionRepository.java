@@ -14,6 +14,24 @@ import java.util.Optional;
 
 public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
 
+    /**
+     * Find all discussions in the system
+     * @param pageable
+     * @return
+     */
+    @Query("""
+            SELECT new com.github.chipolaris.bootforum2.dto.DiscussionSummaryDTO(d.id, d.title, 
+                d.stat.commentCount, d.stat.viewCount, d.createDate, d.createBy, d.stat.lastComment.commentDate) 
+            FROM Discussion d
+            """)
+    public List<DiscussionSummaryDTO> findDiscussionSummaries(Pageable pageable);
+
+    /**
+     * Find all discussions in a given forum
+     * @param forumId
+     * @param pageable
+     * @return
+     */
     @Query("""
             SELECT new com.github.chipolaris.bootforum2.dto.DiscussionSummaryDTO(d.id, d.title, 
                 d.stat.commentCount, d.stat.viewCount, d.createDate, d.createBy, d.stat.lastComment.commentDate) 
