@@ -67,50 +67,22 @@ public class DiscussionController {
 
     @GetMapping("/public/discussions/list")
     public ApiResponse<?> listDiscussions(
-            @PageableDefault(size = 20, sort = "d.createDate", direction = Sort.Direction.DESC) Pageable pageable) {
-
-        logger.info("Received request to list discussions. Pageable: {}", pageable);
-
-        try {
-
-            ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> serviceResponse =
-                    discussionService.findPaginatedDiscussionSummaries(pageable);
-
-            if (serviceResponse.isSuccess()) {
-                return ApiResponse.success(serviceResponse.getDataObject(), "Discussions retrieved successfully.");
-            } else {
-                return ApiResponse.error(serviceResponse.getMessages(), "Failed to retrieve discussions.");
-            }
-        } catch (Exception e) {
-            logger.error("Unexpected error while listing discussions", e);
-            return ApiResponse.error("An unexpected error occurred while retrieving discussions.");
-        }
-    }
-
-    /**
-     * Retrieves a paginated and sorted list of discussions.
-     * Spring automatically populates the Pageable object from request parameters:
-     * page: page number (0-indexed)
-     * size: page size
-     * sort: property,direction (e.g., sort=title,asc or sort=title,asc&sort=author,desc)
-     *
-     * @param forumId  ID of the forum to filter discussions.
-     * @param pageable  Spring Data Pageable object automatically resolved from request parameters.
-     * @return ApiResponse containing a Page of DiscussionDTOs or error details.
-     */
-    @GetMapping("/public/discussions/by-forum/{forumId}")
-    public ApiResponse<?> listDiscussionsByForum(
-            @PathVariable Long forumId,
-            //@PageableDefault(size = 10, sort = "stat.lastComment.commentDate", direction = Sort.Direction.DESC) Pageable pageable) {
-            @PageableDefault(size = 10, sort = "d.createDate", direction = Sort.Direction.DESC) Pageable pageable) {
+            @RequestParam(required = false) Long forumId,
+            @PageableDefault(size = 10, sort = "createDate", direction = Sort.Direction.DESC) Pageable pageable) {
 
         logger.info("Received request to list discussions. ForumId: {}, Pageable: {}",
-                forumId, pageable);
+                forumId == null ? "all" : forumId, pageable);
 
         try {
+            ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> serviceResponse;
 
-            ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> serviceResponse = discussionService.findPaginatedDiscussionSummariesForForum(
-                    forumId, pageable);
+            if (forumId != null) {
+                // If forumId is provided, get discussions for that forum
+                serviceResponse = discussionService.findPaginatedDiscussionSummariesForForum(forumId, pageable);
+            } else {
+                // Otherwise, get all discussions
+                serviceResponse = discussionService.findPaginatedDiscussionSummaries(pageable);
+            }
 
             if (serviceResponse.isSuccess()) {
                 return ApiResponse.success(serviceResponse.getDataObject(), "Discussions retrieved successfully.");

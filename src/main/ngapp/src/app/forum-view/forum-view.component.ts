@@ -12,7 +12,7 @@ import { SortEvent } from 'primeng/api';
 
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { APP_ICONS } from '../shared/hero-icons';
-import { PaginatorComponent } from '../shared/paginator/paginator.component'; // <-- IMPORT PAGINATOR
+import { PaginatorComponent } from '../shared/paginator/paginator.component';
 
 @Component({
   selector: 'app-forum-view',
@@ -23,7 +23,7 @@ import { PaginatorComponent } from '../shared/paginator/paginator.component'; //
     TableModule,
     FormsModule,
     NgIconComponent,
-    PaginatorComponent // <-- ADD PAGINATOR TO IMPORTS
+    PaginatorComponent
   ],
   providers: [provideIcons(APP_ICONS)],
   templateUrl: './forum-view.component.html',
@@ -46,8 +46,6 @@ export class ForumViewComponent implements OnInit, OnDestroy {
   currentSortField: string = 'stat.lastComment.commentDate';
   currentSortOrder: string = 'DESC';
   currentSortOrderNumber: number = -1;
-
-  // REMOVED: displayablePageNumbers is no longer needed
 
   private subscriptions = new Subscription();
 
@@ -115,18 +113,17 @@ export class ForumViewComponent implements OnInit, OnDestroy {
     this.isLoadingDiscussions = true;
     this.discussionsErrorMessage = null;
 
-    const discussionsSub = this.discussionService.listDiscussionSummariesByForum(
-      forumId,
-      pageToFetch,
-      size,
-      sortProperty,
-      sortDirection
-    ).subscribe({
+    const discussionsSub = this.discussionService.listDiscussionSummaries({
+      forumId: forumId,
+      page: pageToFetch,
+      size: size,
+      sortProperty: sortProperty,
+      sortDirection: sortDirection
+    }).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.discussionsPage = response.data;
           this.currentPage = this.discussionsPage.number;
-          // REMOVED: No longer need to calculate displayable page numbers
         } else {
           this.discussionsErrorMessage = response.message || 'Failed to load discussions.';
         }
@@ -158,7 +155,6 @@ export class ForumViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  // RENAMED from goToPage for consistency
   onPageChange(pageNumber: number): void {
     if (this.forumId === null || pageNumber < 0 || (this.discussionsPage && pageNumber >= this.discussionsPage.totalPages)) {
       return;
@@ -177,8 +173,6 @@ export class ForumViewComponent implements OnInit, OnDestroy {
       this.fetchDiscussions(this.forumId, this.currentPage, this.pageSize, this.currentSortField, this.currentSortOrder);
     }
   }
-
-  // REMOVED: _calculateDisplayablePageNumbers method is no longer needed.
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();

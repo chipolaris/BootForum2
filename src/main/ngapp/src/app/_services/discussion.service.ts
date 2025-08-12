@@ -4,6 +4,15 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { ApiResponse, DiscussionDTO, DiscussionInfoDTO, DiscussionSummaryDTO, Page } from '../_data/dtos';
 
+// Define an interface for the options
+export interface ListDiscussionsOptions {
+  forumId?: number | null;
+  page?: number;
+  size?: number;
+  sortProperty?: string;
+  sortDirection?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -35,69 +44,39 @@ export class DiscussionService {
 
   /**
    * Fetches a paginated and sorted list of discussion summaries.
-   * If a forumId is provided, it fetches discussions for that specific forum.
+   * If a forumId is provided, it fetches discussions for that specific forum by adding a query parameter.
    * Otherwise, it fetches all discussions in the system.
    *
-   * @param forumId Optional ID of the forum to filter discussions.
-   * @param page The page number to retrieve (0-indexed).
-   * @param size The number of discussions per page.
-   * @param sortProperty The property to sort by.
-   * @param sortDirection The direction of sorting ('ASC' or 'DESC').
+   * @param ListDiscussionsOptions
    * @returns An Observable of ApiResponse containing a Page of DiscussionSummaryDTOs.
    */
   listDiscussionSummaries(
-    page: number = 0,
-    size: number = 20, // Default size
-    sortProperty: string = 'createDate', // Default sort
-    sortDirection: string = 'DESC' // Default direction
+    options: ListDiscussionsOptions = {}
   ): Observable<ApiResponse<Page<DiscussionSummaryDTO>>> {
+    // Set default values inside the method
+    const {
+      forumId = null,
+      page = 0,
+      size = 20,
+      sortProperty = 'createDate',
+      sortDirection = 'DESC'
+    } = options;
 
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString())
       .set('sort', `${sortProperty},${sortDirection}`);
 
-    // Determine the correct endpoint based on the presence of forumId
+    // If a forumId is provided, add it to the query parameters.
+    // The backend endpoint is smart enough to filter by this parameter if it exists.
+    if (forumId !== null && forumId !== undefined) {
+      params = params.append('forumId', forumId.toString());
+    }
+
+    // The backend endpoint is always '/list'
     const url = `${this.basePublicApiUrl}/list`;
 
     return this.http.get<ApiResponse<Page<DiscussionSummaryDTO>>>(url, { params })
-      .pipe(
-        tap(response => {
-          if (response.success) {
-            console.log('Discussions listed successfully via service', response.data);
-          } else {
-            console.error('Failed to list discussions via service', response.message, response.errors);
-          }
-        }),
-        catchError(this.handleError)
-      );
-  }
-
-  /**
-   * Fetches a paginated and sorted list of discussions.
-   * @param forumId Optional ID of the forum to filter discussions.
-   * @param page The page number to retrieve (0-indexed).
-   * @param size The number of discussions per page.
-   * @param sortProperty The property to sort by.
-   * @param sortDirection The direction of sorting ('ASC' or 'DESC').
-   * @returns An Observable of ApiResponse containing a Page of DiscussionDTOs.
-   */
-  listDiscussionSummariesByForum(
-    forumId?: number | null,
-    page: number = 0,
-    size: number = 10,
-    sortProperty: string = 'stat.lastComment.commentDate', // Default sort
-    sortDirection: string = 'DESC' // Default direction
-  ): Observable<ApiResponse<Page<DiscussionSummaryDTO>>> {
-
-    let params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString())
-      .set('sort', `${sortProperty},${sortDirection}`); // Backend expects 'sort=property,direction'
-
-    const discussionsUrl = `${this.basePublicApiUrl}/by-forum/${forumId}`;
-
-    return this.http.get<ApiResponse<Page<DiscussionSummaryDTO>>>(discussionsUrl, { params })
       .pipe(
         tap(response => {
           if (response.success) {

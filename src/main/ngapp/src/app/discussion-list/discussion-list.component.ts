@@ -57,12 +57,12 @@ export class DiscussionListComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = null;
 
-    this.discussionService.listDiscussionSummaries(
-      this.currentPage,
-      this.pageSize,
-      this.sortProperty,
-      this.sortOrder
-    ).subscribe({
+    this.discussionService.listDiscussionSummaries({
+      page: this.currentPage,
+      size: this.pageSize,
+      sortProperty: this.sortProperty,
+      sortDirection: this.sortOrder
+    }).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.discussionsPage = response.data;

@@ -15,7 +15,7 @@
       <div>
         <label for="sortProperty" class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Sort By:</label>
         <select id="sortProperty" name="sortProperty" [(ngModel)]="sortProperty" (ngModelChange)="onSortChange()"
-                class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200">
+                class="px-2 py-1.5 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200">
           <option *ngFor="let option of sortPropertyOptions" [value]="option.value">{{ option.label }}</option>
         </select>
       </div>
@@ -23,7 +23,7 @@
       <div>
         <label for="sortOrder" class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Order:</label>
         <select id="sortOrder" name="sortOrder" [(ngModel)]="sortOrder" (ngModelChange)="onSortChange()"
-                class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200">
+                class="px-2 py-1.5 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200">
           <option *ngFor="let option of sortOrderOptions" [value]="option.value">{{ option.label }}</option>
         </select>
       </div>
@@ -32,7 +32,7 @@
     <div>
       <label for="pageSize" class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Per Page:</label>
       <select id="pageSize" name="pageSize" [(ngModel)]="pageSize" (ngModelChange)="onSortChange()"
-              class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200">
+              class="px-2 py-1.5 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200">
         <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
       </select>
     </div>
