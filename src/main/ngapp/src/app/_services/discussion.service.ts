@@ -95,7 +95,7 @@ export class DiscussionService {
       .set('size', size.toString())
       .set('sort', `${sortProperty},${sortDirection}`); // Backend expects 'sort=property,direction'
 
-    const discussionsUrl = `${this.basePublicApiUrl}/comments/by-forum/${forumId}`;
+    const discussionsUrl = `${this.basePublicApiUrl}/by-forum/${forumId}`;
 
     return this.http.get<ApiResponse<Page<DiscussionSummaryDTO>>>(discussionsUrl, { params })
       .pipe(

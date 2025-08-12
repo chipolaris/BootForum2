@@ -31,6 +31,7 @@ import {
   heroClock,
   heroChatBubbleLeftRight,
   heroEye,
+  heroCog,
 } from '@ng-icons/heroicons/outline';
 
 import {
@@ -65,6 +66,7 @@ import {
   heroClockSolid,
   heroChatBubbleLeftRightSolid,
   heroEyeSolid,
+  heroCogSolid,
 } from '@ng-icons/heroicons/solid';
 
 /**
@@ -146,6 +148,7 @@ export const APP_ICONS = {
   heroClock,
   heroChatBubbleLeftRight,
   heroEye,
+  heroCog,
   // Solid icons
   heroUserSolid,
   heroHomeSolid,
@@ -177,5 +180,6 @@ export const APP_ICONS = {
   heroClockSolid,
   heroChatBubbleLeftRightSolid,
   heroEyeSolid,
+  heroCogSolid,
   // Add any other globally used HeroIcons here
 };

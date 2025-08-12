@@ -20,10 +20,8 @@
     <div class="md:w-3/4 space-y-6">
 
       <!-- Discussion Details (Jumbotron Style) -->
-      <div *ngIf="discussionDetails && !isLoadingDiscussion && !discussionError"
-           class="bg-slate-100 dark:bg-slate-800 p-6 rounded-lg shadow-lg">
+      <div class="bg-slate-100 dark:bg-slate-800 p-6 rounded-lg shadow-lg">
         <header class="mb-4">
-          <!-- UPDATED DISCUSSION HEADER WITH AVATAR -->
           <div class="flex items-start space-x-4">
             <img [src]="getAvatarUrl(discussionDetails.createBy)" [alt]="discussionDetails.createBy + '\'s avatar'"
                  class="h-12 w-12 rounded-full object-cover flex-shrink-0">
@@ -40,9 +38,7 @@
             </div>
           </div>
         </header>
-        <!-- ... (rest of discussion details: markdown, files, footer) ... -->
         <markdown [data]="discussionDetails.content" class="toastui-viewer-styling"></markdown>
-
         <div *ngIf="discussionDetails.images && discussionDetails.images.length > 0" class="mt-4">
           <button (click)="openDiscussionGalleria()"
                   class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
@@ -50,7 +46,6 @@
             View Images ({{ discussionDetails.images.length }})
           </button>
         </div>
-
         <app-file-list [files]="discussionDetails.attachments ?? []"></app-file-list>
         <footer class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
           <div>
@@ -78,25 +73,17 @@
         </footer>
       </div>
 
-      <!-- ... (Loading and Error states for comments remain the same) ... -->
-
       <!-- Comments List -->
       <div *ngIf="commentsDataForViewers.length > 0 && !isLoadingComments && !commentsError" class="space-y-4">
         <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mt-8 mb-4">Replies</h3>
-
-        <!-- UPDATED COMMENT LAYOUT WITH AVATAR -->
         <div *ngFor="let comment of commentsDataForViewers; let i = index; trackBy: trackByCommentId"
              class="bg-white dark:bg-slate-700 p-4 rounded-lg shadow-md flex items-start space-x-4">
-
-          <!-- Avatar Column -->
           <div class="flex-shrink-0">
             <a [routerLink]="['/app/users', comment.createBy, 'profile']">
               <img [src]="getAvatarUrl(comment.createBy)" [alt]="comment.createBy + '\'s avatar'"
                    class="h-12 w-12 rounded-full object-cover hover:ring-2 hover:ring-indigo-400 transition-all">
             </a>
           </div>
-
-          <!-- Main Comment Content Column -->
           <div class="flex-grow min-w-0">
             <header class="mb-2">
               <h4 class="text-lg font-semibold text-gray-800 dark:text-slate-100">{{ comment.title }}</h4>
@@ -110,8 +97,6 @@
               </p>
             </header>
             <markdown [data]="comment.content" class="toastui-viewer-styling text-gray-700 dark:text-slate-300 text-sm"></markdown>
-
-            <!-- ... (rest of comment: images, files, footer) ... -->
             <div *ngIf="comment.images && comment.images.length > 0" class="mt-4">
               <button (click)="openCommentGalleria(comment)"
                       class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
@@ -119,7 +104,6 @@
                 View Images ({{ comment.images.length }})
               </button>
             </div>
-
             <app-file-list [files]="comment.attachments ?? []"></app-file-list>
             <footer class="mt-3 pt-3 border-t border-gray-200 dark:border-slate-600 flex justify-between items-center">
               <div>
@@ -158,67 +142,22 @@
         <p>No replies have been posted for this discussion yet.</p>
       </div>
 
-      <!-- Follow-up Comments Pagination Controls -->
-      <nav *ngIf="!isLoadingComments && !commentsError && commentsPage"
-           class="mt-6 flex items-center justify-between border-t border-gray-200 dark:border-slate-600 px-4 py-3 sm:px-0"
-           aria-label="Follow-up Comment Pagination">
-        <div class="hidden sm:block">
-          <p class="text-sm text-gray-700 dark:text-gray-300">
-            Showing replies
-            <span class="font-medium">{{ commentsPage.number * commentsPage.size + 1 }}</span>
-            to
-            <span class="font-medium">{{ commentsPage.number * commentsPage.size + commentsPage.numberOfElements }}</span>
-            of
-            <span class="font-medium">{{ commentsPage.totalElements }}</span>
-            results
-          </p>
-        </div>
-        <div class="flex-1 flex justify-between sm:justify-end items-center space-x-1">
-          <label for="commentsPageSizeSelect" class="text-sm text-gray-700 dark:text-gray-300 mr-1 sr-only sm:not-sr-only">Items per page:</label>
-          <select id="commentsPageSizeSelect" [ngModel]="commentsPageSize" (ngModelChange)="onCommentsPageSizeChange($event)" name="commentsPageSizeSelect"
-                  class="px-2 py-1 border border-gray-300 rounded-md text-sm dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 focus:ring-indigo-500 focus:border-indigo-500">
-            <option [value]="10">10</option>
-            <option [value]="25">25</option>
-            <option [value]="50">50</option>
-          </select>
+      <app-paginator *ngIf="!isLoadingComments && !commentsError && commentsPage && commentsPage.totalPages > 1"
+                     [currentPage]="commentsPage.number"
+                     [totalPages]="commentsPage.totalPages"
+                     (pageChange)="onCommentsPageChange($event)">
+      </app-paginator>
 
-          <button (click)="goToCommentsPage(currentCommentsPage - 1)"
-                  [disabled]="commentsPage.first || isLoadingComments"
-                  class="relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 dark:bg-slate-700 dark:text-gray-300 dark:hover:bg-slate-600 cursor-pointer">
-            Prev
-          </button>
-          <ng-container *ngFor="let pageNum of displayableCommentPageNumbers">
-            <button *ngIf="pageNum !== -1"
-                    (click)="goToCommentsPage(pageNum)"
-                    [disabled]="isLoadingComments"
-                    [ngClass]="{'z-10 bg-indigo-50 border-indigo-500 text-indigo-600 dark:bg-indigo-600 dark:text-white dark:border-indigo-500': pageNum === currentCommentsPage, 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 dark:hover:bg-slate-600': pageNum !== currentCommentsPage}"
-                    class="relative inline-flex items-center px-3 py-1.5 border text-sm font-medium cursor-pointer">
-              {{ pageNum + 1 }}
-            </button>
-            <span *ngIf="pageNum === -1" class="relative inline-flex items-center px-3 py-1.5 border border-gray-300 bg-white text-sm font-medium text-gray-700 dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500">...</span>
-          </ng-container>
-          <button (click)="goToCommentsPage(currentCommentsPage + 1)"
-                  [disabled]="commentsPage.last || isLoadingComments"
-                  class="relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 dark:bg-slate-700 dark:text-gray-300 dark:hover:bg-slate-600 cursor-pointer">
-            Next
-          </button>
-        </div>
-      </nav>
     </div> <!-- End Left Column -->
 
     <!-- Right Column: Discussion Sidebar (25%) -->
     <aside class="md:w-1/4 space-y-4">
-      <!-- Sidebar content remains the same -->
+      <!-- Discussion Info Card -->
       <div class="bg-slate-50 dark:bg-slate-700 p-4 rounded-lg shadow-md">
-
         <h3 class="flex items-center text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3 border-b pb-2 dark:border-slate-600">
           <ng-icon name="heroInformationCircle" size="1.4em" class="mr-2"/> Discussion Info
         </h3>
         <dl class="space-y-2 text-sm">
-          <!--<div>
-            <dt class="font-medium text-gray-600 dark:text-slate-300">Title:</dt>
-            <dd class="text-gray dark:text-slate-100">{{ discussionDetails.title }}</dd>
-          </div>-->
           <div class="flex items-center space-x-2">
             <dt class="font-medium text-gray-600 dark:text-slate-300">Created by:</dt>
             <dd class="text-gray-800 dark:text-slate-100 text-lg">{{ discussionDetails.createBy }}</dd>
@@ -256,7 +195,7 @@
                    class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
                   Comment on {{ stat.lastComment?.commentDate | date:'medium' }}
                 </a>
-                 by
+                by
                 <a [routerLink]="['/app/users', stat.lastComment?.commentor, 'profile']"
                    class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
                   {{ stat.lastComment?.commentor }}
@@ -269,6 +208,35 @@
           </ng-container>
         </dl>
       </div>
+
+      <!-- View Options Card -->
+      <div class="bg-slate-50 dark:bg-slate-700 p-4 rounded-lg shadow-md">
+        <h3 class="flex items-center text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3 border-b pb-2 dark:border-slate-600">
+          <ng-icon name="heroCog" size="1.4em" class="mr-2"/> View Options
+        </h3>
+        <div class="space-y-4 text-sm">
+          <!-- Sort Order -->
+          <div>
+            <label for="commentSortSelect" class="font-medium text-gray-600 dark:text-slate-300">Sort replies by:</label>
+            <select id="commentSortSelect" [(ngModel)]="commentSortOption" (ngModelChange)="onCommentSortOptionChange()" name="commentSortSelect"
+                    class="mt-1 block w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm dark:bg-slate-600 dark:text-gray-200 dark:border-slate-500 focus:ring-indigo-500 focus:border-indigo-500">
+              <option value="createDate,ASC">Oldest First</option>
+              <option value="createDate,DESC">Latest First</option>
+            </select>
+          </div>
+          <!-- Replies per page -->
+          <div>
+            <label for="commentsPageSizeSelect" class="font-medium text-gray-600 dark:text-slate-300">Replies per page:</label>
+            <select id="commentsPageSizeSelect" [ngModel]="commentsPageSize" (ngModelChange)="onCommentsPageSizeChange($event)" name="commentsPageSizeSelect"
+                    class="mt-1 block w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm dark:bg-slate-600 dark:text-gray-200 dark:border-slate-500 focus:ring-indigo-500 focus:border-indigo-500">
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
     </aside> <!-- End Right Column -->
 
   </div> <!-- End Main Content -->
