@@ -1,18 +1,22 @@
 package com.github.chipolaris.bootforum2.service;
 
 import com.github.chipolaris.bootforum2.domain.User;
-import com.github.chipolaris.bootforum2.dto.PasswordChangeDTO;
-import com.github.chipolaris.bootforum2.dto.PersonUpdateDTO;
-import com.github.chipolaris.bootforum2.dto.UserDTO;
+import com.github.chipolaris.bootforum2.dto.*;
 import com.github.chipolaris.bootforum2.mapper.PersonMapper;
 import com.github.chipolaris.bootforum2.mapper.UserMapper;
+import com.github.chipolaris.bootforum2.repository.CommentRepository;
+import com.github.chipolaris.bootforum2.repository.DiscussionRepository;
 import com.github.chipolaris.bootforum2.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -22,14 +26,19 @@ public class UserService {
 
 	private final UserRepository userRepository;
 	private final UserMapper userMapper;
-	private final PersonMapper personMapper; // Added
-	private final PasswordEncoder passwordEncoder; // Added
-	private final AuthenticationFacade authenticationFacade; // Added
+	private final DiscussionRepository discussionRepository;
+	private final CommentRepository commentRepository;
+	private final PersonMapper personMapper;
+	private final PasswordEncoder passwordEncoder;
+	private final AuthenticationFacade authenticationFacade;
 
-	public UserService(UserRepository userRepository, UserMapper userMapper,
+	public UserService(UserRepository userRepository, DiscussionRepository discussionRepository,
+					   CommentRepository commentRepository, UserMapper userMapper,
 					   PersonMapper personMapper, PasswordEncoder passwordEncoder,
 					   AuthenticationFacade authenticationFacade) {
 		this.userRepository = userRepository;
+		this.discussionRepository = discussionRepository;
+		this.commentRepository = commentRepository;
 		this.userMapper = userMapper;
 		this.personMapper = personMapper;
 		this.passwordEncoder = passwordEncoder;
@@ -113,5 +122,33 @@ public class UserService {
 		logger.info("Successfully updated password for user '{}'", username);
 
 		return ServiceResponse.success("Password updated successfully.");
+	}
+
+	@Transactional(readOnly = true)
+	public ServiceResponse<MyActivitiesDTO> getMyActivities(String username) {
+
+		try {
+			// Define a page request to limit results, e.g., top 10 recent items
+			Pageable pageable = PageRequest.of(0, 10, Sort.by("createDate").descending());
+
+			List<MyRecentDiscussionDTO> recentDiscussions = discussionRepository.findRecentDiscussionsForUser(username, pageable);
+			List<MyRecentCommentDTO> recentComments = commentRepository.findRecentCommentsForUser(username, pageable);
+			List<ReplyToMyCommentDTO> repliesToMyComments = commentRepository.findRepliesToUserComments(username, pageable);
+			List<MyLikedDiscussionDTO> likedDiscussions = discussionRepository.findLikedDiscussionsByUser(username, pageable);
+			List<MyLikedCommentDTO> likedComments = commentRepository.findLikedCommentsByUser(username, pageable);
+
+			MyActivitiesDTO myActivitiesDTO = new MyActivitiesDTO();
+			myActivitiesDTO.setRecentDiscussions(recentDiscussions);
+			myActivitiesDTO.setRecentComments(recentComments);
+			myActivitiesDTO.setRepliesToMyComments(repliesToMyComments);
+			myActivitiesDTO.setLikedDiscussions(likedDiscussions);
+			myActivitiesDTO.setLikedComments(likedComments);
+
+			return ServiceResponse.success("Successfully retrieved user activities.", myActivitiesDTO);
+
+		} catch (Exception e) {
+			logger.error("Error retrieving activities for user " + username, e);
+			return ServiceResponse.failure("An unexpected error occurred while retrieving your activities.");
+		}
 	}
 }

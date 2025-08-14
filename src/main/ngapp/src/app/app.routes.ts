@@ -22,6 +22,7 @@ import { EmailConfirmationComponent } from './email-confirmation/email-confirmat
 import { LoginComponent } from './login/login.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
 import { UserAccountComponent } from './user-account/user-account.component';
+import { UserActivitiesComponent } from './user-activities/user-activities.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { SearchViewComponent } from './search-view/search-view.component';
 import { CommentThreadComponent } from './comment-thread/comment-thread.component';
@@ -90,6 +91,7 @@ export const routes: Routes = [
   { path: 'app/dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'app/users/:username/profile', component: UserProfileComponent },
   { path: 'app/user-account', component: UserAccountComponent, canActivate: [authGuard] },
+  { path: 'app/user-activities', component: UserActivitiesComponent, canActivate: [authGuard] }, // Add this route
   { path: 'app/not-found', component: ResourceNotFoundComponent },
   { path: '**', component: ResourceNotFoundComponent }, // Wildcard route for any unmatched paths
 ];

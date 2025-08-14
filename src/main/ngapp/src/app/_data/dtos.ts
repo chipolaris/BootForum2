@@ -326,3 +326,53 @@ export function errorMessageFromApiResponse(apiResponse: ApiResponse<any>): stri
   return message;
 }
 
+export interface MyRecentDiscussionDTO {
+  id: number;
+  title: string;
+  createDate: string; // ISO date string
+  lastReplyTitle: string;
+  lastReplyDate: string; // ISO date string
+}
+
+export interface MyRecentCommentDTO {
+  id: number;
+  title: string;
+  createDate: string; // ISO date string
+  discussionId: number;
+  discussionTitle: string;
+}
+
+export interface ReplyToMyCommentDTO {
+  replyId: number;
+  replyTitle: string;
+  replyDate: string; // ISO date string
+  replyAuthor: string;
+  myCommentId: number;
+  myCommentTitle: string;
+  discussionId: number;
+  discussionTitle: string;
+}
+
+export interface MyLikedDiscussionDTO {
+  id: number;
+  title: string;
+  author: string;
+  likeDate: string; // ISO date string
+}
+
+export interface MyLikedCommentDTO {
+  id: number;
+  title: string;
+  author: string;
+  likeDate: string; // ISO date string
+  discussionId: number;
+  discussionTitle: string;
+}
+
+export interface MyActivitiesDTO {
+  recentDiscussions: MyRecentDiscussionDTO[];
+  recentComments: MyRecentCommentDTO[];
+  repliesToMyComments: ReplyToMyCommentDTO[];
+  likedDiscussions: MyLikedDiscussionDTO[];
+  likedComments: MyLikedCommentDTO[];
+}

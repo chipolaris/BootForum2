@@ -3,7 +3,10 @@ package com.github.chipolaris.bootforum2.repository;
 import com.github.chipolaris.bootforum2.domain.Comment;
 import com.github.chipolaris.bootforum2.domain.Discussion;
 import com.github.chipolaris.bootforum2.domain.Forum;
+import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.dto.DiscussionSummaryDTO;
+import com.github.chipolaris.bootforum2.dto.MyLikedDiscussionDTO;
+import com.github.chipolaris.bootforum2.dto.MyRecentDiscussionDTO;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -115,4 +118,37 @@ public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
      * @return A list of important discussions.
      */
     List<Discussion> findByForumAndImportantTrueOrderByUpdateDateDesc(Forum forum);
+
+    /**
+     *
+     * @param username
+     * @param pageable
+     * @return
+     */
+    @Query("""
+            SELECT new com.github.chipolaris.bootforum2.dto.MyRecentDiscussionDTO(
+                d.id, d.title, d.createDate, d.stat.lastComment.title, d.stat.lastComment.commentDate)
+            FROM Discussion d WHERE d.createBy = :username
+            """)
+    List<MyRecentDiscussionDTO> findRecentDiscussionsForUser(@Param("username") String username, Pageable pageable);
+
+    /**
+     *
+     * @param username
+     * @param pageable
+     * @return
+     */
+    @Query("""
+            SELECT new com.github.chipolaris.bootforum2.dto.MyLikedDiscussionDTO(
+                d.id, d.title, d.createBy, v.createDate)
+            FROM Discussion d JOIN d.stat.votes v WHERE v.voterName = :username AND v.voteValue > 0
+            """)
+    List<MyLikedDiscussionDTO> findLikedDiscussionsByUser(@Param("username") String username, Pageable pageable);
+
+    /**
+     *
+     * @param username
+     * @return
+     */
+    long countByCreateBy(String username);
 }

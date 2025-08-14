@@ -1,0 +1,192 @@
+<div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+  <header class="mb-8">
+    <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-100">My Activities</h1>
+    <p class="text-slate-600 dark:text-slate-300 mt-1">A summary of your recent contributions and interactions.</p>
+  </header>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-10">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+    <p class="ml-3 text-lg text-gray-600">Loading your activities...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage && !isLoading" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md mb-6" role="alert">
+    <p class="font-bold">Error Loading Activities</p>
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="activities && !isLoading" class="space-y-8">
+
+    <!-- My Recent Discussions -->
+    <p-panel header="My Recent Discussions" [toggleable]="true">
+      <p-table [value]="activities.recentDiscussions" styleClass="p-datatable-sm p-datatable-striped" [tableStyle]="{'min-width': '50rem'}">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Title</th>
+            <th>Date Started</th>
+            <th>Last Reply</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-discussion>
+          <tr>
+            <td>
+              <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                {{ discussion.title }}
+              </a>
+            </td>
+            <td>{{ discussion.createDate | date:'medium' }}</td>
+            <td>
+              <div *ngIf="discussion.lastReplyTitle; else noReply">
+                <p class="truncate" [title]="discussion.lastReplyTitle">{{ discussion.lastReplyTitle }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ discussion.lastReplyDate | date:'short' }}</p>
+              </div>
+              <ng-template #noReply>
+                <span class="text-gray-500 dark:text-gray-400">No replies yet</span>
+              </ng-template>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="3" class="text-center p-4">You have not started any discussions recently.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-panel>
+
+    <!-- My Recent Comments -->
+    <p-panel header="My Recent Comments" [toggleable]="true" [collapsed]="true">
+      <p-table [value]="activities.recentComments" styleClass="p-datatable-sm p-datatable-striped" [tableStyle]="{'min-width': '50rem'}">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>My Comment Title</th>
+            <th>Date Commented</th>
+            <th>In Discussion</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-comment>
+          <tr>
+            <td>
+              <a [routerLink]="['/app/comments', comment.id, 'thread']" class="font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                {{ comment.title }}
+              </a>
+            </td>
+            <td>{{ comment.createDate | date:'medium' }}</td>
+            <td>
+              <a [routerLink]="['/app/discussions', comment.discussionId, 'view']" class="text-sm text-gray-600 hover:underline dark:text-gray-300">
+                {{ comment.discussionTitle }}
+              </a>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="3" class="text-center p-4">You have not posted any comments recently.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-panel>
+
+    <!-- Replies to My Comments -->
+    <p-panel header="Replies to My Comments" [toggleable]="true" [collapsed]="true">
+      <p-table [value]="activities.repliesToMyComments" styleClass="p-datatable-sm p-datatable-striped" [tableStyle]="{'min-width': '50rem'}">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Reply</th>
+            <th>Replied By</th>
+            <th>Date</th>
+            <th>To My Comment</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-reply>
+          <tr>
+            <td>
+              <a [routerLink]="['/app/comments', reply.replyId, 'thread']" class="font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                {{ reply.replyTitle }}
+              </a>
+            </td>
+            <td>{{ reply.replyAuthor }}</td>
+            <td>{{ reply.replyDate | date:'medium' }}</td>
+            <td>
+              <a [routerLink]="['/app/comments', reply.myCommentId, 'thread']" class="text-sm text-gray-600 hover:underline dark:text-gray-300" [title]="reply.myCommentTitle">
+                {{ reply.myCommentTitle }}
+              </a>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="4" class="text-center p-4">No one has replied to your comments recently.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-panel>
+
+    <!-- My Liked Discussions -->
+    <p-panel header="My Liked Discussions" [toggleable]="true" [collapsed]="true">
+      <p-table [value]="activities.likedDiscussions" styleClass="p-datatable-sm p-datatable-striped" [tableStyle]="{'min-width': '50rem'}">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Discussion Title</th>
+            <th>Author</th>
+            <th>Date Liked</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-discussion>
+          <tr>
+            <td>
+              <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                {{ discussion.title }}
+              </a>
+            </td>
+            <td>{{ discussion.author }}</td>
+            <td>{{ discussion.likeDate | date:'medium' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="3" class="text-center p-4">You have not liked any discussions recently.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-panel>
+
+    <!-- My Liked Comments -->
+    <p-panel header="My Liked Comments" [toggleable]="true" [collapsed]="true">
+      <p-table [value]="activities.likedComments" styleClass="p-datatable-sm p-datatable-striped" [tableStyle]="{'min-width': '50rem'}">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Comment Title</th>
+            <th>Author</th>
+            <th>Date Liked</th>
+            <th>In Discussion</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-comment>
+          <tr>
+            <td>
+              <a [routerLink]="['/app/comments', comment.id, 'thread']" class="font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                {{ comment.title }}
+              </a>
+            </td>
+            <td>{{ comment.author }}</td>
+            <td>{{ comment.likeDate | date:'medium' }}</td>
+            <td>
+              <a [routerLink]="['/app/discussions', comment.discussionId, 'view']" class="text-sm text-gray-600 hover:underline dark:text-gray-300">
+                {{ comment.discussionTitle }}
+              </a>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="4" class="text-center p-4">You have not liked any comments recently.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-panel>
+
+  </div>
+</div>

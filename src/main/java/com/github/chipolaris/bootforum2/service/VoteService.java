@@ -68,7 +68,7 @@ public class VoteService {
         if(commentVote == null) {
             commentVote = new CommentVote();
             comment.setCommentVote(commentVote);
-            genericDAO.merge(comment);
+            //genericDAO.merge(comment);
         }
 
         if (commentVote.getVotes() == null) {
@@ -96,13 +96,9 @@ public class VoteService {
         }
 
         try {
-            // Persisting the Vote entity explicitly if it's not cascaded from CommentVote,
-            // or if CommentVote's cascade doesn't cover adding to the 'votes' collection effectively.
-            // If CommentVote.votes has CascadeType.ALL, merging commentVote (or comment) should be enough.
-            genericDAO.persist(newVote); // Persist the new Vote entity
-            genericDAO.merge(commentVote); // Merge CommentVote to update counts and the collection
-            // If CommentVote is managed by Comment's cascade, merging Comment is the primary way.
-            // genericDAO.merge(comment);
+            // Persisting the Vote is handled by the CascadeType.ALL on Comment.commentVote.
+            // Merging the parent comment is sufficient to persist the changes to CommentVote and the new Vote.
+            genericDAO.merge(comment);
 
             logger.info("User '{}' voted '{}' on comment ID {}", currentUsername, voteValue, commentId);
 
@@ -174,7 +170,7 @@ public class VoteService {
             // If CommentVote.votes has CascadeType.ALL, merging commentVote (or comment) should be enough.
             genericDAO.persist(newVote); // Persist the new Vote entity
             genericDAO.merge(discussionStat); // Merge CommentVote to update counts and the collection
-            // If CommentVote is managed by Comment's cascade, merging Comment is the primary way.
+            // If DiscussionStat is managed by Discussion's cascade, merging Comment is the primary way.
             // genericDAO.merge(comment);
 
             logger.info("User '{}' voted '{}' on comment ID {}", currentUsername, voteValue, discussionId);

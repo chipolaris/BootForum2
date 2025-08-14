@@ -3,7 +3,12 @@ package com.github.chipolaris.bootforum2.repository;
 import com.github.chipolaris.bootforum2.domain.Comment;
 import com.github.chipolaris.bootforum2.domain.Discussion;
 import com.github.chipolaris.bootforum2.domain.Forum;
+import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.dto.CommentorCountDTO;
+import com.github.chipolaris.bootforum2.dto.MyLikedCommentDTO;
+import com.github.chipolaris.bootforum2.dto.MyRecentCommentDTO;
+import com.github.chipolaris.bootforum2.dto.ReplyToMyCommentDTO;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -124,4 +129,49 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
                 ));
     }
 
+    /**
+     *
+     * @param username
+     * @param pageable
+     * @return
+     */
+    @Query("""
+            SELECT new com.github.chipolaris.bootforum2.dto.MyRecentCommentDTO(
+                c.id, c.title, c.createDate, c.discussion.id, c.discussion.title)
+            FROM Comment c WHERE c.createBy = :username
+            """)
+    List<MyRecentCommentDTO> findRecentCommentsForUser(@Param("username") String username, Pageable pageable);
+
+    /**
+     *
+     * @param username
+     * @param pageable
+     * @return
+     */
+    @Query("""
+            SELECT new com.github.chipolaris.bootforum2.dto.ReplyToMyCommentDTO(
+                r.id, r.title, r.createDate, r.createBy, p.id, p.title, r.discussion.id, r.discussion.title)
+            FROM Comment r JOIN r.replyTo p WHERE p.createBy = :username
+            """)
+    List<ReplyToMyCommentDTO> findRepliesToUserComments(@Param("username") String username, Pageable pageable);
+
+    /**
+     *
+     * @param username
+     * @param pageable
+     * @return
+     */
+    @Query("""
+            SELECT new com.github.chipolaris.bootforum2.dto.MyLikedCommentDTO(
+                c.id, c.title, c.createBy, v.createDate, c.discussion.id, c.discussion.title)
+            FROM Comment c JOIN c.commentVote.votes v WHERE v.voterName = :username AND v.voteValue > 0
+            """)
+    List<MyLikedCommentDTO> findLikedCommentsByUser(@Param("username") String username, Pageable pageable);
+
+    /**
+     *
+     * @param username
+     * @return
+     */
+    long countByCreateBy(String username);
 }

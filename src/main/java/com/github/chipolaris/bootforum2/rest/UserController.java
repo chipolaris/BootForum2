@@ -1,12 +1,11 @@
 package com.github.chipolaris.bootforum2.rest;
 
-import com.github.chipolaris.bootforum2.dto.ApiResponse;
-import com.github.chipolaris.bootforum2.dto.PasswordChangeDTO;
-import com.github.chipolaris.bootforum2.dto.PersonUpdateDTO;
-import com.github.chipolaris.bootforum2.dto.UserDTO;
+import com.github.chipolaris.bootforum2.dto.*;
 import com.github.chipolaris.bootforum2.service.ServiceResponse;
 import com.github.chipolaris.bootforum2.service.UserService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/user")
 public class UserController {
 
+	private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 	private final UserService userService;
 
 	public UserController(UserService userService) {
@@ -73,5 +73,22 @@ public class UserController {
 		}
 
 		return ApiResponse.error(serviceResponse.getMessages(), "Failed to change password.");
+	}
+
+	@GetMapping("/my-activities")
+	public ApiResponse<?> getMyActivities(@AuthenticationPrincipal UserDetails userDetails) {
+		if (userDetails == null) {
+			return ApiResponse.error("User not authenticated");
+		}
+		String username = userDetails.getUsername();
+		logger.info("Fetching activities for user '{}'", username);
+
+		ServiceResponse<MyActivitiesDTO> serviceResponse = userService.getMyActivities(username);
+
+		if (serviceResponse.isSuccess()) {
+			return ApiResponse.success(serviceResponse.getDataObject(), "Activities retrieved successfully.");
+		}
+
+		return ApiResponse.error(serviceResponse.getMessages(), "Failed to retrieve activities.");
 	}
 }

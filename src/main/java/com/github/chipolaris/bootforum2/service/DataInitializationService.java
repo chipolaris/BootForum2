@@ -144,7 +144,7 @@ public class DataInitializationService {
             logger.info("Found {} fake users to use as authors.", fakeUsernames.size());
         }
 
-        for (int i = 0; i < 2; i++) { // Create 3 Forum Groups
+        for (int i = 0; i < 3; i++) { // Create 3 Forum Groups
             ForumGroup forumGroup = createForumGroup();
             // set root forum group as parent
             forumGroup.setParent(rootForumGroup);
@@ -161,14 +161,13 @@ public class DataInitializationService {
                 for (int k = 0; k < 5; k++) { // Create 5 Discussions in each forum
                     Discussion discussion = createDiscussion(forum, fakeUsernames); // Pass usernames
                     genericDAO.persist(discussion);
-                    //eventPublisher.publishEvent(new DiscussionCreatedEvent(this, discussion));
 
                     List<Comment> commentsInDiscussion = new ArrayList<>();
                     int commentCount = 10 + random.nextInt(11); // 10 to 20 comments
                     for (int l = 0; l < commentCount; l++) {
                         Comment comment = createComment(discussion, commentsInDiscussion, fakeUsernames); // Pass usernames
                         genericDAO.persist(comment);
-                        //eventPublisher.publishEvent(new CommentCreatedEvent(this, comment));
+
                         commentsInDiscussion.add(comment);
                     }
                     // sync discussion stat
@@ -180,6 +179,10 @@ public class DataInitializationService {
         }
 
         this.systemStatistic.initializeStatistics(); // re-initialize SystemStatistic
+
+        for(User user : fakeUsers) {
+            statService.syncUserStat(user);
+        }
 
         logger.info("Successfully completed simulated data generation.");
     }

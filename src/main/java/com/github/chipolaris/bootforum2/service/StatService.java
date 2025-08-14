@@ -116,4 +116,20 @@ public class StatService {
         discussionInfo.setTitle(discussion.getTitle());
         discussionInfo.setContentAbbr(discussion.getContent());
     }
+
+    // -- sync user stat
+    @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+    public ServiceResponse<UserStat> syncUserStat(User user) {
+        return ServiceResponse.success("Forum Stat refreshed", refreshUserStatFromDB(user));
+    }
+
+    private UserStat refreshUserStatFromDB(User user) {
+        UserStat userStat = user.getStat();
+        userStat.setDiscussionCount(discussionRepository.countByCreateBy(user.getUsername()));
+        userStat.setCommentCount(commentRepository.countByCreateBy(user.getUsername()));
+
+        genericDAO.merge(userStat);
+
+        return userStat;
+    }
 }
