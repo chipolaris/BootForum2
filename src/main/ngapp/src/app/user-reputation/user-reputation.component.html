@@ -1,0 +1,132 @@
+<div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+  <header class="mb-8">
+    <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-100">My Reputation</h1>
+    <p class="text-slate-600 dark:text-slate-300 mt-1">An overview of your forum statistics and top content.</p>
+  </header>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-10">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+    <p class="ml-3 text-lg text-gray-600">Loading your reputation data...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage && !isLoading" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md mb-6" role="alert">
+    <p class="font-bold">Error Loading Reputation</p>
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="reputation && !isLoading" class="space-y-8">
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <p-card header="Profile Views" styleClass="text-center">
+        <div class="text-3xl font-bold text-blue-500">{{ reputation.profileViewCount | number }}</div>
+      </p-card>
+      <p-card header="Discussions" styleClass="text-center">
+        <div class="text-3xl font-bold text-blue-500">{{ reputation.totalDiscussions | number }}</div>
+      </p-card>
+      <p-card header="Comments" styleClass="text-center">
+        <div class="text-3xl font-bold text-blue-500">{{ reputation.totalComments | number }}</div>
+      </p-card>
+      <p-card header="Up-Votes" styleClass="text-center">
+        <div class="text-3xl font-bold text-green-500">{{ reputation.totalUpVotes | number }}</div>
+      </p-card>
+      <p-card header="Down-Votes" styleClass="text-center">
+        <div class="text-3xl font-bold text-red-500">{{ reputation.totalDownVotes | number }}</div>
+      </p-card>
+    </div>
+
+    <!-- Ranked Discussion Panels -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <p-panel header="Most Viewed Discussions" [toggleable]="true">
+        <p-table [value]="reputation.mostViewedDiscussions" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '25rem'}">
+          <ng-template pTemplate="header"><tr><th>Title</th><th class="w-24 text-center">Views</th></tr></ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td><a [routerLink]="['/app/discussions', item.id, 'view']" class="table-link">{{ item.title }}</a></td>
+              <td class="text-center">{{ item.value | number }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage"><tr><td colspan="2" class="text-center p-4">No discussions to show.</td></tr></ng-template>
+        </p-table>
+      </p-panel>
+
+      <p-panel header="Most Liked Discussions" [toggleable]="true">
+        <p-table [value]="reputation.mostLikedDiscussions" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '25rem'}">
+          <ng-template pTemplate="header"><tr><th>Title</th><th class="w-24 text-center">Likes</th></tr></ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td><a [routerLink]="['/app/discussions', item.id, 'view']" class="table-link">{{ item.title }}</a></td>
+              <td class="text-center text-green-600 font-semibold">{{ item.value | number }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage"><tr><td colspan="2" class="text-center p-4">No discussions to show.</td></tr></ng-template>
+        </p-table>
+      </p-panel>
+
+      <p-panel header="Most Disliked Discussions" [toggleable]="true">
+        <p-table [value]="reputation.mostDislikedDiscussions" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '25rem'}">
+          <ng-template pTemplate="header"><tr><th>Title</th><th class="w-24 text-center">Dislikes</th></tr></ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td><a [routerLink]="['/app/discussions', item.id, 'view']" class="table-link">{{ item.title }}</a></td>
+              <td class="text-center text-red-600 font-semibold">{{ item.value | number }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage"><tr><td colspan="2" class="text-center p-4">No discussions to show.</td></tr></ng-template>
+        </p-table>
+      </p-panel>
+
+      <p-panel header="Top Net-Liked Discussions" [toggleable]="true">
+        <p-table [value]="reputation.mostNetLikedDiscussions" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '25rem'}">
+          <ng-template pTemplate="header"><tr><th>Title</th><th class="w-24 text-center">Net Score</th></tr></ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td><a [routerLink]="['/app/discussions', item.id, 'view']" class="table-link">{{ item.title }}</a></td>
+              <td class="text-center font-semibold" [ngClass]="{'text-green-600': item.value > 0, 'text-red-600': item.value < 0}">{{ item.value | number }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage"><tr><td colspan="2" class="text-center p-4">No discussions to show.</td></tr></ng-template>
+        </p-table>
+      </p-panel>
+    </div>
+
+    <!-- Ranked Comment Panels -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <p-panel header="Most Liked Comments" [toggleable]="true" [collapsed]="true">
+        <p-table [value]="reputation.mostLikedComments" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '25rem'}">
+          <ng-template pTemplate="header"><tr><th>Comment</th><th class="w-24 text-center">Likes</th></tr></ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td>
+                <a [routerLink]="['/app/comments', item.id, 'thread']" class="table-link">{{ item.title }}</a>
+                <div class="text-xs text-gray-500 dark:text-gray-400">in: {{ item.discussionTitle }}</div>
+              </td>
+              <td class="text-center text-green-600 font-semibold">{{ item.value | number }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage"><tr><td colspan="2" class="text-center p-4">No comments to show.</td></tr></ng-template>
+        </p-table>
+      </p-panel>
+
+      <p-panel header="Most Disliked Comments" [toggleable]="true" [collapsed]="true">
+        <p-table [value]="reputation.mostDislikedComments" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '25rem'}">
+          <ng-template pTemplate="header"><tr><th>Comment</th><th class="w-24 text-center">Dislikes</th></tr></ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td>
+                <a [routerLink]="['/app/comments', item.id, 'thread']" class="table-link">{{ item.title }}</a>
+                <div class="text-xs text-gray-500 dark:text-gray-400">in: {{ item.discussionTitle }}</div>
+              </td>
+              <td class="text-center text-red-600 font-semibold">{{ item.value | number }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage"><tr><td colspan="2" class="text-center p-4">No comments to show.</td></tr></ng-template>
+        </p-table>
+      </p-panel>
+    </div>
+
+  </div>
+</div>

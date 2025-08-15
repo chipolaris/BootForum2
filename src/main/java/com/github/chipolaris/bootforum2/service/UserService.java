@@ -151,4 +151,53 @@ public class UserService {
 			return ServiceResponse.failure("An unexpected error occurred while retrieving your activities.");
 		}
 	}
+	@Transactional(readOnly = true)
+	public ServiceResponse<UserReputationDTO> getUserReputation(String username) {
+
+		try {
+			Optional<User> userOpt = userRepository.findByUsername(username);
+			if (userOpt.isEmpty()) {
+				return ServiceResponse.failure("User not found: " + username);
+			}
+			User user = userOpt.get();
+
+			UserReputationDTO reputationDTO = new UserReputationDTO();
+
+			// Basic Stats from UserStat
+			reputationDTO.setProfileViewCount(user.getStat().getProfileViewed());
+			reputationDTO.setTotalDiscussions(user.getStat().getDiscussionCount());
+			reputationDTO.setTotalComments(user.getStat().getCommentCount());
+
+			// Aggregate Vote Counts
+			long discussionUpVotes = Optional.ofNullable(discussionRepository.sumVoteUpCountByCreateBy(username)).orElse(0L);
+			long discussionDownVotes = Optional.ofNullable(discussionRepository.sumVoteDownCountByCreateBy(username)).orElse(0L);
+			long commentUpVotes = Optional.ofNullable(commentRepository.sumVoteUpCountByCreateBy(username)).orElse(0L);
+			long commentDownVotes = Optional.ofNullable(commentRepository.sumVoteDownCountByCreateBy(username)).orElse(0L);
+
+			reputationDTO.setTotalUpVotes(discussionUpVotes + commentUpVotes);
+			reputationDTO.setTotalDownVotes(discussionDownVotes + commentDownVotes);
+
+			// FIXED: Create a single Pageable object without any Sort information.
+			// The sorting is now correctly handled by the ORDER BY clause in each repository query.
+			Pageable topTen = PageRequest.of(0, 10);
+
+			// Ranked Lists
+			reputationDTO.setMostViewedDiscussions(discussionRepository.findMostViewedDiscussionsForUser(username, topTen));
+			reputationDTO.setMostLikedDiscussions(discussionRepository.findMostLikedDiscussionsForUser(username, topTen));
+			reputationDTO.setMostDislikedDiscussions(discussionRepository.findMostDislikedDiscussionsForUser(username, topTen));
+			reputationDTO.setMostNetLikedDiscussions(discussionRepository.findMostNetLikedDiscussionsForUser(username, topTen));
+
+			reputationDTO.setMostLikedComments(commentRepository.findMostLikedCommentsForUser(username,
+					PageRequest.of(0, 10, Sort.by("commentVote.voteUpCount").descending())));
+			reputationDTO.setMostDislikedComments(commentRepository.findMostDislikedCommentsForUser(username,
+					PageRequest.of(0, 10, Sort.by("commentVote.voteDownCount").descending())));
+
+			return ServiceResponse.success("Successfully retrieved user reputation.", reputationDTO);
+
+		} catch (Exception e) {
+			logger.error("Error retrieving reputation for user " + username, e);
+			return ServiceResponse.failure("An unexpected error occurred while retrieving your reputation data.");
+		}
+	}
+
 }

@@ -7,6 +7,7 @@ import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.dto.DiscussionSummaryDTO;
 import com.github.chipolaris.bootforum2.dto.MyLikedDiscussionDTO;
 import com.github.chipolaris.bootforum2.dto.MyRecentDiscussionDTO;
+import com.github.chipolaris.bootforum2.dto.RankedDiscussionDTO;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -151,4 +152,28 @@ public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
      * @return
      */
     long countByCreateBy(String username);
+
+    // ---- reputation queries
+    @Query("SELECT SUM(d.stat.voteUpCount) FROM Discussion d WHERE d.createBy = :username")
+    Long sumVoteUpCountByCreateBy(@Param("username") String username);
+
+    @Query("SELECT SUM(d.stat.voteDownCount) FROM Discussion d WHERE d.createBy = :username")
+    Long sumVoteDownCountByCreateBy(@Param("username") String username);
+
+    @Query("SELECT new com.github.chipolaris.bootforum2.dto.RankedDiscussionDTO(d.id, d.title, d.stat.viewCount) FROM Discussion d WHERE d.createBy = :username ORDER BY d.stat.viewCount DESC")
+    List<RankedDiscussionDTO> findMostViewedDiscussionsForUser(@Param("username") String username, Pageable pageable);
+
+    @Query("SELECT new com.github.chipolaris.bootforum2.dto.RankedDiscussionDTO(d.id, d.title, CAST(d.stat.voteUpCount AS long)) FROM Discussion d WHERE d.createBy = :username ORDER BY d.stat.voteUpCount DESC")
+    List<RankedDiscussionDTO> findMostLikedDiscussionsForUser(@Param("username") String username, Pageable pageable);
+
+    @Query("SELECT new com.github.chipolaris.bootforum2.dto.RankedDiscussionDTO(d.id, d.title, CAST(d.stat.voteDownCount AS long)) FROM Discussion d WHERE d.createBy = :username ORDER BY d.stat.voteDownCount DESC")
+    List<RankedDiscussionDTO> findMostDislikedDiscussionsForUser(@Param("username") String username, Pageable pageable);
+
+    @Query("""
+            SELECT new com.github.chipolaris.bootforum2.dto.RankedDiscussionDTO(d.id, d.title, CAST((d.stat.voteUpCount - d.stat.voteDownCount) AS long)) 
+            FROM Discussion d WHERE d.createBy = :username 
+            ORDER BY (d.stat.voteUpCount - d.stat.voteDownCount) DESC
+            """)
+    List<RankedDiscussionDTO> findMostNetLikedDiscussionsForUser(@Param("username") String username, Pageable pageable);
+
 }

@@ -4,10 +4,7 @@ import com.github.chipolaris.bootforum2.domain.Comment;
 import com.github.chipolaris.bootforum2.domain.Discussion;
 import com.github.chipolaris.bootforum2.domain.Forum;
 import com.github.chipolaris.bootforum2.domain.User;
-import com.github.chipolaris.bootforum2.dto.CommentorCountDTO;
-import com.github.chipolaris.bootforum2.dto.MyLikedCommentDTO;
-import com.github.chipolaris.bootforum2.dto.MyRecentCommentDTO;
-import com.github.chipolaris.bootforum2.dto.ReplyToMyCommentDTO;
+import com.github.chipolaris.bootforum2.dto.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -174,4 +171,26 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
      * @return
      */
     long countByCreateBy(String username);
+
+    /**
+     *
+     * @param username
+     * @return
+     */
+    @Query("SELECT SUM(c.commentVote.voteUpCount) FROM Comment c WHERE c.createBy = :username")
+    Long sumVoteUpCountByCreateBy(@Param("username") String username);
+
+    /**
+     *
+     * @param username
+     * @return
+     */
+    @Query("SELECT SUM(c.commentVote.voteDownCount) FROM Comment c WHERE c.createBy = :username")
+    Long sumVoteDownCountByCreateBy(@Param("username") String username);
+
+    @Query("SELECT new com.github.chipolaris.bootforum2.dto.RankedCommentDTO(c.id, c.title, CAST(c.commentVote.voteUpCount AS long), c.discussion.id, c.discussion.title) FROM Comment c WHERE c.createBy = :username")
+    List<RankedCommentDTO> findMostLikedCommentsForUser(@Param("username") String username, Pageable pageable);
+
+    @Query("SELECT new com.github.chipolaris.bootforum2.dto.RankedCommentDTO(c.id, c.title, CAST(c.commentVote.voteDownCount AS long), c.discussion.id, c.discussion.title) FROM Comment c WHERE c.createBy = :username")
+    List<RankedCommentDTO> findMostDislikedCommentsForUser(@Param("username") String username, Pageable pageable);
 }

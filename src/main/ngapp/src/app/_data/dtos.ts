@@ -376,3 +376,31 @@ export interface MyActivitiesDTO {
   likedDiscussions: MyLikedDiscussionDTO[];
   likedComments: MyLikedCommentDTO[];
 }
+
+export interface RankedDiscussionDTO {
+  id: number;
+  title: string;
+  value: number;
+}
+
+export interface RankedCommentDTO {
+  id: number;
+  title: string;
+  value: number;
+  discussionId: number;
+  discussionTitle: string;
+}
+
+export interface UserReputationDTO {
+  profileViewCount: number;
+  totalDiscussions: number;
+  totalComments: number;
+  totalUpVotes: number;
+  totalDownVotes: number;
+  mostViewedDiscussions: RankedDiscussionDTO[];
+  mostLikedDiscussions: RankedDiscussionDTO[];
+  mostDislikedDiscussions: RankedDiscussionDTO[];
+  mostNetLikedDiscussions: RankedDiscussionDTO[];
+  mostLikedComments: RankedCommentDTO[];
+  mostDislikedComments: RankedCommentDTO[];
+}

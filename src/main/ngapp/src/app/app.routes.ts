@@ -27,6 +27,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { SearchViewComponent } from './search-view/search-view.component';
 import { CommentThreadComponent } from './comment-thread/comment-thread.component';
 import { authGuard } from './_guards/auth.guard';
+import { UserReputationComponent } from './user-reputation/user-reputation.component'; // Import the new component
 
 export const routes: Routes = [
   { path: 'home', component: HomeComponent },
@@ -91,7 +92,8 @@ export const routes: Routes = [
   { path: 'app/dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'app/users/:username/profile', component: UserProfileComponent },
   { path: 'app/user-account', component: UserAccountComponent, canActivate: [authGuard] },
-  { path: 'app/user-activities', component: UserActivitiesComponent, canActivate: [authGuard] }, // Add this route
+  { path: 'app/user-activities', component: UserActivitiesComponent, canActivate: [authGuard] },
+  { path: 'app/user-reputation', component: UserReputationComponent, canActivate: [authGuard] },
   { path: 'app/not-found', component: ResourceNotFoundComponent },
   { path: '**', component: ResourceNotFoundComponent }, // Wildcard route for any unmatched paths
 ];

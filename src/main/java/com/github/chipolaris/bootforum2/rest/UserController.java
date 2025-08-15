@@ -91,4 +91,21 @@ public class UserController {
 
 		return ApiResponse.error(serviceResponse.getMessages(), "Failed to retrieve activities.");
 	}
+
+	@GetMapping("/my-reputation")
+	public ApiResponse<?> getMyReputation(@AuthenticationPrincipal UserDetails userDetails) {
+		if (userDetails == null) {
+			return ApiResponse.error("User not authenticated");
+		}
+		String username = userDetails.getUsername();
+		logger.info("Fetching reputation data for user '{}'", username);
+
+		ServiceResponse<UserReputationDTO> serviceResponse = userService.getUserReputation(username);
+
+		if (serviceResponse.isSuccess()) {
+			return ApiResponse.success(serviceResponse.getDataObject(), "Reputation data retrieved successfully.");
+		}
+
+		return ApiResponse.error(serviceResponse.getMessages(), "Failed to retrieve reputation data.");
+	}
 }
