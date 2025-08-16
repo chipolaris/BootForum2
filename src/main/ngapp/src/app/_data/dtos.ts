@@ -166,6 +166,8 @@ export interface DiscussionDTO {
   images?: FileInfoDTO[] | null; // Array of FileInfoDTO
   tags?: TagDTO[] | null; // Array of TagDTO
   stat?: DiscussionStatDTO | null; // Reference to DiscussionStatDTO
+  forumId?: number | null; // Corresponds to Long forumId, can be null
+  forumTitle?: string | null; // Optional and nullable
 }
 
 export interface DiscussionInfoDTO {
@@ -184,6 +186,8 @@ export interface DiscussionSummaryDTO {
   createDate: Date;
   createBy: string;
   lastCommentDate: Date;
+  forumId?: number | null;
+  forumTitle?: string | null;
 }
 
 export interface CommentThreadDTO {

@@ -25,7 +25,8 @@ public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
      */
     @Query("""
             SELECT new com.github.chipolaris.bootforum2.dto.DiscussionSummaryDTO(d.id, d.title, 
-                d.stat.commentCount, d.stat.viewCount, d.createDate, d.createBy, d.stat.lastComment.commentDate) 
+                d.stat.commentCount, d.stat.viewCount, d.createDate, d.createBy, d.stat.lastComment.commentDate,
+                d.forum.id, d.forum.title) 
             FROM Discussion d
             """)
     public List<DiscussionSummaryDTO> findDiscussionSummaries(Pageable pageable);
@@ -38,7 +39,8 @@ public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
      */
     @Query("""
             SELECT new com.github.chipolaris.bootforum2.dto.DiscussionSummaryDTO(d.id, d.title, 
-                d.stat.commentCount, d.stat.viewCount, d.createDate, d.createBy, d.stat.lastComment.commentDate) 
+                d.stat.commentCount, d.stat.viewCount, d.createDate, d.createBy, d.stat.lastComment.commentDate,
+                d.forum.id, d.forum.title) 
             FROM Discussion d WHERE d.forum.id = :forumId
             """)
     public List<DiscussionSummaryDTO> findDiscussionSummariesByForumId(@Param("forumId") Long forumId, Pageable pageable);

@@ -22,7 +22,7 @@ export class AvatarService {
   }
 
   /**
-   * NEW: Fetches the file ID for a single user's avatar.
+   * Fetches the file ID for a single user's avatar.
    * @param username The username of the user.
    * @returns An Observable of the API response containing the file ID or null.
    */

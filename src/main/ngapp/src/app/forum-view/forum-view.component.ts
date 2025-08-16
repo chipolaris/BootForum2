@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ForumService } from '../_services/forum.service';
 import { DiscussionService } from '../_services/discussion.service';
+import { AvatarService } from '../_services/avatar.service';
 import { ForumDTO, Page, DiscussionSummaryDTO } from '../_data/dtos';
 import { Subscription, distinctUntilChanged, tap, switchMap } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -47,11 +48,15 @@ export class ForumViewComponent implements OnInit, OnDestroy {
   currentSortOrder: string = 'DESC';
   currentSortOrderNumber: number = -1;
 
+  avatarFileIdMap: Map<string, number | null> = new Map();
+
   private subscriptions = new Subscription();
 
   private route = inject(ActivatedRoute);
   private forumService = inject(ForumService);
   private discussionService = inject(DiscussionService);
+  private avatarService = inject(AvatarService);
+  private cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
     const routeParamsSub = this.route.paramMap.pipe(
@@ -64,6 +69,7 @@ export class ForumViewComponent implements OnInit, OnDestroy {
           if (this.forumId !== parsedForumId) {
             this.forumId = parsedForumId;
             this.currentPage = 0; // Reset page on new forum ID
+            this.avatarFileIdMap.clear();
             this.fetchForumDetails(this.forumId);
             this.fetchDiscussions(this.forumId, this.currentPage, this.pageSize, this.currentSortField, this.currentSortOrder);
           }
@@ -124,6 +130,7 @@ export class ForumViewComponent implements OnInit, OnDestroy {
         if (response.success && response.data) {
           this.discussionsPage = response.data;
           this.currentPage = this.discussionsPage.number;
+          this.fetchAvatarFileIds();
         } else {
           this.discussionsErrorMessage = response.message || 'Failed to load discussions.';
         }
@@ -135,6 +142,44 @@ export class ForumViewComponent implements OnInit, OnDestroy {
       }
     });
     this.subscriptions.add(discussionsSub);
+  }
+
+  /**
+   * NEW: Fetches avatar IDs for all unique discussion creators on the current page.
+   */
+  private fetchAvatarFileIds(): void {
+    if (!this.discussionsPage?.content) {
+      return;
+    }
+    const usernames = new Set<string>(this.discussionsPage.content.map(d => d.createBy));
+
+    if (usernames.size === 0) {
+      return;
+    }
+
+    const avatarSub = this.avatarService.getAvatarFileIds(Array.from(usernames)).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.avatarFileIdMap = new Map(Object.entries(response.data));
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => console.error('Failed to fetch avatar file IDs for forum view:', err)
+    });
+    this.subscriptions.add(avatarSub);
+  }
+
+  /**
+   * NEW: Generates the correct avatar URL for a given username.
+   */
+  getAvatarUrl(username: string): string {
+    if (this.avatarFileIdMap.has(username)) {
+      const fileId = this.avatarFileIdMap.get(username);
+      if (fileId) {
+        return `/api/public/files/${fileId}`;
+      }
+    }
+    return '/assets/images/default-avatar.png';
   }
 
   onSortChange(event: SortEvent): void {

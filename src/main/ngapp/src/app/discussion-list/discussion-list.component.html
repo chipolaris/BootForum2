@@ -73,14 +73,26 @@
         <tbody class="divide-y divide-gray-200 dark:divide-slate-600">
         <tr *ngFor="let discussion of discussionsPage.content" class="hover:bg-gray-50 dark:hover:bg-slate-500/50 transition-colors duration-150">
           <td class="px-6 py-4 whitespace-nowrap">
-            <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="block">
-              <p class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 truncate" [title]="discussion.title">
+            <div>
+              <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 truncate" [title]="discussion.title">
                 {{ discussion.title }}
-              </p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">
-                by {{ discussion.createBy }} on {{ discussion.createDate | date:'mediumDate' }}
-              </p>
-            </a>
+              </a>
+            </div>
+            <div class="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <span>by&nbsp;</span>
+              <a [routerLink]="['/app/users', discussion.createBy, 'profile']" class="flex items-center hover:underline">
+                <img [src]="getAvatarUrl(discussion.createBy)" [alt]="discussion.createBy + '\'s avatar'" class="h-6 w-6 rounded-full mr-1.5 object-cover">
+                <span>{{ discussion.createBy }}</span>
+              </a>
+              <span class="mx-1.5">pan>on {{ discussion.createDate | date:'mediumDate' }}</span>
+            </div>
+            <div>
+              In forum
+              <a [routerLink]="['/app/forums', discussion.forumId, 'view']"
+                 class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                {{ discussion.forumTitle }}
+              </a>
+            </div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-300">
             {{ discussion.commentCount | number }}

@@ -11,6 +11,8 @@ import org.mapstruct.MappingTarget;
 public interface DiscussionMapper {
 
     @Mapping(source = "stat", target = "stat")
+    @Mapping(source = "forum.id", target = "forumId")
+    @Mapping(source = "forum.title", target = "forumTitle")
     DiscussionDTO toDiscussionDTO(Discussion discussion);
 
     /**

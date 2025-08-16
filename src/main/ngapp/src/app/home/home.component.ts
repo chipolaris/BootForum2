@@ -1,8 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { DiscussionService } from '../_services/discussion.service';
+import { AvatarService } from '../_services/avatar.service';
 import { DiscussionDTO, errorMessageFromApiResponse } from '../_data/dtos';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { APP_ICONS } from '../shared/hero-icons';
@@ -17,10 +18,14 @@ import { APP_ICONS } from '../shared/hero-icons';
 })
 export class HomeComponent implements OnInit {
   private discussionService = inject(DiscussionService);
+  private avatarService = inject(AvatarService);
+  private cdr = inject(ChangeDetectorRef);
 
   latestDiscussions: DiscussionDTO[] = [];
   mostCommentedDiscussions: DiscussionDTO[] = [];
   mostViewedDiscussions: DiscussionDTO[] = [];
+
+  avatarFileIdMap: Map<string, number | null> = new Map();
 
   isLoading = true;
   errorMessage: string | null = null;
@@ -32,6 +37,7 @@ export class HomeComponent implements OnInit {
   loadHomePageData(): void {
     this.isLoading = true;
     this.errorMessage = null;
+    this.avatarFileIdMap.clear();
 
     const latest$ = this.discussionService.getLatestDiscussions();
     const mostCommented$ = this.discussionService.getMostCommentedDiscussions();
@@ -67,6 +73,7 @@ export class HomeComponent implements OnInit {
           this.errorMessage = errors.join('\n');
         }
 
+        this.fetchAvatarFileIds();
         this.isLoading = false;
       },
       error: (err) => {
@@ -74,5 +81,36 @@ export class HomeComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  private fetchAvatarFileIds(): void {
+    const usernames = new Set<string>();
+    this.latestDiscussions.forEach(d => usernames.add(d.createBy));
+    this.mostCommentedDiscussions.forEach(d => usernames.add(d.createBy));
+    this.mostViewedDiscussions.forEach(d => usernames.add(d.createBy));
+
+    if (usernames.size === 0) {
+      return;
+    }
+
+    this.avatarService.getAvatarFileIds(Array.from(usernames)).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.avatarFileIdMap = new Map(Object.entries(response.data));
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => console.error('Failed to fetch avatar file IDs for home page:', err)
+    });
+  }
+
+  getAvatarUrl(username: string): string {
+    if (this.avatarFileIdMap.has(username)) {
+      const fileId = this.avatarFileIdMap.get(username);
+      if (fileId) {
+        return `/api/public/files/${fileId}`;
+      }
+    }
+    return '/assets/images/default-avatar.png';
   }
 }

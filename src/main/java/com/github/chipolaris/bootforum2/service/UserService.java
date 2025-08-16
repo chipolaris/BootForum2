@@ -177,8 +177,6 @@ public class UserService {
 			reputationDTO.setTotalUpVotes(discussionUpVotes + commentUpVotes);
 			reputationDTO.setTotalDownVotes(discussionDownVotes + commentDownVotes);
 
-			// FIXED: Create a single Pageable object without any Sort information.
-			// The sorting is now correctly handled by the ORDER BY clause in each repository query.
 			Pageable topTen = PageRequest.of(0, 10);
 
 			// Ranked Lists

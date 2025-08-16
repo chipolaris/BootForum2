@@ -36,12 +36,22 @@
       </div>
       <ul class="divide-y divide-slate-200 dark:divide-slate-700">
         <li *ngFor="let discussion of latestDiscussions" class="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-150">
-          <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="block">
-            <p class="font-medium text-indigo-600 dark:text-indigo-400 truncate" [title]="discussion.title">{{ discussion.title }}</p>
-            <p class="text-sm text-slate-500 dark:text-slate-400">
-              by {{ discussion.createBy }} on {{ discussion.createDate | date:'shortDate' }}
-            </p>
-          </a>
+          <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="text-indigo-600 dark:text-indigo-400 font-medium truncate block" [title]="discussion.title">{{ discussion.title }}</a>
+          <div class="flex items-center mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <a [routerLink]="['/app/users', discussion.createBy, 'profile']" class="flex items-center hover:underline">
+              <img [src]="getAvatarUrl(discussion.createBy)" [alt]="discussion.createBy + '\'s avatar'" class="h-6 w-6 rounded-full mr-1.5 object-cover">
+              <span>{{ discussion.createBy }}</span>
+            </a>
+            <span class="mx-1.5">•</span>
+            <span>{{ discussion.createDate | date:'shortDate' }}</span>
+          </div>
+          <div class="flex items-center mt-1 text-sm text-slate-500 dark:text-slate-400">
+            In forum
+            <a [routerLink]="['/app/forums', discussion.forumId, 'view']"
+               class="pl-1 text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+              {{ discussion.forumTitle }}
+            </a>
+          </div>
         </li>
         <li *ngIf="latestDiscussions.length > 0" class="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
           <a [routerLink]="['/app/discussions/list']" [queryParams]="{page: '0', size: '20', sort: 'createDate,DESC'}" class="block">
@@ -64,17 +74,25 @@
       </div>
       <ul class="divide-y divide-slate-200 dark:divide-slate-700">
         <li *ngFor="let discussion of mostCommentedDiscussions" class="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-150">
-          <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="block">
-            <div class="flex justify-between items-start">
-              <p class="font-medium text-teal-600 dark:text-teal-400 truncate" [title]="discussion.title">{{ discussion.title }}</p>
-              <span class="ml-2 flex-shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800 dark:bg-teal-700 dark:text-teal-100">
-                {{ discussion.stat?.commentCount | number }}
-              </span>
-            </div>
-            <p class="text-sm text-slate-500 dark:text-slate-400">
-              by {{ discussion.createBy }}
-            </p>
-          </a>
+          <div class="flex justify-between items-start">
+            <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="text-teal-600 dark:text-teal-400 font-medium truncate" [title]="discussion.title">{{ discussion.title }}</a>
+            <span class="ml-2 flex-shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800 dark:bg-teal-700 dark:text-teal-100">
+              {{ discussion.stat?.commentCount | number }}
+            </span>
+          </div>
+          <div class="flex items-center mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <a [routerLink]="['/app/users', discussion.createBy, 'profile']" class="flex items-center hover:underline">
+              <img [src]="getAvatarUrl(discussion.createBy)" [alt]="discussion.createBy + '\'s avatar'" class="h-6 w-6 rounded-full mr-1.5 object-cover">
+              <span>{{ discussion.createBy }}</span>
+            </a>
+          </div>
+          <div class="flex items-center mt-1 text-sm text-slate-500 dark:text-slate-400">
+            In forum
+            <a [routerLink]="['/app/forums', discussion.forumId, 'view']"
+               class="pl-1 text-sm font-medium text-teal-600 hover:text-teal-800 dark:text-teal-400 dark:hover:text-teal-300">
+              {{ discussion.forumTitle }}
+            </a>
+          </div>
         </li>
         <li *ngIf="mostCommentedDiscussions.length > 0" class="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
           <a [routerLink]="['/app/discussions/list']" [queryParams]="{page: '0', size: '20', sort: 'stat.commentCount,DESC'}" class="block">
@@ -97,17 +115,25 @@
       </div>
       <ul class="divide-y divide-slate-200 dark:divide-slate-700">
         <li *ngFor="let discussion of mostViewedDiscussions" class="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-150">
-          <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="block">
-            <div class="flex justify-between items-start">
-              <p class="font-medium text-sky-600 dark:text-sky-400 truncate" [title]="discussion.title">{{ discussion.title }}</p>
-              <span class="ml-2 flex-shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-800 dark:bg-sky-700 dark:text-sky-100">
-                {{ discussion.stat?.viewCount | number }}
-              </span>
-            </div>
-            <p class="text-sm text-slate-500 dark:text-slate-400">
-              by {{ discussion.createBy }}
-            </p>
-          </a>
+          <div class="flex justify-between items-start">
+            <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="text-sky-600 dark:text-sky-400 font-medium truncate" [title]="discussion.title">{{ discussion.title }}</a>
+            <span class="ml-2 flex-shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-800 dark:bg-sky-700 dark:text-sky-100">
+              {{ discussion.stat?.viewCount | number }}
+            </span>
+          </div>
+          <div class="flex items-center mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <a [routerLink]="['/app/users', discussion.createBy, 'profile']" class="flex items-center hover:underline">
+              <img [src]="getAvatarUrl(discussion.createBy)" [alt]="discussion.createBy + '\'s avatar'" class="h-6 w-6 rounded-full mr-1.5 object-cover">
+              <span>{{ discussion.createBy }}</span>
+            </a>
+          </div>
+          <div class="flex items-center mt-1 text-sm text-slate-500 dark:text-slate-400">
+            In forum
+            <a [routerLink]="['/app/forums', discussion.forumId, 'view']"
+               class="pl-1 text-sm font-medium text-sky-600 hover:text-sky-800 dark:text-sky-400 dark:hover:text-sky-300">
+              {{ discussion.forumTitle }}
+            </a>
+          </div>
         </li>
         <li *ngIf="mostViewedDiscussions.length > 0" class="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
           <a [routerLink]="['/app/discussions/list']" [queryParams]="{page: '0', size: '20', sort: 'stat.viewCount,DESC'}" class="block">
