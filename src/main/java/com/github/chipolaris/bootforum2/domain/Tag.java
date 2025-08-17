@@ -1,20 +1,9 @@
 package com.github.chipolaris.bootforum2.domain;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 
-import jakarta.persistence.Cacheable;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
-import jakarta.persistence.TableGenerator;
-import jakarta.persistence.Transient;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name="TAG_T", uniqueConstraints = {@UniqueConstraint(columnNames="LABEL", name="UNIQ_TAG_LABEL")})
@@ -43,8 +32,8 @@ public class Tag extends BaseEntity {
     @Column(name="ICON", length=30)
     private String icon;
 
-    @Column(name="COLOR", length=30)
-    private String color;
+    @Column(name="ICON_COLOR", length=30)
+    private String iconColor;
 
     @Column(name="DISABLED")
     private boolean disabled;
@@ -52,8 +41,8 @@ public class Tag extends BaseEntity {
     @Column(name="SORT_ORDER")
     private Integer sortOrder;
 
-    @Transient
-    private List<Discussion> discussions;
+    @ManyToMany(mappedBy="tags", fetch=FetchType.LAZY)
+    private Set<Discussion> discussions;
 
     @Override
     public Long getId() {
@@ -77,11 +66,11 @@ public class Tag extends BaseEntity {
         this.icon = icon;
     }
 
-    public String getColor() {
-        return color;
+    public String getIconColor() {
+        return iconColor;
     }
-    public void setColor(String color) {
-        this.color = color;
+    public void setIconColor(String iconColor) {
+        this.iconColor = iconColor;
     }
 
     public boolean isDisabled() {
@@ -98,10 +87,10 @@ public class Tag extends BaseEntity {
         this.sortOrder = sortOrder;
     }
 
-    public List<Discussion> getDiscussions() {
+    public Set<Discussion> getDiscussions() {
         return discussions;
     }
-    public void setDiscussions(List<Discussion> discussions) {
+    public void setDiscussions(Set<Discussion> discussions) {
         this.discussions = discussions;
     }
 }

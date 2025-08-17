@@ -8,5 +8,8 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface TagMapper {
 
+    @Mapping(target = "discussions", ignore = true) // Don't map the collection
+    Tag toEntity(TagDTO tagDTO);
+
     TagDTO toDTO(Tag tag);
 }

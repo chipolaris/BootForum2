@@ -1,0 +1,41 @@
+<form [formGroup]="tagForm" (ngSubmit)="onSubmit()" novalidate class="p-fluid space-y-6">
+
+  <!-- Tag Label -->
+  <div>
+    <label for="tagLabel" class="block text-sm font-medium text-gray-700 mb-1">Tag Label</label>
+    <input
+      id="tagLabel"
+      pInputText
+      formControlName="label"
+      required
+      [ngClass]="{ 'ng-invalid ng-dirty': f['label'].invalid && (f['label'].dirty || f['label'].touched) }"
+      placeholder="Enter tag label"
+    />
+    <div *ngIf="f['label'].invalid && (f['label'].dirty || f['label'].touched)" class="mt-1 text-xs text-red-600">
+      <span *ngIf="f['label'].errors?.['required']">Label is required.</span>
+      <span *ngIf="f['label'].errors?.['maxlength']">Label cannot exceed 100 characters.</span>
+    </div>
+  </div>
+
+  <!-- Icon and Color Picker -->
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Icon & Color</label>
+    <app-icon-picker
+      [initialIconName]="f['icon'].value"
+      [initialColor]="f['iconColor'].value"
+      (selectionChanged)="handleIconSelection($event)"
+    ></app-icon-picker>
+  </div>
+
+  <!-- Disabled State (only in edit mode) -->
+  <div *ngIf="isEditMode" class="flex items-center gap-4">
+    <p-inputSwitch formControlName="disabled"></p-inputSwitch>
+    <label for="disabled" class="text-sm font-medium text-gray-700">Disabled</label>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex justify-end gap-2 pt-4">
+    <button pButton type="button" label="Cancel" (click)="onCancel()" class="p-button-secondary"></button>
+    <button pButton type="submit" [label]="isEditMode ? 'Update Tag' : 'Create Tag'" class="p-button-primary"></button>
+  </div>
+</form>

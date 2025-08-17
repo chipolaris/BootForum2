@@ -1,0 +1,55 @@
+<div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+  <!-- PrimeNG outlets for dialogs and notifications -->
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
+  <header class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-100">Manage Tags</h1>
+      <p class="text-slate-600 dark:text-slate-300 mt-1">Create, edit, delete, and reorder discussion tags.</p>
+    </div>
+    <button pButton label="Create Tag" icon="pi pi-plus" (click)="openCreateDialog()"></button>
+  </header>
+
+  <div class="card">
+    <p-table [value]="tags" [loading]="isLoading" dataKey="id" [reorderableColumns]="true" (onRowReorder)="onRowReorder($event)"
+             styleClass="p-datatable-striped" [tableStyle]="{'min-width': '50rem'}">
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 4rem" class="text-center">Order</th>
+          <th>Label</th>
+          <th class="text-center" style="width: 8rem;">Status</th>
+          <th class="text-center" style="width: 8rem;">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-tag let-i="rowIndex">
+        <tr [pReorderableRow]="i">
+          <td class="text-center">
+            <span class="p-reorderable-row-handle pi pi-bars cursor-move text-slate-500"></span>
+          </td>
+          <td>
+            <div class="flex items-center gap-3">
+              <ng-icon [name]="tag.icon" [style.color]="tag.iconColor" size="1.25rem"></ng-icon>
+              <span class="font-medium">{{ tag.label }}</span>
+            </div>
+          </td>
+          <td class="text-center">
+            <p-tag [value]="tag.disabled ? 'Disabled' : 'Active'" [severity]="getStatusSeverity(tag.disabled)"></p-tag>
+          </td>
+          <td class="text-center">
+            <div class="flex justify-center gap-2">
+              <button pButton pRipple type="button" icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-info" (click)="openEditDialog(tag)" pTooltip="Edit Tag"></button>
+              <button pButton pRipple type="button" icon="pi pi-trash" class="p-button-rounded p-button-text p-button-danger" (click)="onDelete(tag)" pTooltip="Delete Tag"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4" class="text-center p-8">
+            <p class="text-slate-500 dark:text-slate-400">No tags found. Click "Create Tag" to get started.</p>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

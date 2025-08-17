@@ -97,7 +97,24 @@ export interface Page<T> {
 
 // Model for TagDTO, corresponding to Java's TagDTO
 export interface TagDTO {
-  id?: number;
+  id: number;
+  label: string;
+  icon: string;
+  iconColor: string;
+  disabled: boolean;
+  sortOrder: number;
+}
+
+// Model for creating a new Tag
+export interface TagCreateDTO {
+  label: string;
+  icon: string;
+  iconColor: string;
+}
+
+// Model for updating an existing Tag
+export interface TagUpdateDTO {
+  id: number;
   label: string;
   icon: string;
   iconColor: string;

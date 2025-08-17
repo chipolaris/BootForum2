@@ -2,6 +2,7 @@ package com.github.chipolaris.bootforum2.domain;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import jakarta.persistence.*;
 import org.hibernate.search.engine.backend.types.Sortable;
@@ -95,12 +96,12 @@ public class Discussion extends BaseEntity {
     @JoinColumn(name="FORUM_ID", foreignKey=@ForeignKey(name="FK_DISCUSSION_FORUM"))
     private Forum forum;
 
-    @ManyToMany(fetch=FetchType.EAGER)
+    @ManyToMany
     @JoinTable(name="DISCUSSION_TAG_T",
             joinColumns={@JoinColumn(name="DISCUSSION_ID", foreignKey = @ForeignKey(name="FK_DISCUS_TAG_DISCUSSION"))},
             inverseJoinColumns={@JoinColumn(name="TAG_ID", foreignKey = @ForeignKey(name="FK_DISCUS_TAG_TAG"))},
             indexes = {@Index(name="IDX_DISCUS_TAG", columnList = "DISCUSSION_ID,TAG_ID")})
-    private List<Tag> tags;
+    private Set<Tag> tags;
 
     @Override
     public Long getId() {
@@ -180,10 +181,10 @@ public class Discussion extends BaseEntity {
         this.forum = forum;
     }
 
-    public List<Tag> getTags() {
+    public Set<Tag> getTags() {
         return tags;
     }
-    public void setTags(List<Tag> tags) {
+    public void setTags(Set<Tag> tags) {
         this.tags = tags;
     }
 

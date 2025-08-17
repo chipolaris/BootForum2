@@ -32,6 +32,9 @@ import {
   heroChatBubbleLeftRight,
   heroEye,
   heroCog,
+  heroQuestionMarkCircle,
+  heroCheckBadge,
+  heroMegaphone,
 } from '@ng-icons/heroicons/outline';
 
 import {
@@ -67,6 +70,9 @@ import {
   heroChatBubbleLeftRightSolid,
   heroEyeSolid,
   heroCogSolid,
+  heroQuestionMarkCircleSolid,
+  heroCheckBadgeSolid,
+  heroMegaphoneSolid,
 } from '@ng-icons/heroicons/solid';
 
 /**
@@ -109,6 +115,10 @@ export const APP_PICKER_AVAILABLE_ICONS: AppIconDefinition[] = [
   { displayName: 'Clock', name: 'heroClockSolid' },
   { displayName: 'Chat Bubble Left Right', name: 'heroChatBubbleLeftRightSolid' },
   { displayName: 'Eye', name: 'heroEyeSolid' },
+  { displayName: 'Cog', name: 'heroCogSolid' },
+  { displayName: 'Question Mark Circle', name: 'heroQuestionMarkCircleSolid' },
+  { displayName: 'Check Badge', name: 'heroCheckBadgeSolid' },
+  { displayName: 'Megaphone', name: 'heroMegaphoneSolid' },
 ];
 
 /**
@@ -149,6 +159,9 @@ export const APP_ICONS = {
   heroChatBubbleLeftRight,
   heroEye,
   heroCog,
+  heroQuestionMarkCircle,
+  heroCheckBadge,
+  heroMegaphone,
   // Solid icons
   heroUserSolid,
   heroHomeSolid,
@@ -181,5 +194,8 @@ export const APP_ICONS = {
   heroChatBubbleLeftRightSolid,
   heroEyeSolid,
   heroCogSolid,
+  heroQuestionMarkCircleSolid,
+  heroCheckBadgeSolid,
+  heroMegaphoneSolid,
   // Add any other globally used HeroIcons here
 };
