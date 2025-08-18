@@ -43,6 +43,40 @@ export class DiscussionService {
   }
 
   /**
+   * Fetches a paginated list of discussion summaries filtered by tag IDs.
+   * @param options Object containing tagIds, page, and size.
+   * @returns An Observable of ApiResponse containing a Page of DiscussionSummaryDTOs.
+   */
+  listDiscussionsByTags(
+    options: { tagIds: number[], page: number, size: number }
+  ): Observable<ApiResponse<Page<DiscussionSummaryDTO>>> {
+
+    let params = new HttpParams()
+      .set('page', options.page.toString())
+      .set('size', options.size.toString())
+      .set('sort', 'createDate,DESC'); // Sorting is fixed as per requirement
+
+    // Append each tag ID to the params. HttpParams handles multiple values for the same key.
+    options.tagIds.forEach(id => {
+      params = params.append('tagIds', id.toString());
+    });
+
+    const url = `${this.basePublicApiUrl}/by-tags`;
+
+    return this.http.get<ApiResponse<Page<DiscussionSummaryDTO>>>(url, { params })
+      .pipe(
+        tap(response => {
+          if (response.success) {
+            console.log('Discussions by tags listed successfully via service', response.data);
+          } else {
+            console.error('Failed to list discussions by tags via service', response.message, response.errors);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  /**
    * Fetches a paginated and sorted list of discussion summaries.
    * If a forumId is provided, it fetches discussions for that specific forum by adding a query parameter.
    * Otherwise, it fetches all discussions in the system.

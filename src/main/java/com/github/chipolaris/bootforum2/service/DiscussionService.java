@@ -145,6 +145,33 @@ public class DiscussionService {
     }
 
     /**
+     * Find all discussions associated with the given tags, with their own tags eagerly fetched.
+     * @param tagIds A list of tag IDs to filter by.
+     * @param pageable Pagination and sorting information.
+     * @return A paginated list of discussion summaries for the specified tags.
+     */
+    @Transactional(readOnly = true)
+    public ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> findPaginatedDiscussionSummariesForTags(
+            List<Long> tagIds, Pageable pageable) {
+
+        // If no tags are provided, return an empty page to avoid unnecessary queries.
+        if (tagIds == null || tagIds.isEmpty()) {
+            return ServiceResponse.success("No tags provided, returning empty result.",
+                    PageResponseDTO.from(Page.empty(pageable)));
+        }
+
+        try {
+            Page<Discussion> discussionPage = discussionRepository.findByTagIdsWithTags(tagIds, pageable);
+            Page<DiscussionSummaryDTO> dtoPage = discussionPage.map(discussionMapper::toSummaryDTO);
+            return ServiceResponse.success("Fetched Discussion Summaries for tags", PageResponseDTO.from(dtoPage));
+        }
+        catch (Exception e) {
+            logger.error("Error fetching Discussion Summaries for tags: " + tagIds, e);
+            return ServiceResponse.failure("An unexpected error occurred while fetching discussions for the selected tags.");
+        }
+    }
+
+    /**
      * Find all discussions in the system, with tags eagerly fetched.
      * @param pageable Pagination and sorting information.
      * @return A paginated list of discussion summaries.

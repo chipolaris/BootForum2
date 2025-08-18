@@ -4,22 +4,25 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { DiscussionService } from '../_services/discussion.service';
 import { AvatarService } from '../_services/avatar.service';
-import { DiscussionSummaryDTO, Page, errorMessageFromApiResponse } from '../_data/dtos';
+import { TagService } from '../_services/tag.service';
+import { DiscussionSummaryDTO, Page, TagDTO, errorMessageFromApiResponse } from '../_data/dtos';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { APP_ICONS } from '../shared/hero-icons';
 import { PaginatorComponent } from '../shared/paginator/paginator.component';
+import { MultiSelectModule } from 'primeng/multiselect';
 
 @Component({
-  selector: 'app-discussion-list',
+  selector: 'app-discussion-tag',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NgIconComponent, PaginatorComponent],
+  imports: [CommonModule, FormsModule, RouterModule, NgIconComponent, PaginatorComponent, MultiSelectModule],
   providers: [provideIcons(APP_ICONS)],
-  templateUrl: './discussion-list.component.html',
-  styleUrls: ['./discussion-list.component.css']
+  templateUrl: './discussion-tag.component.html',
+  styleUrls: ['./discussion-tag.component.css']
 })
-export class DiscussionListComponent implements OnInit {
+export class DiscussionTagComponent implements OnInit {
   private discussionService = inject(DiscussionService);
   private avatarService = inject(AvatarService);
+  private tagService = inject(TagService);
   private cdr = inject(ChangeDetectorRef);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -28,33 +31,43 @@ export class DiscussionListComponent implements OnInit {
   isLoading = true;
   errorMessage: string | null = null;
 
+  availableTags: TagDTO[] = [];
+  selectedTagIds: number[] = [];
+
   avatarFileIdMap: Map<string, number | null> = new Map();
 
-  // Pagination and Sorting State
+  // Pagination State
   currentPage = 0;
   pageSize = 25;
-  sortProperty = 'createDate';
-  sortOrder = 'DESC';
-
-  // Options for the UI controls
-  sortPropertyOptions = [
-    { label: 'Date Started', value: 'createDate' },
-    { label: 'Comment Count', value: 'stat.commentCount' },
-    { label: 'View Count', value: 'stat.viewCount' }
-  ];
-  sortOrderOptions = [
-    { label: 'Descending', value: 'DESC' },
-    { label: 'Ascending', value: 'ASC' }
-  ];
   pageSizeOptions = [10, 25, 50];
 
   ngOnInit(): void {
+    this.loadAvailableTags();
+
     this.route.queryParams.subscribe(params => {
+      // Safely parse tagIds from URL which can be a single value or an array
+      const tagIdsParam = params['tagIds'];
+      if (tagIdsParam) {
+        this.selectedTagIds = (Array.isArray(tagIdsParam) ? tagIdsParam : [tagIdsParam]).map(id => +id);
+      } else {
+        this.selectedTagIds = [];
+      }
+
       this.currentPage = params['page'] ? +params['page'] : 0;
       this.pageSize = params['size'] ? +params['size'] : 25;
-      this.sortProperty = params['sort'] ? params['sort'].split(',')[0] : 'createDate';
-      this.sortOrder = params['sort'] ? params['sort'].split(',')[1] : 'DESC';
+
       this.loadDiscussions();
+    });
+  }
+
+  loadAvailableTags(): void {
+    this.tagService.getAllTags().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.availableTags = response.data.filter(tag => !tag.disabled);
+        }
+      },
+      error: (err) => console.error('Failed to load available tags', err)
     });
   }
 
@@ -63,11 +76,18 @@ export class DiscussionListComponent implements OnInit {
     this.errorMessage = null;
     this.avatarFileIdMap.clear();
 
-    this.discussionService.listDiscussionSummaries({
+    // Only fetch discussions if at least one tag is selected
+    if (this.selectedTagIds.length === 0) {
+      this.discussionsPage = null;
+      this.isLoading = false;
+      this.updateUrl();
+      return;
+    }
+
+    this.discussionService.listDiscussionsByTags({
+      tagIds: this.selectedTagIds,
       page: this.currentPage,
-      size: this.pageSize,
-      sortProperty: this.sortProperty,
-      sortDirection: this.sortOrder
+      size: this.pageSize
     }).subscribe({
       next: (response) => {
         if (response.success && response.data) {
@@ -88,14 +108,9 @@ export class DiscussionListComponent implements OnInit {
   }
 
   private fetchAvatarFileIds(): void {
-    if (!this.discussionsPage?.content) {
-      return;
-    }
+    if (!this.discussionsPage?.content) return;
     const usernames = new Set<string>(this.discussionsPage.content.map(d => d.createBy));
-
-    if (usernames.size === 0) {
-      return;
-    }
+    if (usernames.size === 0) return;
 
     this.avatarService.getAvatarFileIds(Array.from(usernames)).subscribe({
       next: (response) => {
@@ -103,23 +118,17 @@ export class DiscussionListComponent implements OnInit {
           this.avatarFileIdMap = new Map(Object.entries(response.data));
           this.cdr.detectChanges();
         }
-      },
-      error: (err) => console.error('Failed to fetch avatar file IDs for discussion list:', err)
+      }
     });
   }
 
   getAvatarUrl(username: string): string {
-    if (this.avatarFileIdMap.has(username)) {
-      const fileId = this.avatarFileIdMap.get(username);
-      if (fileId) {
-        return `/api/public/files/${fileId}`;
-      }
-    }
-    return '/assets/images/default-avatar.png';
+    const fileId = this.avatarFileIdMap.get(username);
+    return fileId ? `/api/public/files/${fileId}` : '/assets/images/default-avatar.png';
   }
 
-  onSortChange(): void {
-    this.currentPage = 0; // Reset to first page on sort change
+  onSelectionChange(): void {
+    this.currentPage = 0; // Reset to first page on any filter change
     this.loadDiscussions();
   }
 
@@ -132,9 +141,9 @@ export class DiscussionListComponent implements OnInit {
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {
+        tagIds: this.selectedTagIds.length > 0 ? this.selectedTagIds : null,
         page: this.currentPage,
-        size: this.pageSize,
-        sort: `${this.sortProperty},${this.sortOrder}`
+        size: this.pageSize
       },
       queryParamsHandling: 'merge',
       replaceUrl: true

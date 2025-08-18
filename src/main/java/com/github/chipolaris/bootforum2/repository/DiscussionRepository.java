@@ -20,6 +20,17 @@ import java.util.Optional;
 public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
 
     /**
+     * Finds a page of discussions that have at least one of the specified tags.
+     * It also fetches the associated tags for each discussion in a single query to avoid N+1 issues.
+     * @param tagIds A list of tag IDs to filter by.
+     * @param pageable Pagination and sorting information.
+     * @return A Page of Discussion entities.
+     */
+    @Query(value = "SELECT DISTINCT d FROM Discussion d JOIN d.tags t LEFT JOIN FETCH d.tags WHERE t.id IN :tagIds",
+            countQuery = "SELECT COUNT(DISTINCT d) FROM Discussion d JOIN d.tags t WHERE t.id IN :tagIds")
+    Page<Discussion> findByTagIdsWithTags(@Param("tagIds") List<Long> tagIds, Pageable pageable);
+
+    /**
      * Finds a page of discussions, fetching their associated tags in a single query to avoid N+1 issues.
      * @param pageable Pagination and sorting information.
      * @return A Page of Discussion entities.

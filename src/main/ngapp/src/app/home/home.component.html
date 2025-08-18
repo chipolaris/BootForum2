@@ -54,7 +54,7 @@
           </div>
         </li>
         <li *ngIf="latestDiscussions.length > 0" class="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
-          <a [routerLink]="['/app/discussions/list']" [queryParams]="{page: '0', size: '20', sort: 'createDate,DESC'}" class="block">
+          <a [routerLink]="['/app/discussions/list']" [queryParams]="{page: '0', size: '25', sort: 'createDate,DESC'}" class="block">
             <p class="font-medium text-indigo-600 dark:text-indigo-400 truncate" [title]="'View More...'">View More...</p>
           </a>
         </li>
@@ -95,7 +95,7 @@
           </div>
         </li>
         <li *ngIf="mostCommentedDiscussions.length > 0" class="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
-          <a [routerLink]="['/app/discussions/list']" [queryParams]="{page: '0', size: '20', sort: 'stat.commentCount,DESC'}" class="block">
+          <a [routerLink]="['/app/discussions/list']" [queryParams]="{page: '0', size: '25', sort: 'stat.commentCount,DESC'}" class="block">
             <p class="font-medium text-teal-600 dark:text-teal-400 truncate" [title]="'View More...'">View More...</p>
           </a>
         </li>
@@ -136,7 +136,7 @@
           </div>
         </li>
         <li *ngIf="mostViewedDiscussions.length > 0" class="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
-          <a [routerLink]="['/app/discussions/list']" [queryParams]="{page: '0', size: '20', sort: 'stat.viewCount,DESC'}" class="block">
+          <a [routerLink]="['/app/discussions/list']" [queryParams]="{page: '0', size: '25', sort: 'stat.viewCount,DESC'}" class="block">
             <p class="font-medium text-sky-600 dark:text-sky-400 truncate" [title]="'View More...'">View More...</p>
           </a>
         </li>

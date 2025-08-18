@@ -1,0 +1,4 @@
+/* Using PrimeNG's p-multiselect, we might need to override some styles for full width */
+:host ::ng-deep .p-multiselect {
+  width: 100%;
+}

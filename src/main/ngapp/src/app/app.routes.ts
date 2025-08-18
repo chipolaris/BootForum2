@@ -3,6 +3,7 @@ import { HomeComponent } from './home/home.component';
 import { UnauthorizedComponent } from './unauthorized/unauthorized.component';
 import { ResourceNotFoundComponent } from './resource-not-found/resource-not-found.component';
 import { DiscussionListComponent } from './discussion-list/discussion-list.component';
+import { DiscussionTagComponent } from './discussion-tag/discussion-tag.component';
 import { DiscussionViewComponent } from './discussion-view/discussion-view.component';
 import { ForumTreeTableComponent } from './forum-tree-table/forum-tree-table.component';
 import { ForumViewComponent } from './forum-view/forum-view.component';
@@ -48,6 +49,7 @@ export const routes: Routes = [
     data: { roles: ['ADMIN'] }
   },
   { path: 'app/discussions/list', component: DiscussionListComponent },
+  { path: 'app/discussions/by-tag', component: DiscussionTagComponent },
   { path: 'app/discussions/:id/view', component: DiscussionViewComponent },
   { path: 'app/forums/:id/view', component: ForumViewComponent },
   {

@@ -96,6 +96,34 @@ public class DiscussionController {
     }
 
     /**
+     * Lists discussions filtered by a list of tag IDs.
+     * @param tagIds A list of tag IDs to filter discussions by.
+     * @param pageable Pageable object, defaults to sorting by createDate descending.
+     * @return ApiResponse containing a paginated list of discussion summaries.
+     */
+    @GetMapping("/public/discussions/by-tags")
+    public ApiResponse<?> listDiscussionsByTags(
+            @RequestParam List<Long> tagIds,
+            @PageableDefault(size = 25, sort = "createDate", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        logger.info("Received request to list discussions by tags. TagIds: {}, Pageable: {}", tagIds, pageable);
+
+        try {
+            ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> serviceResponse =
+                    discussionService.findPaginatedDiscussionSummariesForTags(tagIds, pageable);
+
+            if (serviceResponse.isSuccess()) {
+                return ApiResponse.success(serviceResponse.getDataObject(), "Discussions for tags retrieved successfully.");
+            } else {
+                return ApiResponse.error(serviceResponse.getMessages(), "Failed to retrieve discussions for tags.");
+            }
+        } catch (Exception e) {
+            logger.error("Unexpected error while listing discussions by tags", e);
+            return ApiResponse.error("An unexpected error occurred while retrieving discussions.");
+        }
+    }
+
+    /**
      * Retrieves a single discussion by its ID.
      *
      * @param discussionId The ID of the discussion to retrieve.

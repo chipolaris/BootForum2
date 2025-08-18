@@ -173,7 +173,13 @@
               <div *ngFor="let tag of discussionDetails.tags"
                    class="flex items-center gap-1.5 bg-gray-200 dark:bg-slate-600 text-gray-800 dark:text-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full">
                 <ng-icon [name]="tag.icon" [style.color]="tag.iconColor" size="1em"></ng-icon>
-                <span>{{ tag.label }}</span>
+                <a
+                  routerLink="/app/discussions/by-tag"
+                  [queryParams]="{ tagIds: tag.id }"
+                  routerLinkActive="active-nav-link"
+                  class="nav-link">
+                  <span>{{ tag.label }}</span>
+                </a>
               </div>
             </dd>
           </div>
