@@ -145,19 +145,16 @@ public class DiscussionService {
     }
 
     /**
-     * Find all discussions in the system
-     * @param pageable
-     * @return
+     * Find all discussions in the system, with tags eagerly fetched.
+     * @param pageable Pagination and sorting information.
+     * @return A paginated list of discussion summaries.
      */
     @Transactional(readOnly = true)
     public ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> findPaginatedDiscussionSummaries(Pageable pageable) {
         try {
-            // count all discussions in the system
-            long discussionCount = discussionRepository.count();
-            // fetch discussions with pagination
-            List<DiscussionSummaryDTO> discussionSummaryDTOs = discussionRepository.findDiscussionSummaries(pageable);
-            Page<DiscussionSummaryDTO> pageResult = new PageImpl<>(discussionSummaryDTOs, pageable, discussionCount);
-            return ServiceResponse.success("Fetched Discussion Summaries", PageResponseDTO.from(pageResult));
+            Page<Discussion> discussionPage = discussionRepository.findAllWithTags(pageable);
+            Page<DiscussionSummaryDTO> dtoPage = discussionPage.map(discussionMapper::toSummaryDTO);
+            return ServiceResponse.success("Fetched Discussion Summaries", PageResponseDTO.from(dtoPage));
         }
         catch (Exception e) {
             logger.error("Error fetching Discussion Summaries:", e);
@@ -166,23 +163,20 @@ public class DiscussionService {
     }
 
     /**
-     * Find all discussions in a given forum
-     * @param forumId
-     * @param pageable
-     * @return
+     * Find all discussions in a given forum, with tags eagerly fetched.
+     * @param forumId The ID of the forum to filter by.
+     * @param pageable Pagination and sorting information.
+     * @return A paginated list of discussion summaries for the specified forum.
      */
     @Transactional(readOnly = true)
     public ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> findPaginatedDiscussionSummariesForForum(
             long forumId, Pageable pageable) {
 
         try {
-            long discussionCount = discussionRepository.countDiscussionsByForumId(forumId);
-            List<DiscussionSummaryDTO> discussionSummaryDTOs = discussionRepository
-                    .findDiscussionSummariesByForumId(forumId, pageable);
-
-            Page<DiscussionSummaryDTO> pageResult = new PageImpl<>(discussionSummaryDTOs, pageable, discussionCount);
+            Page<Discussion> discussionPage = discussionRepository.findByForumIdWithTags(forumId, pageable);
+            Page<DiscussionSummaryDTO> dtoPage = discussionPage.map(discussionMapper::toSummaryDTO);
             return ServiceResponse.success("Fetched Discussion Summaries for forum: %d".formatted(forumId),
-                    PageResponseDTO.from(pageResult));
+                    PageResponseDTO.from(dtoPage));
         }
         catch (Exception e) {
             logger.error("Error fetching Discussion Summaries for forum: " + forumId, e);
@@ -209,8 +203,8 @@ public class DiscussionService {
             int size = pageable.getPageSize();
 
             List<OrderSpec> orderSpecs = pageable.getSort().stream().map(
-                    order -> order.getDirection().isAscending() ?
-                            OrderSpec.asc(order.getProperty()) : OrderSpec.desc(order.getProperty()))
+                            order -> order.getDirection().isAscending() ?
+                                    OrderSpec.asc(order.getProperty()) : OrderSpec.desc(order.getProperty()))
                     .collect(Collectors.toList());
 
             QuerySpec querySpec = QuerySpec.builder(Discussion.class)

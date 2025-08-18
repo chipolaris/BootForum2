@@ -72,35 +72,46 @@
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-slate-600">
         <tr *ngFor="let discussion of discussionsPage.content" class="hover:bg-gray-50 dark:hover:bg-slate-500/50 transition-colors duration-150">
-          <td class="px-6 py-4 whitespace-nowrap">
+          <td class="px-6 py-4 align-top">
+            <!-- Title -->
             <div>
               <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 truncate" [title]="discussion.title">
                 {{ discussion.title }}
               </a>
             </div>
-            <div class="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400">
+
+            <!-- START Tags Section -->
+            <div *ngIf="discussion.tags && discussion.tags.length > 0" class="flex flex-wrap items-center gap-2 mt-2">
+              <div *ngFor="let tag of discussion.tags"
+                   class="flex items-center gap-1.5 bg-gray-200 dark:bg-slate-600 text-gray-800 dark:text-slate-200 text-xs font-semibold px-2 py-0.5 rounded-full">
+                <ng-icon [name]="tag.icon" [style.color]="tag.iconColor" size="0.8em"></ng-icon>
+                <span>{{ tag.label }}</span>
+              </div>
+            </div>
+            <!-- END Tags Section -->
+
+            <!-- Meta Info: Author, Date, Forum -->
+            <div class="flex items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
               <span>by&nbsp;</span>
               <a [routerLink]="['/app/users', discussion.createBy, 'profile']" class="flex items-center hover:underline">
                 <img [src]="getAvatarUrl(discussion.createBy)" [alt]="discussion.createBy + '\'s avatar'" class="h-6 w-6 rounded-full mr-1.5 object-cover">
                 <span>{{ discussion.createBy }}</span>
               </a>
-              <span class="mx-1.5">pan>on {{ discussion.createDate | date:'mediumDate' }}</span>
-            </div>
-            <div>
-              In forum
+              <span class="mx-1.5">on {{ discussion.createDate | date:'mediumDate' }}</span>
+              <span class="mr-1.5">in</span>
               <a [routerLink]="['/app/forums', discussion.forumId, 'view']"
-                 class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                 class="font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
                 {{ discussion.forumTitle }}
               </a>
             </div>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-300">
+          <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-300 align-top">
             {{ discussion.commentCount | number }}
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-300">
+          <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-300 align-top">
             {{ discussion.viewCount | number }}
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 align-top">
             <ng-container *ngIf="discussion.lastCommentDate; else noLastCommentDate">
               {{ discussion.lastCommentDate | date:'mediumDate' }} at {{ discussion.lastCommentDate | date:'shortTime' }}
             </ng-container>

@@ -8,6 +8,7 @@ import com.github.chipolaris.bootforum2.dto.DiscussionSummaryDTO;
 import com.github.chipolaris.bootforum2.dto.MyLikedDiscussionDTO;
 import com.github.chipolaris.bootforum2.dto.MyRecentDiscussionDTO;
 import com.github.chipolaris.bootforum2.dto.RankedDiscussionDTO;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -19,31 +20,23 @@ import java.util.Optional;
 public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
 
     /**
-     * Find all discussions in the system
-     * @param pageable
-     * @return
+     * Finds a page of discussions, fetching their associated tags in a single query to avoid N+1 issues.
+     * @param pageable Pagination and sorting information.
+     * @return A Page of Discussion entities.
      */
-    @Query("""
-            SELECT new com.github.chipolaris.bootforum2.dto.DiscussionSummaryDTO(d.id, d.title, 
-                d.stat.commentCount, d.stat.viewCount, d.createDate, d.createBy, d.stat.lastComment.commentDate,
-                d.forum.id, d.forum.title) 
-            FROM Discussion d
-            """)
-    public List<DiscussionSummaryDTO> findDiscussionSummaries(Pageable pageable);
+    @Query(value = "SELECT d FROM Discussion d LEFT JOIN FETCH d.tags",
+            countQuery = "SELECT count(d) FROM Discussion d")
+    Page<Discussion> findAllWithTags(Pageable pageable);
 
     /**
-     * Find all discussions in a given forum
-     * @param forumId
-     * @param pageable
-     * @return
+     * Finds a page of discussions for a specific forum, fetching their associated tags in a single query.
+     * @param forumId The ID of the forum to filter by.
+     * @param pageable Pagination and sorting information.
+     * @return A Page of Discussion entities.
      */
-    @Query("""
-            SELECT new com.github.chipolaris.bootforum2.dto.DiscussionSummaryDTO(d.id, d.title, 
-                d.stat.commentCount, d.stat.viewCount, d.createDate, d.createBy, d.stat.lastComment.commentDate,
-                d.forum.id, d.forum.title) 
-            FROM Discussion d WHERE d.forum.id = :forumId
-            """)
-    public List<DiscussionSummaryDTO> findDiscussionSummariesByForumId(@Param("forumId") Long forumId, Pageable pageable);
+    @Query(value = "SELECT d FROM Discussion d LEFT JOIN FETCH d.tags WHERE d.forum.id = :forumId",
+            countQuery = "SELECT count(d) FROM Discussion d WHERE d.forum.id = :forumId")
+    Page<Discussion> findByForumIdWithTags(@Param("forumId") Long forumId, Pageable pageable);
 
     @Query("""
             SELECT COUNT(d)

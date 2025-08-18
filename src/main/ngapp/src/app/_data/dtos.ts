@@ -206,6 +206,7 @@ export interface DiscussionSummaryDTO {
   lastCommentDate: Date;
   forumId?: number | null;
   forumTitle?: string | null;
+  tags?: TagDTO[] | null;
 }
 
 export interface CommentThreadDTO {
