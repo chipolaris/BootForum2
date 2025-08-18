@@ -157,6 +157,7 @@ export interface DiscussionCreateDTO {
   forumId: number;
   title: string;
   content: string;
+  tagIds?: number[];
 }
 
 // Model for DiscussionStatDTO, corresponding to Java's DiscussionStatDTO

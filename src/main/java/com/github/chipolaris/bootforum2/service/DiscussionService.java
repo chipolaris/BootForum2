@@ -4,12 +4,14 @@ import com.github.chipolaris.bootforum2.dao.*;
 import com.github.chipolaris.bootforum2.domain.Discussion;
 import com.github.chipolaris.bootforum2.domain.FileInfo;
 import com.github.chipolaris.bootforum2.domain.Forum;
+import com.github.chipolaris.bootforum2.domain.Tag;
 import com.github.chipolaris.bootforum2.dto.*;
 import com.github.chipolaris.bootforum2.event.DiscussionCreatedEvent;
 import com.github.chipolaris.bootforum2.event.DiscussionViewedEvent;
 import com.github.chipolaris.bootforum2.mapper.DiscussionMapper;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
 import com.github.chipolaris.bootforum2.repository.DiscussionRepository;
+import com.github.chipolaris.bootforum2.repository.TagRepository;
 import jakarta.persistence.EntityManager;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
@@ -26,6 +28,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,6 +41,7 @@ public class DiscussionService {
     private final GenericDAO genericDAO;
     private final DynamicDAO dynamicDAO;
     private final DiscussionRepository discussionRepository;
+    private final TagRepository tagRepository;
     private final DiscussionMapper discussionMapper;
     private final FileService fileService;
     private final FileInfoMapper fileInfoMapper; // To map FileInfoDTO from FileStorageService to FileInfo entity
@@ -47,13 +51,14 @@ public class DiscussionService {
     // Note: in Spring version >= 4.3, @AutoWired is implied for beans with single constructor
     public DiscussionService(EntityManager entityManager, GenericDAO genericDAO,
                              DynamicDAO dynamicDAO, DiscussionRepository discussionRepository,
-                             DiscussionMapper discussionMapper, FileService fileService,
-                             FileInfoMapper fileInfoMapper, AuthenticationFacade authenticationFacade,
-                             ApplicationEventPublisher eventPublisher) {
+                             TagRepository tagRepository, DiscussionMapper discussionMapper,
+                             FileService fileService, FileInfoMapper fileInfoMapper,
+                             AuthenticationFacade authenticationFacade, ApplicationEventPublisher eventPublisher) {
         this.entityManager = entityManager;
         this.genericDAO = genericDAO;
         this.dynamicDAO = dynamicDAO;
         this.discussionRepository = discussionRepository;
+        this.tagRepository = tagRepository;
         this.discussionMapper = discussionMapper;
         this.fileService = fileService;
         this.fileInfoMapper = fileInfoMapper;
@@ -84,26 +89,28 @@ public class DiscussionService {
             discussion.setForum(forum);
             discussion.setCreateBy(username); // Set creator here
 
-            // 3. Process Files
+            // 3. Handle Tags
+            if (discussionCreateDTO.tagIds() != null && !discussionCreateDTO.tagIds().isEmpty()) {
+                List<Tag> tags = tagRepository.findAllById(discussionCreateDTO.tagIds());
+                discussion.setTags(new HashSet<>(tags));
+                logger.info("Associated {} tags with new discussion", tags.size());
+            }
+
+            // 4. Process Files
             List<FileInfo> imageInfos = processFiles(images, "image");
             discussion.setImages(imageInfos);
 
             List<FileInfo> attachmentInfos = processFiles(attachments, "attachment");
             discussion.setAttachments(attachmentInfos);
 
-            // 4. Initialize Discussion Statistics
-            // initializeDiscussionStatistics(discussion);
-
             // 5. Persist Discussion
             genericDAO.persist(discussion);
 
             // 6. Update Forum Statistics (Candidate for Spring Event)
-            //updateForumStatistics(forum, initialComment, username); // Or publish an event here
             logger.info("Successfully created discussion '{}' with ID {}", discussion.getTitle(), discussion.getId());
-
             eventPublisher.publishEvent(new DiscussionCreatedEvent(this, discussion));
 
-            // 6. Map persisted Discussion to DTO for response
+            // 7. Map persisted Discussion to DTO for response
             DiscussionDTO discussionDTO = discussionMapper.toDiscussionDTO(discussion);
             return ServiceResponse.success("Discussion created successfully.", discussionDTO);
 

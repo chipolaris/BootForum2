@@ -41,6 +41,27 @@
         </div>
       </div>
 
+      <!-- Tag Selection -->
+      <div>
+        <label for="tags" class="block text-sm font-medium text-gray-700 mb-1">Tags (Optional, max 3)</label>
+        <p-multiSelect
+          id="tags"
+          [options]="availableTags"
+          formControlName="tagIds"
+          optionLabel="label"
+          optionValue="id"
+          placeholder="Select up to 3 tags"
+          [showClear]="true"
+          styleClass="w-full"
+          [ngClass]="{ 'ng-invalid ng-dirty': submitted && f['tagIds'].invalid }">
+        </p-multiSelect>
+        <div *ngIf="submitted && f['tagIds'].errors" class="mt-1 text-xs text-red-600">
+          <span *ngIf="f['tagIds'].errors['maxTagsExceeded']">
+            You can select a maximum of {{ f['tagIds'].errors['maxTagsExceeded'].max }} tags.
+          </span>
+        </div>
+      </div>
+
       <!-- Content using Toast UI Editor -->
       <div>
         <label for="content-editor" class="block text-sm font-medium text-gray-700 mb-1">Content</label>

@@ -1,22 +1,25 @@
 import { Component, OnInit, Output, EventEmitter, inject, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 
 // Import Toast UI Editor specific modules
 import { Editor } from '@toast-ui/editor';
 import { DiscussionService } from '../_services/discussion.service';
 import { ForumService } from '../_services/forum.service';
-import { DiscussionDTO } from '../_data/dtos'; // Assuming ForumDTO is not directly used here or part of DiscussionDTO
+import { TagService } from '../_services/tag.service'; // Import TagService
+import { DiscussionDTO, TagDTO } from '../_data/dtos';
 import { finalize } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
+import { MultiSelectModule } from 'primeng/multiselect'; // Import MultiSelectModule
 
 @Component({
   selector: 'app-discussion-create',
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MultiSelectModule // Add MultiSelectModule
   ],
   templateUrl: './discussion-create.component.html',
   styleUrls: ['./discussion-create.component.css']
@@ -29,15 +32,14 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
 
   contentEditor: InstanceType<typeof Editor> | null = null;
 
-  // Use a setter for ViewChild to react when the element is available
   @ViewChild('contentEditorRef') private set editorContentEl(el: ElementRef | undefined) {
     if (el && el.nativeElement && !this.contentEditor) {
-      // Element is now available, and editor not yet initialized
       this.initializeEditor(el.nativeElement);
     }
   }
 
   discussionForm!: FormGroup;
+  availableTags: TagDTO[] = []; // Property to hold available tags
   selectedImages: FileList | null = null;
   selectedAttachments: FileList | null = null;
   submitted = false;
@@ -48,6 +50,7 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private discussionService = inject(DiscussionService);
   private forumService = inject(ForumService);
+  private tagService = inject(TagService); // Inject TagService
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private routeSubscription: Subscription | undefined;
@@ -61,6 +64,7 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
         if (!isNaN(parsedId)) {
           this.forumId = parsedId;
           this.fetchForumTitleAndPrepareForm();
+          this.loadAvailableTags(); // Load tags when component initializes
         } else {
           this.isLoading = false;
           this.generalError = 'Invalid Forum ID provided in the URL.';
@@ -83,35 +87,53 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
         } else {
           console.warn('Could not fetch forum title or forum data is incomplete.');
         }
-        this.setupForm(); // Setup form and trigger rendering
+        this.setupForm();
       },
       error: (err) => {
         console.error('Error fetching forum details for title:', err);
         this.generalError = 'Failed to load forum details. You can still create a discussion.';
-        this.setupForm(); // Still setup form even if title fails
+        this.setupForm();
       }
     });
   }
 
   private setupForm(): void {
-    // 1. Initialize the form data structure.
-    // This makes `discussionForm` truthy for the *ngIf in the template.
     this.discussionForm = this.fb.group({
       title: ['', [Validators.required, Validators.maxLength(150)]],
-      content: [''] // Content will be from the editor instance
+      content: [''],
+      // Add tagIds control with custom validator
+      tagIds: [[] as number[], [this.maxTagsValidator(3)]]
     });
-
-    // 2. Set isLoading to false.
-    // This, combined with `discussionForm` being truthy, should trigger Angular
-    // to render the form and its contents. If #contentEditorRef is rendered,
-    // the @ViewChild setter `editorContentEl` will be called.
     this.isLoading = false;
   }
 
+  private loadAvailableTags(): void {
+    this.tagService.getAllTags().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          // Only allow selection of active (not disabled) tags
+          this.availableTags = response.data.filter(tag => !tag.disabled);
+        } else {
+          console.error('Failed to load tags for discussion creation.');
+        }
+      },
+      error: (err) => console.error('Error fetching tags:', err)
+    });
+  }
+
+  // Custom validator to enforce a maximum number of selected tags
+  private maxTagsValidator(max: number) {
+    return (control: FormControl): { [key: string]: any } | null => {
+      const selected = control.value as any[];
+      if (selected && selected.length > max) {
+        return { 'maxTagsExceeded': { max: max, actual: selected.length } };
+      }
+      return null;
+    };
+  }
+
   private initializeEditor(element: HTMLElement): void {
-    // This method is now called by the @ViewChild setter when the element is ready.
-    if (this.contentEditor) { // Prevent re-initialization
-      console.warn('Editor already initialized. Skipping re-initialization.');
+    if (this.contentEditor) {
       return;
     }
     try {
@@ -121,13 +143,11 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
         initialEditType: 'markdown',
         previewStyle: 'vertical'
       });
-
       this.contentEditor.on('change', () => {
         if (this.contentError && this.contentEditor?.getMarkdown().trim()) {
           this.contentError = null;
         }
       });
-      console.log('Toast UI Editor initialized successfully via ViewChild setter.');
     } catch (e) {
       console.error('Error during Editor instantiation:', e);
       this.generalError = 'Failed to initialize the text editor.';
@@ -155,8 +175,6 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
   onSubmit(): void {
     if (this.forumId === undefined || this.forumId === null || isNaN(this.forumId)) {
       this.generalError = 'Cannot create discussion: Forum ID is missing or invalid.';
-      console.error(this.generalError, 'Current forumId:', this.forumId);
-      this.isLoading = false;
       return;
     }
 
@@ -171,7 +189,6 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
     }
 
     if (this.discussionForm.invalid) {
-      console.log('Form title is invalid');
       Object.values(this.discussionForm.controls).forEach(control => {
         control.markAsTouched();
       });
@@ -184,6 +201,12 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
     formData.append('forumId', this.forumId.toString());
     formData.append('title', this.f['title'].value);
     formData.append('content', discussionContent);
+
+    // Append tagIds to FormData
+    const tagIds = this.f['tagIds'].value as number[];
+    if (tagIds && tagIds.length > 0) {
+      tagIds.forEach(id => formData.append('tagIds', id.toString()));
+    }
 
     if (this.selectedImages) {
       for (let i = 0; i < this.selectedImages.length; i++) {
@@ -205,11 +228,10 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
         next: (response) => {
           if (response.success && response.data) {
             this.discussionCreationResult.emit({ success: true, data: response.data });
-            // Navigate after successful creation
-            if (response.data.id) { // Assuming DiscussionDTO has an id
+            if (response.data.id) {
                 this.router.navigate(['/app/forums', this.forumId, 'view']);
             } else {
-                this.router.navigate(['/app/forums', this.forumId, 'view']); // Fallback
+                this.router.navigate(['/app/forums', this.forumId, 'view']);
             }
             this.resetForm();
           } else {
@@ -230,13 +252,12 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
   resetForm(): void {
     this.submitted = false;
     if (this.discussionForm) {
-        this.discussionForm.reset();
+        this.discussionForm.reset({ tagIds: [] }); // Reset tags to an empty array
     }
     this.contentEditor?.setMarkdown('');
     this.selectedImages = null;
     this.selectedAttachments = null;
     this.contentError = null;
-    // this.generalError = null; // Consider clearing generalError based on context
   }
 
   onCancel(): void {

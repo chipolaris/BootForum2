@@ -3,6 +3,7 @@ package com.github.chipolaris.bootforum2.mapper;
 import com.github.chipolaris.bootforum2.domain.Discussion;
 import com.github.chipolaris.bootforum2.dto.DiscussionCreateDTO;
 import com.github.chipolaris.bootforum2.dto.DiscussionDTO;
+import com.github.chipolaris.bootforum2.dto.DiscussionSummaryDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -14,6 +15,20 @@ public interface DiscussionMapper {
     @Mapping(source = "forum.id", target = "forumId")
     @Mapping(source = "forum.title", target = "forumTitle")
     DiscussionDTO toDiscussionDTO(Discussion discussion);
+
+    /**
+     * Maps a Discussion entity to a DiscussionSummaryDTO.
+     * This is used for list views and is more lightweight than the full DiscussionDTO.
+     * @param discussion The source Discussion entity.
+     * @return A DiscussionSummaryDTO.
+     */
+    @Mapping(source = "stat.commentCount", target = "commentCount")
+    @Mapping(source = "stat.viewCount", target = "viewCount")
+    @Mapping(source = "stat.lastComment.commentDate", target = "lastCommentDate")
+    @Mapping(source = "forum.id", target = "forumId")
+    @Mapping(source = "forum.title", target = "forumTitle")
+    @Mapping(source = "tags", target = "tags")
+    DiscussionSummaryDTO toSummaryDTO(Discussion discussion);
 
     /**
      * Maps a DiscussionCreateDTO to a Discussion entity.

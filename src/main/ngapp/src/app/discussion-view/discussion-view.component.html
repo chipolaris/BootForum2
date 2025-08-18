@@ -167,6 +167,16 @@
               </a>
             </dd>
           </div>
+          <div *ngIf="discussionDetails.tags && discussionDetails.tags.length > 0">
+            <dt class="font-medium text-gray-600 dark:text-slate-300">Tags:</dt>
+            <dd class="mt-1 flex flex-wrap gap-2">
+              <div *ngFor="let tag of discussionDetails.tags"
+                   class="flex items-center gap-1.5 bg-gray-200 dark:bg-slate-600 text-gray-800 dark:text-slate-200 text-xs font-semibold px-2.5 py-1 rounded-full">
+                <ng-icon [name]="tag.icon" [style.color]="tag.iconColor" size="1em"></ng-icon>
+                <span>{{ tag.label }}</span>
+              </div>
+            </dd>
+          </div>
           <div class="flex items-center space-x-2">
             <dt class="font-medium text-gray-600 dark:text-slate-300">Created by:</dt>
             <dd class="text-gray-800 dark:text-slate-100 text-lg">{{ discussionDetails.createBy }}</dd>
