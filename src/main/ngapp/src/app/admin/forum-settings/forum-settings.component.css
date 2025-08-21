@@ -1,0 +1,16 @@
+/* Add custom styles if needed, for example, to ensure full width of inputs */
+:host ::ng-deep .p-inputnumber,
+:host ::ng-deep .p-dropdown {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  :host ::ng-deep .p-inputnumber,
+  :host ::ng-deep .p-dropdown {
+    width: 50%;
+  }
+}
+
+:host ::ng-deep .p-inputtextarea {
+    width: 100%;
+}

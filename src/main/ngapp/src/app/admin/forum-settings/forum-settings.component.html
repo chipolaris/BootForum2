@@ -1,0 +1,71 @@
+<div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-semibold text-indigo-700 dark:text-indigo-300">Forum Settings</h2>
+    <p-button
+      label="Save Changes"
+      icon="pi pi-save"
+      [loading]="isSaving"
+      (onClick)="saveSettings()"
+      [disabled]="isLoading">
+    </p-button>
+  </div>
+
+  <div *ngIf="isLoading" class="flex justify-center items-center py-20">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600"></div>
+    <p class="ml-4 text-xl text-gray-600 dark:text-gray-300">Loading settings...</p>
+  </div>
+
+  <div *ngIf="!isLoading">
+    <p-accordion [multiple]="true" [activeIndex]="[0]">
+      <p-accordionTab *ngFor="let category of categories" [header]="category | titlecase">
+        <div class="space-y-6">
+          <div *ngFor="let setting of settingsMap.get(category)" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+            <!-- Label and Description -->
+            <div class="md:col-span-1">
+              <label [for]="setting.key" class="block text-sm font-medium text-gray-900 dark:text-slate-100">{{ setting.label }}</label>
+              <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">Key: {{ category }}.{{ setting.key }}</p>
+            </div>
+
+            <!-- Input Control -->
+            <div class="md:col-span-2" [ngSwitch]="setting.type">
+              <!-- Boolean -->
+              <p-inputSwitch *ngSwitchCase="'boolean'" [(ngModel)]="setting.value" [inputId]="setting.key"></p-inputSwitch>
+
+              <!-- Number -->
+              <p-inputNumber *ngSwitchCase="'number'" [(ngModel)]="setting.value" [inputId]="setting.key" mode="decimal" [showButtons]="true"></p-inputNumber>
+
+              <!-- JSON / List (as Textarea) -->
+              <!-- START: Corrected binding for textarea -->
+              <textarea *ngSwitchCase="'json'" pInputTextarea [rows]="5" class="w-full font-mono text-sm"
+                        [ngModel]="jsonStringValues.get(category + '.' + setting.key)"
+                        (ngModelChange)="updateJsonStringValue(category + '.' + setting.key, $event)"></textarea>
+              <textarea *ngSwitchCase="'list'" pInputTextarea [rows]="5" class="w-full font-mono text-sm"
+                        [ngModel]="jsonStringValues.get(category + '.' + setting.key)"
+                        (ngModelChange)="updateJsonStringValue(category + '.' + setting.key, $event)"></textarea>
+              <!-- END: Corrected binding for textarea -->
+
+              <!-- String (with options as Dropdown) -->
+              <ng-container *ngSwitchCase="'string'">
+                <p-dropdown *ngIf="setting.options && setting.options.length > 0"
+                            [options]="setting.options"
+                            [(ngModel)]="setting.value"
+                            [inputId]="setting.key"
+                            styleClass="w-full md:w-1/2">
+                </p-dropdown>
+                <input *ngIf="!setting.options || setting.options.length === 0"
+                       pInputText
+                       type="text"
+                       [(ngModel)]="setting.value"
+                       [id]="setting.key"
+                       class="w-full md:w-1/2">
+              </ng-container>
+
+              <!-- Default Fallback -->
+              <input *ngSwitchDefault pInputText type="text" [(ngModel)]="setting.value" [id]="setting.key" class="w-full md:w-1/2">
+            </div>
+          </div>
+        </div>
+      </p-accordionTab>
+    </p-accordion>
+  </div>
+</div>

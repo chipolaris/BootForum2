@@ -30,6 +30,7 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
 import { authGuard } from './_guards/auth.guard';
 import { UserReputationComponent } from './user-reputation/user-reputation.component'; // Import the new component
 import { TagListComponent } from './admin/tag-list/tag-list.component';
+import { ForumSettingsComponent } from './admin/forum-settings/forum-settings.component'; // Import the new component
 
 export const routes: Routes = [
   { path: 'home', component: HomeComponent },
@@ -76,6 +77,10 @@ export const routes: Routes = [
   },
   {
     path: 'app/admin/tags', component: TagListComponent, canActivate: [authGuard],
+    data: { roles: ['ADMIN'] }
+  },
+  {
+    path: 'app/admin/settings', component: ForumSettingsComponent, canActivate: [authGuard],
     data: { roles: ['ADMIN'] }
   },
   {

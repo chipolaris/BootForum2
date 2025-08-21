@@ -1,0 +1,28 @@
+# Test-specific configuration using an in-memory H2 database
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: '' # Explicitly set empty password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      # Automatically create the schema on startup and drop it on shutdown.
+      # Ideal for isolated tests.
+      ddl-auto: create-drop
+    # show SQL statements for debugging
+    show-sql: true
+  h2:
+    console:
+      # Disable the H2 console during tests
+      enabled: false
+
+# Log SQL statements with their parameter bindings for detailed debugging
+logging:
+  level:
+    org:
+      hibernate:
+        orm:
+          jdbc:
+            bind: trace

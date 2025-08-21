@@ -427,3 +427,12 @@ export interface UserReputationDTO {
   mostLikedComments: RankedCommentDTO[];
   mostDislikedComments: RankedCommentDTO[];
 }
+
+export interface SettingDTO {
+  key: string;
+  label: string;
+  type: 'string' | 'boolean' | 'number' | 'list' | 'json';
+  value: any;
+  options: string[];
+}
+

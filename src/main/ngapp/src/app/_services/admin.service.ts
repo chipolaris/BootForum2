@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ApiResponse } from '../_data/dtos';
+import { ApiResponse, SettingDTO } from '../_data/dtos';
 
 @Injectable({
   providedIn: 'root'
@@ -23,7 +23,7 @@ export class AdminService {
   }
 
   /**
-   * NEW: Triggers backend generation of simulated users.
+   * Triggers backend generation of simulated users.
    * @param count The number of users to generate.
    */
   triggerUserGeneration(count: number): Observable<ApiResponse<string>> {
@@ -32,9 +32,26 @@ export class AdminService {
   }
 
   /**
-   * NEW: Triggers backend generation of simulated forum data (groups, forums, discussions, comments).
+   * Triggers backend generation of simulated forum data (groups, forums, discussions, comments).
    */
   triggerDataGeneration(): Observable<ApiResponse<string>> {
     return this.http.post<ApiResponse<string>>(`${this.baseAdminApiUrl}/data/generate`, null);
+  }
+
+  /**
+   * Fetches all forum settings, grouped by category.
+   */
+  getForumSettings(): Observable<ApiResponse<Map<string, SettingDTO[]>>> {
+    return this.http.get<ApiResponse<Map<string, SettingDTO[]>>>(`${this.baseAdminApiUrl}/forum-settings/get`);
+  }
+
+  /**
+   * Updates multiple forum settings.
+   * @param settings The settings map to be saved.
+   */
+  updateForumSettings(settings: Map<string, SettingDTO[]>): Observable<ApiResponse<void>> {
+    // Convert the Map to a plain object for the HTTP request body, as JSON standard doesn't have a Map type.
+    const payload = Object.fromEntries(settings);
+    return this.http.post<ApiResponse<void>>(`${this.baseAdminApiUrl}/forum-settings/update`, payload);
   }
 }

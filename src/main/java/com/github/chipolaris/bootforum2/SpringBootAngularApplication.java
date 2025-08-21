@@ -1,5 +1,6 @@
 package com.github.chipolaris.bootforum2;
 
+import com.github.chipolaris.bootforum2.config.ForumDefaultConfig;
 import com.github.chipolaris.bootforum2.config.SeedDataInitializer;
 import com.github.chipolaris.bootforum2.dao.DynamicDAO;
 import com.github.chipolaris.bootforum2.dao.FilterSpec;
@@ -8,6 +9,7 @@ import com.github.chipolaris.bootforum2.domain.Person;
 import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.security.JwtAuthenticationFilter;
 import com.github.chipolaris.bootforum2.service.ForumService;
+import com.github.chipolaris.bootforum2.service.ForumSettingService;
 import com.github.chipolaris.bootforum2.service.SystemStatistic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -233,13 +237,60 @@ public class SpringBootAngularApplication {
     }
 
     /**
+     *
+     * @param forumSettingsService
+     * @param forumDefaultConfig
+     * @return
+     */
+    /*@Bean @Order(4)
+    CommandLineRunner initializeForumDefaults(ForumSettingService forumSettingsService, ForumDefaultConfig forumDefaultConfig) {
+        return args -> {
+            if (forumSettingsService.isEmpty()) {
+                logger.info("Initialize Forum Defaults...");
+                forumSettingsService.initializeFromDefaults(forumDefaultConfig);
+            }
+            else {
+                logger.info("Backfill Forum Defaults...");
+                forumSettingsService.backfillMissingDefaults(forumDefaultConfig);
+            }
+        };
+    }*/
+
+    /**
      * Initialize SystemStatistic.
      * Run this after all other CommandlineRunners.
      * @param systemStatistic
      * @return
      */
-    @Bean @Order(4)
+    /*@Bean @Order(5)
     CommandLineRunner initializeSystemStatistic(SystemStatistic systemStatistic) {
         return args -> systemStatistic.initializeStatistics();
+    }*/
+
+    /**
+     *
+     * @param forumSettingsService
+     * @return
+     */
+    @Bean
+    public ApplicationListener<ApplicationReadyEvent> initializeForumDefaults(
+            ForumSettingService forumSettingsService) {
+        return event -> {
+            logger.info("Application is fully ready! Performing post-startup tasks...");
+
+            if (forumSettingsService.isEmpty()) {
+                logger.info("Initialize Forum Defaults...");
+                forumSettingsService.initializeFromDefaults();
+            }
+            else {
+                logger.info("Backfill Forum Defaults...");
+                forumSettingsService.backfillMissingDefaults();
+            }
+        };
+    }
+
+    @Bean
+    public ApplicationListener<ApplicationReadyEvent> initializeSystemStatistic(SystemStatistic systemStatistic) {
+        return event -> systemStatistic.initializeStatistics();
     }
 }

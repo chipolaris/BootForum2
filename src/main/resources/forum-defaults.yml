@@ -1,0 +1,92 @@
+forum:
+  general:
+    siteName: "My Forum"
+    siteDescription: "A place for discussions"
+    language: "en"
+    timeZone: "UTC"
+    theme:
+      logo: "/assets/logo.png"
+      favicon: "/assets/favicon.ico"
+      primaryColor: "#0044cc"
+    announcements:
+      enabled: true
+      message: "Welcome to our community!"
+
+  users:
+    registration:
+      type: "open" # open | invite | approval
+      emailVerification: true
+      captchaEnabled: true
+    authentication:
+      passwordPolicy:
+        minLength: 8
+        requireNumbers: true
+        requireSpecialChars: true
+      twoFactorAuth: false
+      providers: [ "local", "google", "github" ]
+    roles:
+      - name: "ADMIN"
+        permissions: [ "ALL" ]
+      - name: "MODERATOR"
+        permissions: [ "DELETE_POST", "BAN_USER", "LOCK_THREAD" ]
+      - name: "MEMBER"
+        permissions: [ "CREATE_POST", "REPLY" ]
+      - name: "GUEST"
+        permissions: [ "READ_ONLY" ]
+
+  content:
+    categories:
+      allowCustom: true
+      maxDepth: 3
+    tags:
+      enabled: true
+      maxTagsPerPost: 5
+    posts:
+      minLength: 5
+      maxLength: 10000
+      floodControlSeconds: 30
+      dailyPostLimit: 100
+      draftsEnabled: true
+
+  moderation:
+    profanityFilter: true
+    spamProtection:
+      recaptcha: true
+      ipBlacklistEnabled: true
+    reporting:
+      autoHideAfterFlags: 3
+    trustLevels:
+      enabled: true
+
+  attachments:
+    enabled: true
+    allowedTypes: [ "jpg", "png", "pdf" ]
+    maxFileSizeMB: 10
+    storage: "local" # local | s3 | cdn
+
+  notifications:
+    smtp:
+      host: "smtp.mailserver.com"
+      port: 587
+      username: "forum@example.com"
+      password: "secret"
+    digest:
+      enabled: true
+      frequency: "weekly" # daily | weekly
+    pushNotifications: true
+
+  analytics:
+    enabled: true
+    provider: "google-analytics"
+    trackingId: "UA-XXXXX-Y"
+
+  system:
+    caching: "redis"
+    searchEngine: "elasticsearch"
+    backups:
+      frequency: "daily"
+      retentionDays: 30
+    rateLimit:
+      perUserPerMinute: 30
+      perIPPerMinute: 100
+    maintenanceMode: false
