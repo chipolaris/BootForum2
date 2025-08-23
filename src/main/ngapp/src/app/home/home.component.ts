@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { DiscussionService } from '../_services/discussion.service';
 import { AvatarService } from '../_services/avatar.service';
+import { ConfigService } from '../_services/config.service'; // Import new service
 import { DiscussionDTO, errorMessageFromApiResponse } from '../_data/dtos';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { APP_ICONS } from '../shared/hero-icons';
@@ -19,6 +20,7 @@ import { APP_ICONS } from '../shared/hero-icons';
 export class HomeComponent implements OnInit {
   private discussionService = inject(DiscussionService);
   private avatarService = inject(AvatarService);
+  private configService = inject(ConfigService);
   private cdr = inject(ChangeDetectorRef);
 
   latestDiscussions: DiscussionDTO[] = [];
@@ -27,6 +29,7 @@ export class HomeComponent implements OnInit {
 
   avatarFileIdMap: Map<string, number | null> = new Map();
 
+  siteDescription = 'A modern forum built with Spring Boot and Angular.'; // Default value
   isLoading = true;
   errorMessage: string | null = null;
 
@@ -42,11 +45,13 @@ export class HomeComponent implements OnInit {
     const latest$ = this.discussionService.getLatestDiscussions();
     const mostCommented$ = this.discussionService.getMostCommentedDiscussions();
     const mostViewed$ = this.discussionService.getMostViewedDiscussions();
+    const siteDescription$ = this.configService.getSetting('general.siteDescription');
 
     forkJoin({
       latest: latest$,
       commented: mostCommented$,
-      viewed: mostViewed$
+      viewed: mostViewed$,
+      description: siteDescription$
     }).subscribe({
       next: (responses) => {
         let errors: string[] = [];
@@ -67,6 +72,10 @@ export class HomeComponent implements OnInit {
           this.mostViewedDiscussions = responses.viewed.data;
         } else {
           errors.push(errorMessageFromApiResponse(responses.viewed) || 'Failed to load most viewed discussions.');
+        }
+
+        if (responses.description) {
+          this.siteDescription = responses.description;
         }
 
         if(errors.length > 0) {

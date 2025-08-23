@@ -20,14 +20,13 @@ public class ForumDefaultConfig {
     private Map<String, Object> users;
     private Map<String, Object> content;
     private Map<String, Object> moderation;
+    private Map<String, Object> images;
     private Map<String, Object> attachments;
     private Map<String, Object> notifications;
     private Map<String, Object> analytics;
     private Map<String, Object> system;
 
-    public Map<String, Object> getGeneral() {
-        return general;
-    }
+    public Map<String, Object> getGeneral() { return general;}
     public void setGeneral(Map<String, Object> general) {
         this.general = general;
     }
@@ -51,6 +50,13 @@ public class ForumDefaultConfig {
     }
     public void setModeration(Map<String, Object> moderation) {
         this.moderation = moderation;
+    }
+
+    public Map<String, Object> getImages() {
+        return images;
+    }
+    public void setImages(Map<String, Object> images) {
+        this.images = images;
     }
 
     public Map<String, Object> getAttachments() {

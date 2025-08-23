@@ -68,4 +68,14 @@
       </p-accordionTab>
     </p-accordion>
   </div>
+  <!-- Duplicated Save Button to improve user experience -->
+  <div class="flex justify-end mt-6">
+    <p-button
+      label="Save Changes"
+      icon="pi pi-save"
+      [loading]="isSaving"
+      (onClick)="saveSettings()"
+      [disabled]="isLoading">
+    </p-button>
+  </div>
 </div>

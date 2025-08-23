@@ -58,10 +58,16 @@ forum:
     trustLevels:
       enabled: true
 
+  images:
+    enabled: true
+    allowedTypes: [ "jpg", "png", "gif", "jpeg" ]
+    maxFileSizeMB: 5
+    storage: "local" # local | s3 | cdn
+
   attachments:
     enabled: true
-    allowedTypes: [ "jpg", "png", "pdf" ]
-    maxFileSizeMB: 10
+    allowedTypes: [ "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "csv", "zip", "rar", "7z", "pdf" ]
+    maxFileSizeMB: 5
     storage: "local" # local | s3 | cdn
 
   notifications:

@@ -59,6 +59,7 @@ public class ForumSettingService {
         categories.put("users", defaults.getUsers());
         categories.put("content", defaults.getContent());
         categories.put("moderation", defaults.getModeration());
+        categories.put("images", defaults.getImages());
         categories.put("attachments", defaults.getAttachments());
         categories.put("notifications", defaults.getNotifications());
         categories.put("analytics", defaults.getAnalytics());
@@ -100,6 +101,44 @@ public class ForumSettingService {
     }
 
     @Transactional(readOnly = true)
+    public ServiceResponse<Object> getSettingValue(String category, String key) {
+        // 1. Check DB first
+        Optional<ForumSetting> dbSettingOpt = forumSettingRepository.findByCategoryAndKeyName(category, key);
+        if (dbSettingOpt.isPresent()) {
+            ForumSetting dbSetting = dbSettingOpt.get();
+            // Use the type from the DB to convert the string value back to its original object type
+            return ServiceResponse.success("Found in DB", convertStringToObject(dbSetting.getValue(), dbSetting.getValueType()));
+        }
+
+        // 2. If not in DB, check default config from yml
+        Map<String, Object> categoryDefaults = getDefaultsForCategory(category);
+        if (categoryDefaults != null) {
+            Map<String, Object> flatDefaults = SettingsFlattener.flatten(categoryDefaults);
+            if (flatDefaults.containsKey(key)) {
+                return ServiceResponse.success("Found in defaults", flatDefaults.get(key));
+            }
+        }
+
+        logger.warn("Setting '{}.{}' not found in database or defaults.", category, key);
+        return ServiceResponse.failure(String.format("Setting '%s.%s' not found.", category, key));
+    }
+
+    private Map<String, Object> getDefaultsForCategory(String category) {
+        return switch (category) {
+            case "general" -> forumDefaultConfig.getGeneral();
+            case "users" -> forumDefaultConfig.getUsers();
+            case "content" -> forumDefaultConfig.getContent();
+            case "moderation" -> forumDefaultConfig.getModeration();
+            case "images" -> forumDefaultConfig.getImages();
+            case "attachments" -> forumDefaultConfig.getAttachments();
+            case "notifications" -> forumDefaultConfig.getNotifications();
+            case "analytics" -> forumDefaultConfig.getAnalytics();
+            case "system" -> forumDefaultConfig.getSystem();
+            default -> null;
+        };
+    }
+
+    @Transactional(readOnly = true)
     public ServiceResponse<Map<String, List<SettingDTO>>> getAllSettings() {
 
         // 1. Get all default settings, flattened.
@@ -108,6 +147,7 @@ public class ForumSettingService {
         defaultCategories.put("users", SettingsFlattener.flatten(forumDefaultConfig.getUsers()));
         defaultCategories.put("content", SettingsFlattener.flatten(forumDefaultConfig.getContent()));
         defaultCategories.put("moderation", SettingsFlattener.flatten(forumDefaultConfig.getModeration()));
+        defaultCategories.put("images", SettingsFlattener.flatten(forumDefaultConfig.getImages()));
         defaultCategories.put("attachments", SettingsFlattener.flatten(forumDefaultConfig.getAttachments()));
         defaultCategories.put("notifications", SettingsFlattener.flatten(forumDefaultConfig.getNotifications()));
         defaultCategories.put("analytics", SettingsFlattener.flatten(forumDefaultConfig.getAnalytics()));
