@@ -2,19 +2,21 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, inject } from '@an
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, Subscription, of } from 'rxjs';
+import { Observable, Subscription, of, forkJoin } from 'rxjs';
 import { finalize, switchMap, catchError, tap } from 'rxjs/operators';
 
 import { Editor } from '@toast-ui/editor';
 
 import { CommentService } from '../_services/comment.service';
-import { DiscussionService } from '../_services/discussion.service'; // To fetch discussion content for quoting
-import { CommentDTO, DiscussionDTO, ApiResponse } from '../_data/dtos'; // Added DiscussionDTO
+import { DiscussionService } from '../_services/discussion.service';
+import { ConfigService } from '../_services/config.service';
+import { FileValidationService, FileValidationError } from '../_services/file-validation.service';
+import { CommentDTO, DiscussionDTO, ApiResponse } from '../_data/dtos';
 
 interface QuoteState {
   contentToQuote?: string;
   authorToQuote?: string;
-  quotedItemTitle?: string; // Title of the discussion or comment being quoted
+  quotedItemTitle?: string;
 }
 
 @Component({
@@ -30,7 +32,7 @@ export class CommentCreateComponent implements OnInit, OnDestroy {
   replyToId: number | null = null;
   isQuote = false;
   mode: 'reply' | 'quote' = 'reply';
-  discussionTitle: string | null = null; // Title of the parent discussion
+  discussionTitle: string | null = null;
 
   contentEditor: InstanceType<typeof Editor> | null = null;
   @ViewChild('contentEditorRef') private set editorContentEl(el: ElementRef | undefined) {
@@ -47,34 +49,76 @@ export class CommentCreateComponent implements OnInit, OnDestroy {
   contentError: string | null = null;
   generalError: string | null = null;
 
+  imageErrors: FileValidationError[] = [];
+  attachmentErrors: FileValidationError[] = [];
+
+  private validationConfig = {
+    content: { posts: { minLength: 5, maxLength: 10000 } },
+    images: { maxFileSizeMB: 5, allowedTypes: ['jpg', 'png', 'gif', 'jpeg'] },
+    attachments: { maxFileSizeMB: 5, allowedTypes: ['pdf', 'zip', 'doc', 'docx'] }
+  };
+
   private fb = inject(FormBuilder);
   private commentService = inject(CommentService);
   private discussionService = inject(DiscussionService);
+  private configService = inject(ConfigService);
+  private fileValidationService = inject(FileValidationService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private subscriptions = new Subscription();
 
   private quoteStateData: QuoteState | null = null;
-  private quotedContentToSet: string = ''; // Temporary holder for quote content
+  private quotedContentToSet: string = '';
 
   constructor() {
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state) {
       this.quoteStateData = navigation.extras.state as QuoteState;
-      console.log('Received quote state data:', this.quoteStateData);
     }
   }
 
   ngOnInit(): void {
+    this.loadValidationConfig();
+  }
+
+  private loadValidationConfig(): void {
+    this.isLoading = true;
+    const configObservables = {
+      minLength: this.configService.getSetting('content.posts.minLength'),
+      maxLength: this.configService.getSetting('content.posts.maxLength'),
+      maxImageSize: this.configService.getSetting('images.maxFileSizeMB'),
+      allowedImageTypes: this.configService.getSetting('images.allowedTypes'),
+      maxAttachmentSize: this.configService.getSetting('attachments.maxFileSizeMB'),
+      allowedAttachmentTypes: this.configService.getSetting('attachments.allowedTypes')
+    };
+
+    this.subscriptions.add(
+      forkJoin(configObservables).subscribe({
+        next: (configs) => {
+          this.validationConfig.content.posts.minLength = configs.minLength ?? this.validationConfig.content.posts.minLength;
+          this.validationConfig.content.posts.maxLength = configs.maxLength ?? this.validationConfig.content.posts.maxLength;
+          this.validationConfig.images.maxFileSizeMB = configs.maxImageSize ?? this.validationConfig.images.maxFileSizeMB;
+          this.validationConfig.images.allowedTypes = configs.allowedImageTypes ?? this.validationConfig.images.allowedTypes;
+          this.validationConfig.attachments.maxFileSizeMB = configs.maxAttachmentSize ?? this.validationConfig.attachments.maxFileSizeMB;
+          this.validationConfig.attachments.allowedTypes = configs.allowedAttachmentTypes ?? this.validationConfig.attachments.allowedTypes;
+          this.loadInitialData();
+        },
+        error: (err) => {
+          console.error("Failed to load validation configuration, using defaults.", err);
+          this.loadInitialData();
+        }
+      })
+    );
+  }
+
+  private loadInitialData(): void {
     this.subscriptions.add(
       this.route.paramMap.pipe(
         tap(params => {
           const dId = params.get('discussionId');
           this.discussionId = dId ? +dId : null;
-
           const rId = params.get('replyToId');
           this.replyToId = rId ? +rId : null;
-
           if (!this.discussionId) {
             this.generalError = 'Discussion ID is missing. Cannot create comment.';
             this.isLoading = false;
@@ -82,15 +126,14 @@ export class CommentCreateComponent implements OnInit, OnDestroy {
           }
         }),
         switchMap(() => {
-          // Fetch discussion title for context, only if not already available from quoteStateData (when quoting main discussion)
           if (this.isQuote && !this.replyToId && this.quoteStateData?.quotedItemTitle) {
             this.discussionTitle = this.quoteStateData.quotedItemTitle;
-            return of(null); // No need to fetch discussion if title is from state
+            return of(null);
           }
           return this.discussionService.getDiscussionById(this.discussionId as number);
         }),
         catchError(err => {
-          if (!this.discussionTitle) { // Only set error if title wasn't set from state
+          if (!this.discussionTitle) {
             this.generalError = `Failed to load discussion details: ${err.message}`;
           }
           this.isLoading = false;
@@ -100,29 +143,25 @@ export class CommentCreateComponent implements OnInit, OnDestroy {
         if (discussionResponseOrNull && discussionResponseOrNull.success && discussionResponseOrNull.data) {
           this.discussionTitle = discussionResponseOrNull.data.title;
         }
-
         this.subscriptions.add(
           this.route.queryParamMap.subscribe(queryParams => {
             this.isQuote = queryParams.get('quote') === 'true';
             this.mode = this.isQuote ? 'quote' : 'reply';
-            this.setupForm(); // Initialize form
-
+            this.setupForm();
             if (this.isQuote) {
               if (this.quoteStateData?.contentToQuote && this.quoteStateData?.authorToQuote) {
-                console.log('Using quote data from state.');
                 const formattedQuote = `> **${this.quoteStateData.authorToQuote} wrote:**\n>\n${this.quoteStateData.contentToQuote.split('\n').map(line => `> ${line}`).join('\n')}\n\n`;
                 if (this.contentEditor) {
                   this.contentEditor.setMarkdown(formattedQuote);
                 } else {
                   this.quotedContentToSet = formattedQuote;
                 }
-                this.isLoading = false; // Content is set from state
+                this.isLoading = false;
               } else {
-                console.log('Quote mode, but no state data. Falling back to API call.');
-                this.loadContentForQuotingViaApi(); // Fallback if state is missing
+                this.loadContentForQuotingViaApi();
               }
             } else {
-              this.isLoading = false; // Not quoting
+              this.isLoading = false;
             }
           })
         );
@@ -132,23 +171,18 @@ export class CommentCreateComponent implements OnInit, OnDestroy {
 
   private setupForm(): void {
     let initialTitle = `Re: ${this.discussionTitle || 'Discussion'}`;
-
-    if (this.replyToId) { // Replying to a specific comment
+    if (this.replyToId) {
       if (this.isQuote && this.quoteStateData?.quotedItemTitle) {
         initialTitle = `Re: ${this.quoteStateData.quotedItemTitle}`;
       } else {
-        // If not quoting or title not in state, generate a generic reply title
         initialTitle = `Re: Comment in "${this.discussionTitle || 'Discussion'}"`;
       }
-    } else if (this.isQuote && this.quoteStateData?.quotedItemTitle) { // Quoting the main discussion
+    } else if (this.isQuote && this.quoteStateData?.quotedItemTitle) {
         initialTitle = `Re: ${this.quoteStateData.quotedItemTitle}`;
     }
-
-
     this.commentForm = this.fb.group({
       title: [initialTitle, [Validators.required, Validators.maxLength(255)]],
     });
-    // isLoading might be set to false here or after quote content is processed
   }
 
   private initializeEditor(element: HTMLElement): void {
@@ -165,7 +199,6 @@ export class CommentCreateComponent implements OnInit, OnDestroy {
           this.contentError = null;
         }
       });
-      console.log('Toast UI Editor initialized for comments.');
       if (this.quotedContentToSet) {
         this.contentEditor.setMarkdown(this.quotedContentToSet);
         this.quotedContentToSet = '';
@@ -183,41 +216,30 @@ export class CommentCreateComponent implements OnInit, OnDestroy {
       return;
     }
     this.isLoading = true;
-
-    // Explicitly type sourceObservable
     let sourceObservable: Observable<ApiResponse<CommentDTO | DiscussionDTO>>;
-
     if (this.replyToId) {
       sourceObservable = this.commentService.getCommentById(this.replyToId);
     } else {
-      // Ensure discussionId is treated as number if its type is number | null
       sourceObservable = this.discussionService.getDiscussionById(this.discussionId as number);
     }
-
-    // Explicitly type the piped observable
     const pipedObservable: Observable<ApiResponse<CommentDTO | DiscussionDTO>> = sourceObservable.pipe(
       finalize(() => this.isLoading = false)
     );
-
     this.subscriptions.add(
-      pipedObservable.subscribe({ // Now subscribe is called on the explicitly typed observable
+      pipedObservable.subscribe({
         next: (response) => {
           let contentToQuote = '';
           let authorToQuote = '';
           if (response && response.success && response.data) {
             contentToQuote = response.data.content;
             authorToQuote = response.data.createBy;
-            // Also update discussionTitle if quoting main discussion and it wasn't set from state
-            // Check if response.data has a title property before accessing it
-            const responseDataWithTitle = response.data as DiscussionDTO; // Or a common interface if applicable
+            const responseDataWithTitle = response.data as DiscussionDTO;
             if (!this.replyToId && responseDataWithTitle.title && !this.discussionTitle) {
                 this.discussionTitle = responseDataWithTitle.title;
-                // Potentially re-evaluate form title if it depends on discussionTitle
                 if (this.commentForm && this.f['title'].value.includes('Discussion')) {
                     this.f['title'].setValue(`Re: ${this.discussionTitle}`);
                 }
             }
-
             const formattedQuote = `> **${authorToQuote} wrote:**\n>\n${contentToQuote.split('\n').map(line => `> ${line}`).join('\n')}\n\n`;
             if (this.contentEditor) {
               this.contentEditor.setMarkdown(formattedQuote);
@@ -226,7 +248,6 @@ export class CommentCreateComponent implements OnInit, OnDestroy {
             }
           } else {
             this.generalError = 'Could not load content for quoting via API.';
-            console.error('API quote load failed:', response?.message);
           }
         },
         error: (err) => {
@@ -246,11 +267,53 @@ export class CommentCreateComponent implements OnInit, OnDestroy {
   onImageChange(event: Event): void {
     const element = event.target as HTMLInputElement;
     this.selectedImages = element.files;
+    this.imageErrors = [];
+    if (this.selectedImages) {
+      this.imageErrors = this.fileValidationService.validateFiles(
+        this.selectedImages,
+        this.validationConfig.images.maxFileSizeMB,
+        this.validationConfig.images.allowedTypes
+      );
+    }
   }
 
   onAttachmentChange(event: Event): void {
     const element = event.target as HTMLInputElement;
     this.selectedAttachments = element.files;
+    this.attachmentErrors = [];
+    if (this.selectedAttachments) {
+      this.attachmentErrors = this.fileValidationService.validateFiles(
+        this.selectedAttachments,
+        this.validationConfig.attachments.maxFileSizeMB,
+        this.validationConfig.attachments.allowedTypes
+      );
+    }
+  }
+
+  private validatePost(): boolean {
+    const commentContent = this.contentEditor?.getMarkdown() || '';
+    const contentLength = new TextEncoder().encode(commentContent).length;
+
+    if (contentLength < this.validationConfig.content.posts.minLength) {
+      this.contentError = `Content is too short. Minimum length is ${this.validationConfig.content.posts.minLength} characters (bytes).`;
+      return false;
+    }
+    if (contentLength > this.validationConfig.content.posts.maxLength) {
+      this.contentError = `Content is too long. Maximum length is ${this.validationConfig.content.posts.maxLength} characters (bytes).`;
+      return false;
+    }
+
+    if (this.commentForm.invalid) {
+      Object.values(this.commentForm.controls).forEach(control => control.markAsTouched());
+      return false;
+    }
+
+    if (this.imageErrors.length > 0 || this.attachmentErrors.length > 0) {
+      this.generalError = "Please fix the errors in the uploaded files before submitting.";
+      return false;
+    }
+
+    return true;
   }
 
   onSubmit(): void {
@@ -263,19 +326,13 @@ export class CommentCreateComponent implements OnInit, OnDestroy {
     this.contentError = null;
     this.generalError = null;
 
-    const commentContent = this.contentEditor?.getMarkdown().trim() || '';
-    if (!commentContent) {
-      this.contentError = 'Comment content is required.';
-      return;
-    }
-
-    if (this.commentForm.invalid) {
-      Object.values(this.commentForm.controls).forEach(control => control.markAsTouched());
+    if (!this.validatePost()) {
       return;
     }
 
     this.isSubmitting = true;
     const formData = new FormData();
+    const commentContent = this.contentEditor?.getMarkdown() || '';
     formData.append('discussionId', this.discussionId.toString());
     if (this.replyToId !== null) {
       formData.append('replyToId', this.replyToId.toString());
@@ -301,7 +358,7 @@ export class CommentCreateComponent implements OnInit, OnDestroy {
           next: (response) => {
             if (response.success && response.data) {
               this.router.navigate(['/app/discussions', this.discussionId, 'view'],
-                { fragment: `comment-${response.data.id}` }); // Add fragment to scroll to new comment
+                { fragment: `comment-${response.data.id}` });
             } else {
               this.generalError = response.message || 'Failed to create comment.';
                if(response.errors && response.errors.length > 0) {
@@ -320,7 +377,7 @@ export class CommentCreateComponent implements OnInit, OnDestroy {
     if (this.discussionId) {
       this.router.navigate(['/app/discussions', this.discussionId, 'view']);
     } else {
-      this.router.navigate(['/app/forums/tree-table']); // Fallback
+      this.router.navigate(['/app/forums/tree-table']);
     }
   }
 }

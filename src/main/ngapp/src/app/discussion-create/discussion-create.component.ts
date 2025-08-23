@@ -7,11 +7,13 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { Editor } from '@toast-ui/editor';
 import { DiscussionService } from '../_services/discussion.service';
 import { ForumService } from '../_services/forum.service';
-import { TagService } from '../_services/tag.service'; // Import TagService
+import { TagService } from '../_services/tag.service';
+import { ConfigService } from '../_services/config.service'; // Import ConfigService
+import { FileValidationService, FileValidationError } from '../_services/file-validation.service'; // Import new validation service
 import { DiscussionDTO, TagDTO } from '../_data/dtos';
 import { finalize } from 'rxjs/operators';
-import { Subscription } from 'rxjs';
-import { MultiSelectModule } from 'primeng/multiselect'; // Import MultiSelectModule
+import { Subscription, forkJoin } from 'rxjs';
+import { MultiSelectModule } from 'primeng/multiselect';
 
 @Component({
   selector: 'app-discussion-create',
@@ -19,7 +21,7 @@ import { MultiSelectModule } from 'primeng/multiselect'; // Import MultiSelectMo
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MultiSelectModule // Add MultiSelectModule
+    MultiSelectModule
   ],
   templateUrl: './discussion-create.component.html',
   styleUrls: ['./discussion-create.component.css']
@@ -39,7 +41,7 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
   }
 
   discussionForm!: FormGroup;
-  availableTags: TagDTO[] = []; // Property to hold available tags
+  availableTags: TagDTO[] = [];
   selectedImages: FileList | null = null;
   selectedAttachments: FileList | null = null;
   submitted = false;
@@ -47,16 +49,73 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
   contentError: string | null = null;
   generalError: string | null = null;
 
+  // New properties for validation errors
+  imageErrors: FileValidationError[] = [];
+  attachmentErrors: FileValidationError[] = [];
+
+  // New properties for validation config with defaults
+  public validationConfig = {
+    content: {
+      posts: { minLength: 10, maxLength: 20000 },
+      tags: { maxTagsPerPost: 3 }
+    },
+    images: {
+      maxFileSizeMB: 5,
+      allowedTypes: ['jpg', 'png', 'gif', 'jpeg'],
+    },
+    attachments: {
+      maxFileSizeMB: 10,
+      allowedTypes: ['pdf', 'zip', 'doc', 'docx'],
+    }
+  };
+
   private fb = inject(FormBuilder);
   private discussionService = inject(DiscussionService);
   private forumService = inject(ForumService);
-  private tagService = inject(TagService); // Inject TagService
+  private tagService = inject(TagService);
+  private configService = inject(ConfigService);
+  private fileValidationService = inject(FileValidationService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private routeSubscription: Subscription | undefined;
   private forumTitleSubscription: Subscription | undefined;
 
   ngOnInit(): void {
+    this.loadValidationConfig(); // Start by loading config
+  }
+
+  private loadValidationConfig(): void {
+    this.isLoading = true;
+    const configObservables = {
+      minLength: this.configService.getSetting('content.posts.minLength'),
+      maxLength: this.configService.getSetting('content.posts.maxLength'),
+      maxTags: this.configService.getSetting('content.tags.maxTagsPerPost'),
+      maxImageSize: this.configService.getSetting('images.maxFileSizeMB'),
+      allowedImageTypes: this.configService.getSetting('images.allowedTypes'),
+      maxAttachmentSize: this.configService.getSetting('attachments.maxFileSizeMB'),
+      allowedAttachmentTypes: this.configService.getSetting('attachments.allowedTypes')
+    };
+
+    forkJoin(configObservables).subscribe({
+      next: (configs) => {
+        this.validationConfig.content.posts.minLength = configs.minLength ?? this.validationConfig.content.posts.minLength;
+        this.validationConfig.content.posts.maxLength = configs.maxLength ?? this.validationConfig.content.posts.maxLength;
+        this.validationConfig.content.tags.maxTagsPerPost = configs.maxTags ?? this.validationConfig.content.tags.maxTagsPerPost;
+        this.validationConfig.images.maxFileSizeMB = configs.maxImageSize ?? this.validationConfig.images.maxFileSizeMB;
+        this.validationConfig.images.allowedTypes = configs.allowedImageTypes ?? this.validationConfig.images.allowedTypes;
+        this.validationConfig.attachments.maxFileSizeMB = configs.maxAttachmentSize ?? this.validationConfig.attachments.maxFileSizeMB;
+        this.validationConfig.attachments.allowedTypes = configs.allowedAttachmentTypes ?? this.validationConfig.attachments.allowedTypes;
+
+        this.loadInitialData(); // Proceed with original logic
+      },
+      error: (err) => {
+        console.error("Failed to load validation configuration, using defaults.", err);
+        this.loadInitialData(); // Proceed with defaults on error
+      }
+    });
+  }
+
+  private loadInitialData(): void {
     this.routeSubscription = this.route.paramMap.subscribe(params => {
       const idParam = params.get('forumId');
       if (idParam) {
@@ -64,7 +123,7 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
         if (!isNaN(parsedId)) {
           this.forumId = parsedId;
           this.fetchForumTitleAndPrepareForm();
-          this.loadAvailableTags(); // Load tags when component initializes
+          this.loadAvailableTags();
         } else {
           this.isLoading = false;
           this.generalError = 'Invalid Forum ID provided in the URL.';
@@ -101,8 +160,7 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
     this.discussionForm = this.fb.group({
       title: ['', [Validators.required, Validators.maxLength(150)]],
       content: [''],
-      // Add tagIds control with custom validator
-      tagIds: [[] as number[], [this.maxTagsValidator(3)]]
+      tagIds: [[] as number[], [this.maxTagsValidator(this.validationConfig.content.tags.maxTagsPerPost)]]
     });
     this.isLoading = false;
   }
@@ -111,7 +169,6 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
     this.tagService.getAllTags().subscribe({
       next: (response) => {
         if (response.success && response.data) {
-          // Only allow selection of active (not disabled) tags
           this.availableTags = response.data.filter(tag => !tag.disabled);
         } else {
           console.error('Failed to load tags for discussion creation.');
@@ -121,7 +178,6 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Custom validator to enforce a maximum number of selected tags
   private maxTagsValidator(max: number) {
     return (control: FormControl): { [key: string]: any } | null => {
       const selected = control.value as any[];
@@ -133,9 +189,7 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
   }
 
   private initializeEditor(element: HTMLElement): void {
-    if (this.contentEditor) {
-      return;
-    }
+    if (this.contentEditor) return;
     try {
       this.contentEditor = new Editor({
         el: element,
@@ -165,11 +219,53 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
   onImageChange(event: Event): void {
     const element = event.target as HTMLInputElement;
     this.selectedImages = element.files;
+    this.imageErrors = [];
+    if (this.selectedImages) {
+      this.imageErrors = this.fileValidationService.validateFiles(
+        this.selectedImages,
+        this.validationConfig.images.maxFileSizeMB,
+        this.validationConfig.images.allowedTypes
+      );
+    }
   }
 
   onAttachmentChange(event: Event): void {
     const element = event.target as HTMLInputElement;
     this.selectedAttachments = element.files;
+    this.attachmentErrors = [];
+    if (this.selectedAttachments) {
+      this.attachmentErrors = this.fileValidationService.validateFiles(
+        this.selectedAttachments,
+        this.validationConfig.attachments.maxFileSizeMB,
+        this.validationConfig.attachments.allowedTypes
+      );
+    }
+  }
+
+  private validatePost(): boolean {
+    const discussionContent = this.contentEditor?.getMarkdown() || '';
+    const contentLength = new TextEncoder().encode(discussionContent).length;
+
+    if (contentLength < this.validationConfig.content.posts.minLength) {
+      this.contentError = `Content is too short. Minimum length is ${this.validationConfig.content.posts.minLength} characters (bytes).`;
+      return false;
+    }
+    if (contentLength > this.validationConfig.content.posts.maxLength) {
+      this.contentError = `Content is too long. Maximum length is ${this.validationConfig.content.posts.maxLength} characters (bytes).`;
+      return false;
+    }
+
+    if (this.discussionForm.invalid) {
+      Object.values(this.discussionForm.controls).forEach(control => control.markAsTouched());
+      return false;
+    }
+
+    if (this.imageErrors.length > 0 || this.attachmentErrors.length > 0) {
+      this.generalError = "Please fix the errors in the uploaded files before submitting.";
+      return false;
+    }
+
+    return true;
   }
 
   onSubmit(): void {
@@ -182,27 +278,18 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
     this.contentError = null;
     this.generalError = null;
 
-    const discussionContent = this.contentEditor?.getMarkdown().trim() || '';
-    if (!discussionContent) {
-        this.contentError = 'Discussion content is required.';
-        return;
-    }
-
-    if (this.discussionForm.invalid) {
-      Object.values(this.discussionForm.controls).forEach(control => {
-        control.markAsTouched();
-      });
+    if (!this.validatePost()) {
       return;
     }
 
     this.isLoading = true;
     const formData = new FormData();
+    const discussionContent = this.contentEditor?.getMarkdown() || '';
 
     formData.append('forumId', this.forumId.toString());
     formData.append('title', this.f['title'].value);
     formData.append('content', discussionContent);
 
-    // Append tagIds to FormData
     const tagIds = this.f['tagIds'].value as number[];
     if (tagIds && tagIds.length > 0) {
       tagIds.forEach(id => formData.append('tagIds', id.toString()));
@@ -221,18 +308,12 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
     }
 
     this.discussionService.createDiscussion(formData)
-      .pipe(
-        finalize(() => this.isLoading = false)
-      )
+      .pipe(finalize(() => this.isLoading = false))
       .subscribe({
         next: (response) => {
           if (response.success && response.data) {
             this.discussionCreationResult.emit({ success: true, data: response.data });
-            if (response.data.id) {
-                this.router.navigate(['/app/forums', this.forumId, 'view']);
-            } else {
-                this.router.navigate(['/app/forums', this.forumId, 'view']);
-            }
+            this.router.navigate(['/app/forums', this.forumId, 'view']);
             this.resetForm();
           } else {
             this.generalError = response.message || 'Failed to create discussion. Please try again.';
@@ -252,12 +333,14 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
   resetForm(): void {
     this.submitted = false;
     if (this.discussionForm) {
-        this.discussionForm.reset({ tagIds: [] }); // Reset tags to an empty array
+        this.discussionForm.reset({ tagIds: [] });
     }
     this.contentEditor?.setMarkdown('');
     this.selectedImages = null;
     this.selectedAttachments = null;
     this.contentError = null;
+    this.imageErrors = [];
+    this.attachmentErrors = [];
   }
 
   onCancel(): void {

@@ -17,21 +17,21 @@
 
   <!-- Form Content (only show if not initial loading and no critical general error) -->
   <div *ngIf="!isLoading || discussionForm"> <!-- Show form once initial loading is done or form is ready -->
-    <h2 class="text-2xl font-semibold mb-6 text-gray-800">
+    <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-slate-100">
       Create New Discussion <ng-container *ngIf="forumTitle">in "{{ forumTitle }}"</ng-container>
     </h2>
 
-    <form *ngIf="discussionForm" [formGroup]="discussionForm" (ngSubmit)="onSubmit()" novalidate class="space-y-6 bg-white p-6 rounded-lg shadow-md">
+    <form *ngIf="discussionForm" [formGroup]="discussionForm" (ngSubmit)="onSubmit()" novalidate class="space-y-6 bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md">
 
       <!-- Title -->
       <div>
-        <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+        <label for="title" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Title</label>
         <input
           type="text"
           id="title"
           formControlName="title"
           required
-          class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          class="block w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200"
           [ngClass]="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': submitted && f['title'].invalid }"
           placeholder="Enter discussion title"
         />
@@ -41,16 +41,69 @@
         </div>
       </div>
 
+      <!-- Content using Toast UI Editor -->
+      <div>
+        <label for="content-editor" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Content</label>
+        <div class="mt-1 border border-gray-300 dark:border-slate-600 rounded-md"
+             [ngClass]="{ 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500': submitted && contentError }">
+          <div #contentEditorRef></div>
+        </div>
+        <div *ngIf="submitted && contentError" class="mt-1 text-xs text-red-600">
+          <span>{{ contentError }}</span>
+        </div>
+      </div>
+
+      <!-- Image Upload -->
+      <div>
+        <label for="images" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Images (Optional)</label>
+        <input
+          type="file"
+          id="images"
+          multiple
+          accept="image/*"
+          (change)="onImageChange($event)"
+          class="block w-full text-sm text-gray-500 dark:text-slate-400 border border-gray-300 dark:border-slate-600 rounded-md cursor-pointer bg-gray-50 dark:bg-slate-700 focus:outline-none file:bg-gray-100 dark:file:bg-slate-600 file:border-0 file:px-3 file:py-2 file:mr-3 file:text-sm file:font-medium file:text-gray-700 dark:file:text-slate-300 hover:file:bg-gray-200 dark:hover:file:bg-slate-500"
+        />
+        <div *ngIf="selectedImages && selectedImages.length > 0 && imageErrors.length === 0" class="mt-2 text-xs text-gray-600 dark:text-slate-400">
+          Selected Images: {{ selectedImages.length }} file(s)
+        </div>
+        <div *ngIf="imageErrors.length > 0" class="mt-2 text-xs text-red-600 space-y-1">
+          <div *ngFor="let err of imageErrors">
+            <strong>{{ err.fileName }}:</strong> {{ err.error }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Attachment Upload -->
+      <div>
+        <label for="attachments" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Attachments (Optional)</label>
+        <input
+          type="file"
+          id="attachments"
+          multiple
+          (change)="onAttachmentChange($event)"
+          class="block w-full text-sm text-gray-500 dark:text-slate-400 border border-gray-300 dark:border-slate-600 rounded-md cursor-pointer bg-gray-50 dark:bg-slate-700 focus:outline-none file:bg-gray-100 dark:file:bg-slate-600 file:border-0 file:px-3 file:py-2 file:mr-3 file:text-sm file:font-medium file:text-gray-700 dark:file:text-slate-300 hover:file:bg-gray-200 dark:hover:file:bg-slate-500"
+        />
+        <div *ngIf="selectedAttachments && selectedAttachments.length > 0 && attachmentErrors.length === 0" class="mt-2 text-xs text-gray-600 dark:text-slate-400">
+          Selected Attachments: {{ selectedAttachments.length }} file(s)
+        </div>
+        <div *ngIf="attachmentErrors.length > 0" class="mt-2 text-xs text-red-600 space-y-1">
+          <div *ngFor="let err of attachmentErrors">
+            <strong>{{ err.fileName }}:</strong> {{ err.error }}
+          </div>
+        </div>
+      </div>
+
       <!-- Tag Selection -->
       <div>
-        <label for="tags" class="block text-sm font-medium text-gray-700 mb-1">Tags (Optional, max 3)</label>
+        <label for="tags" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Tags (Optional, max {{ validationConfig.content.tags.maxTagsPerPost }})</label>
         <p-multiSelect
           id="tags"
           [options]="availableTags"
           formControlName="tagIds"
           optionLabel="label"
           optionValue="id"
-          placeholder="Select up to 3 tags"
+          placeholder="Select up to {{ validationConfig.content.tags.maxTagsPerPost }} tags"
           [showClear]="true"
           styleClass="w-full"
           [ngClass]="{ 'ng-invalid ng-dirty': submitted && f['tagIds'].invalid }">
@@ -62,49 +115,6 @@
         </div>
       </div>
 
-      <!-- Content using Toast UI Editor -->
-      <div>
-        <label for="content-editor" class="block text-sm font-medium text-gray-700 mb-1">Content</label>
-        <div class="mt-1 border border-gray-300 rounded-md"
-             [ngClass]="{ 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500': submitted && contentError }">
-          <div #contentEditorRef></div>
-        </div>
-        <div *ngIf="submitted && contentError" class="mt-1 text-xs text-red-600">
-          <span>{{ contentError }}</span>
-        </div>
-      </div>
-
-      <!-- Image Upload -->
-      <div>
-        <label for="images" class="block text-sm font-medium text-gray-700 mb-1">Images (Optional)</label>
-        <input
-          type="file"
-          id="images"
-          multiple
-          accept="image/*"
-          (change)="onImageChange($event)"
-          class="block w-full text-sm text-gray-500 border border-gray-300 rounded-md cursor-pointer bg-gray-50 focus:outline-none file:bg-gray-100 file:border-0 file:px-3 file:py-2 file:mr-3 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200"
-        />
-        <div *ngIf="selectedImages && selectedImages.length > 0" class="mt-2 text-xs text-gray-600">
-          Selected Images: {{ selectedImages.length }} file(s)
-        </div>
-      </div>
-
-      <!-- Attachment Upload -->
-      <div>
-        <label for="attachments" class="block text-sm font-medium text-gray-700 mb-1">Attachments (Optional)</label>
-        <input
-          type="file"
-          id="attachments"
-          multiple
-          (change)="onAttachmentChange($event)"
-          class="block w-full text-sm text-gray-500 border border-gray-300 rounded-md cursor-pointer bg-gray-50 focus:outline-none file:bg-gray-100 file:border-0 file:px-3 file:py-2 file:mr-3 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200"
-        />
-        <div *ngIf="selectedAttachments && selectedAttachments.length > 0" class="mt-2 text-xs text-gray-600">
-          Selected Attachments: {{ selectedAttachments.length }} file(s)
-        </div>
-      </div>
-
       <!-- General Error Display for submission errors -->
       <div *ngIf="generalError && submitted" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 rounded-md text-sm" role="alert">
         <p>{{ generalError }}</p>
@@ -113,7 +123,7 @@
       <!-- Submit Button -->
       <div class="flex items-center justify-end space-x-4 pt-4">
         <button type="button" (click)="onCancel()" [disabled]="isLoading"
-                class="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer">
+                class="px-6 py-2 border border-gray-300 dark:border-slate-500 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer">
           Cancel
         </button>
 

@@ -110,12 +110,32 @@ public class ForumSettingService {
             return ServiceResponse.success("Found in DB", convertStringToObject(dbSetting.getValue(), dbSetting.getValueType()));
         }
 
-        // 2. If not in DB, check default config from yml
+        // 2. If not in DB, check default config from yml by traversing the map
         Map<String, Object> categoryDefaults = getDefaultsForCategory(category);
         if (categoryDefaults != null) {
-            Map<String, Object> flatDefaults = SettingsFlattener.flatten(categoryDefaults);
-            if (flatDefaults.containsKey(key)) {
-                return ServiceResponse.success("Found in defaults", flatDefaults.get(key));
+            // This logic handles both simple keys ("allowedTypes") and nested keys ("posts.minLength")
+            String[] keyParts = key.split("\\.");
+            Object currentValue = categoryDefaults;
+            boolean found = true;
+
+            for (String part : keyParts) {
+                if (currentValue instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> currentMap = (Map<String, Object>) currentValue;
+                    if (currentMap.containsKey(part)) {
+                        currentValue = currentMap.get(part);
+                    } else {
+                        found = false;
+                        break;
+                    }
+                } else {
+                    found = false;
+                    break;
+                }
+            }
+
+            if (found) {
+                return ServiceResponse.success("Found in defaults", currentValue);
             }
         }
 
