@@ -15,6 +15,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -33,6 +34,9 @@ class ForumGroupServiceUnitTest {
 
     @Mock
     private GenericDAO genericDAO;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private ForumGroupService forumGroupService;
@@ -97,7 +101,7 @@ class ForumGroupServiceUnitTest {
         assertEquals(ServiceResponse.AckCodeType.SUCCESS, response.getAckCode());
         assertNotNull(response.getDataObject());
         assertEquals(expectedDto, response.getDataObject());
-        assertTrue(response.getMessages().contains("Forum group created successfully"));
+        assertTrue(response.getMessages().contains("Forum group with title 'New Group' created successfully"));
 
         verify(genericDAO).find(ForumGroup.class, parentId);
         verify(forumGroupMapper).toEntity(createDTO);
@@ -161,7 +165,7 @@ class ForumGroupServiceUnitTest {
         assertEquals(ServiceResponse.AckCodeType.SUCCESS, response.getAckCode());
         assertNotNull(response.getDataObject());
         assertEquals(expectedDto, response.getDataObject());
-        assertTrue(response.getMessages().contains("Forum updated successfully"));
+        assertTrue(response.getMessages().contains("Forum group with id %d updated successfully".formatted(groupId)));
 
         verify(genericDAO).find(ForumGroup.class, groupId);
         verify(forumGroupMapper).mergeDTOToEntity(updateDTO, existingForumGroup);

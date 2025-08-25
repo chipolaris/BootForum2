@@ -28,6 +28,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,13 +48,15 @@ public class DiscussionService {
     private final FileInfoMapper fileInfoMapper; // To map FileInfoDTO from FileStorageService to FileInfo entity
     private final AuthenticationFacade authenticationFacade;
     private final ApplicationEventPublisher eventPublisher;
+    private final ForumSettingService forumSettingService;
 
     // Note: in Spring version >= 4.3, @AutoWired is implied for beans with single constructor
     public DiscussionService(EntityManager entityManager, GenericDAO genericDAO,
                              DynamicDAO dynamicDAO, DiscussionRepository discussionRepository,
                              TagRepository tagRepository, DiscussionMapper discussionMapper,
                              FileService fileService, FileInfoMapper fileInfoMapper,
-                             AuthenticationFacade authenticationFacade, ApplicationEventPublisher eventPublisher) {
+                             AuthenticationFacade authenticationFacade, ApplicationEventPublisher eventPublisher,
+                             ForumSettingService forumSettingService) {
         this.entityManager = entityManager;
         this.genericDAO = genericDAO;
         this.dynamicDAO = dynamicDAO;
@@ -64,6 +67,7 @@ public class DiscussionService {
         this.fileInfoMapper = fileInfoMapper;
         this.authenticationFacade = authenticationFacade;
         this.eventPublisher = eventPublisher;
+        this.forumSettingService = forumSettingService;
     }
 
     @Transactional(rollbackFor = Exception.class, readOnly = false)
@@ -71,6 +75,19 @@ public class DiscussionService {
             DiscussionCreateDTO discussionCreateDTO,
             MultipartFile[] images,
             MultipartFile[] attachments) {
+
+        // --- START: New Validation Logic ---
+        List<String> validationErrors = new ArrayList<>();
+        validateContent(discussionCreateDTO.content(), validationErrors);
+        validateTags(discussionCreateDTO.tagIds(), validationErrors);
+        validateFiles(images, "images", validationErrors);
+        validateFiles(attachments, "attachments", validationErrors);
+
+        if (!validationErrors.isEmpty()) {
+            logger.warn("Discussion creation failed due to validation errors: {}", validationErrors);
+            return ServiceResponse.failure(String.join(", ", validationErrors));
+        }
+        // --- END: New Validation Logic ---
 
         String username = authenticationFacade.getCurrentUsername().orElse("system");
 
@@ -118,6 +135,101 @@ public class DiscussionService {
             logger.error("Error creating discussion: " + discussionCreateDTO.title(), e);
             return ServiceResponse.failure("An unexpected error occurred while creating the discussion: %s".formatted(e.getMessage()));
         }
+    }
+
+    private void validateContent(String content, List<String> errors) {
+        if (content == null || content.isBlank()) {
+            errors.add("Content cannot be empty.");
+            return;
+        }
+
+        // Using getBytes() to be consistent with frontend's TextEncoder().encode().length
+        int contentLength = content.getBytes().length;
+
+        ServiceResponse<Object> minLengthResponse = forumSettingService.getSettingValue("content", "posts.minLength");
+        if (minLengthResponse.isSuccess() && minLengthResponse.getDataObject() instanceof Number) {
+            int minLength = ((Number) minLengthResponse.getDataObject()).intValue();
+            if (contentLength < minLength) {
+                errors.add(String.format("Content is too short. Minimum length is %d characters (bytes).", minLength));
+            }
+        }
+
+        ServiceResponse<Object> maxLengthResponse = forumSettingService.getSettingValue("content", "posts.maxLength");
+        if (maxLengthResponse.isSuccess() && maxLengthResponse.getDataObject() instanceof Number) {
+            int maxLength = ((Number) maxLengthResponse.getDataObject()).intValue();
+            if (contentLength > maxLength) {
+                errors.add(String.format("Content is too long. Maximum length is %d characters (bytes).", maxLength));
+            }
+        }
+    }
+
+    private void validateTags(List<Long> tagIds, List<String> errors) {
+        if (tagIds == null || tagIds.isEmpty()) {
+            return; // No tags to validate
+        }
+
+        ServiceResponse<Object> response = forumSettingService.getSettingValue("content", "tags.maxTagsPerPost");
+        if (response.isSuccess() && response.getDataObject() instanceof Number) {
+            int maxTags = ((Number) response.getDataObject()).intValue();
+            if (tagIds.size() > maxTags) {
+                errors.add(String.format("You can select a maximum of %d tags.", maxTags));
+            }
+        }
+    }
+
+    private void validateFiles(MultipartFile[] files, String category, List<String> errors) {
+        if (files == null || files.length == 0) {
+            return; // No files to validate
+        }
+
+        // Check if the file category (e.g., images, attachments) is enabled
+        ServiceResponse<Object> enabledResponse = forumSettingService.getSettingValue(category, "enabled");
+        if (enabledResponse.isSuccess() && enabledResponse.getDataObject() instanceof Boolean && !((Boolean) enabledResponse.getDataObject())) {
+            errors.add(String.format("%s uploads are disabled.", capitalize(category)));
+            return; // No need to check further if the category is disabled
+        }
+
+        // Get file size and type validation rules from settings
+        long maxSizeBytes = -1;
+        ServiceResponse<Object> sizeResponse = forumSettingService.getSettingValue(category, "maxFileSizeMB");
+        if (sizeResponse.isSuccess() && sizeResponse.getDataObject() instanceof Number) {
+            maxSizeBytes = ((Number) sizeResponse.getDataObject()).longValue() * 1024 * 1024;
+        }
+
+        List<String> allowedTypes = Collections.emptyList();
+        ServiceResponse<Object> typesResponse = forumSettingService.getSettingValue(category, "allowedTypes");
+        if (typesResponse.isSuccess() && typesResponse.getDataObject() instanceof List) {
+            @SuppressWarnings("unchecked")
+            List<Object> rawList = (List<Object>) typesResponse.getDataObject();
+            allowedTypes = rawList.stream().map(Object::toString).collect(Collectors.toList());
+        }
+
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) {
+                continue;
+            }
+
+            // Validate size
+            if (maxSizeBytes > 0 && file.getSize() > maxSizeBytes) {
+                errors.add(String.format("File '%s' exceeds the maximum size of %d MB.", file.getOriginalFilename(), maxSizeBytes / (1024 * 1024)));
+            }
+
+            // Validate type
+            if (!allowedTypes.isEmpty()) {
+                String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
+                if (extension == null || allowedTypes.stream().noneMatch(ext -> ext.equalsIgnoreCase(extension))) {
+                    errors.add(String.format("File type of '%s' is not allowed. Allowed types are: %s.",
+                            file.getOriginalFilename(), String.join(", ", allowedTypes)));
+                }
+            }
+        }
+    }
+
+    private String capitalize(String str) {
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
     private List<FileInfo> processFiles(MultipartFile[] files, String fileType) {

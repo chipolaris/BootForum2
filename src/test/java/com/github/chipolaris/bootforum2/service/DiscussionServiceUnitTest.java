@@ -54,6 +54,9 @@ class DiscussionServiceUnitTest {
     private AuthenticationFacade authenticationFacade;
 
     @Mock
+    private ForumSettingService forumSettingService;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher; // Added as it's a dependency
 
     @InjectMocks
@@ -69,7 +72,7 @@ class DiscussionServiceUnitTest {
 
     @BeforeEach
     void setUp() {
-        discussionCreateDTO = new DiscussionCreateDTO(1L, "New Test Title", "New Test Comment");
+        discussionCreateDTO = new DiscussionCreateDTO(1L, "New Test Title", "This is a valid test comment", Collections.emptyList());
 
         testForum = new Forum();
         testForum.setId(1L);
@@ -96,8 +99,9 @@ class DiscussionServiceUnitTest {
         discussionStat.setLastComment(testCommentInfo); // Initialize with a distinct CommentInfo
         testDiscussion.setStat(discussionStat);
 
+        // TODO: update this test
         testDiscussionDTO = new DiscussionDTO(1L, LocalDateTime.now(), testUsername,"New Test Title",
-                null, null, null, null, null);
+                null, null, null, null, null, null, null);
 
         testUser = User.newUser();
         testUser.setUsername(testUsername);
@@ -110,6 +114,11 @@ class DiscussionServiceUnitTest {
         MultipartFile[] attachments = {};
 
         when(authenticationFacade.getCurrentUsername()).thenReturn(Optional.of(testUsername));
+
+        // Mock validation calls to allow the test to proceed
+        when(forumSettingService.getSettingValue(eq("content"), eq("posts.minLength"))).thenReturn(ServiceResponse.success("ok", 10));
+        when(forumSettingService.getSettingValue(eq("content"), eq("posts.maxLength"))).thenReturn(ServiceResponse.success("ok", 20000));
+
         when(genericDAO.find(eq(Forum.class), eq(1L))).thenReturn(testForum);
         when(discussionMapper.toDiscussionDTO(any(Discussion.class))).thenReturn(testDiscussionDTO);
         // Mock file processing to return success with no files for simplicity
@@ -150,6 +159,11 @@ class DiscussionServiceUnitTest {
     void createDiscussion_forumNotFound_returnsFailure() {
         // Arrange
         when(authenticationFacade.getCurrentUsername()).thenReturn(Optional.of(testUsername));
+
+        // Mock validation calls to allow the test to proceed to the business logic being tested
+        when(forumSettingService.getSettingValue(eq("content"), eq("posts.minLength"))).thenReturn(ServiceResponse.success("ok", 10));
+        when(forumSettingService.getSettingValue(eq("content"), eq("posts.maxLength"))).thenReturn(ServiceResponse.success("ok", 20000));
+
         when(genericDAO.find(eq(Forum.class), eq(1L))).thenReturn(null); // Forum not found
 
         // Act
@@ -176,11 +190,16 @@ class DiscussionServiceUnitTest {
         MultipartFile[] attachments = {};
 
         when(authenticationFacade.getCurrentUsername()).thenReturn(Optional.of(testUsername));
+
+        // Mock validation calls to allow the test to proceed
+        when(forumSettingService.getSettingValue(eq("content"), eq("posts.minLength"))).thenReturn(ServiceResponse.success("ok", 10));
+        when(forumSettingService.getSettingValue(eq("content"), eq("posts.maxLength"))).thenReturn(ServiceResponse.success("ok", 20000));
+        when(forumSettingService.getSettingValue(eq("images"), anyString())).thenReturn(ServiceResponse.success("ok", new ArrayList<>())); // Mock file validation to pass
+
         when(genericDAO.find(eq(Forum.class), eq(1L))).thenReturn(testForum);
 
         // Simulate file storage failure
-        ServiceResponse<FileCreatedDTO> failedFileResponse = new ServiceResponse<>();
-        failedFileResponse.setAckCode(ServiceResponse.AckCodeType.FAILURE).addMessage("Disk full");
+        ServiceResponse<FileCreatedDTO> failedFileResponse = ServiceResponse.failure("Disk full");
         when(fileService.storeFile(any(MultipartFile.class))).thenReturn(failedFileResponse);
         // fileInfoMapper.toEntity should not be called if storeFile fails and returns null dataObject
 
@@ -289,7 +308,10 @@ class DiscussionServiceUnitTest {
         assertNotNull(response);
         assertEquals(ServiceResponse.AckCodeType.FAILURE, response.getAckCode());
         assertNull(response.getDataObject());
-        assertTrue(response.getMessages().contains("An unexpected error occurred while fetching discussions for forum: " + forumId));
+
+        // FIX: Assert the exact message from the service's catch block
+        String expectedMessage = String.format("An unexpected error occurred while fetching discussions: %d", forumId);
+        assertTrue(response.getMessages().contains(expectedMessage));
 
         verify(dynamicDAO).count(any(QuerySpec.class));
         verify(dynamicDAO, never()).find(any(QuerySpec.class)); // find should not be called
@@ -314,7 +336,10 @@ class DiscussionServiceUnitTest {
         assertNotNull(response);
         assertEquals(ServiceResponse.AckCodeType.FAILURE, response.getAckCode());
         assertNull(response.getDataObject());
-        assertTrue(response.getMessages().contains("An unexpected error occurred while fetching discussions for forum: " + forumId));
+
+        // FIX: Assert the exact message from the service's catch block
+        String expectedMessage = String.format("An unexpected error occurred while fetching discussions: %d", forumId);
+        assertTrue(response.getMessages().contains(expectedMessage));
 
         verify(dynamicDAO).count(any(QuerySpec.class));
         verify(dynamicDAO).find(any(QuerySpec.class));
