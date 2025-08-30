@@ -1,15 +1,18 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { Subscription, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { MessageService } from 'primeng/api';
 
 // Services
 import { CommentService } from '../_services/comment.service';
 import { AvatarService } from '../_services/avatar.service';
+import { VoteService } from '../_services/vote.service';
+import { AuthenticationService } from '../_services/authentication.service';
 
 // DTOs and Components
-import { CommentThreadDTO, FileInfoDTO } from '../_data/dtos';
+import { CommentThreadDTO, FileInfoDTO, CommentDTO, DiscussionDTO } from '../_data/dtos';
 import { FileListComponent } from '../file-list/file-list.component';
 
 // UI Modules
@@ -37,8 +40,12 @@ import { DialogModule } from 'primeng/dialog';
 })
 export class CommentThreadComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private commentService = inject(CommentService);
+  private voteService = inject(VoteService);
+  private authService = inject(AuthenticationService);
   private avatarService = inject(AvatarService);
+  private messageService = inject(MessageService);
   private cdr = inject(ChangeDetectorRef);
 
   isLoading = true;
@@ -125,28 +132,70 @@ export class CommentThreadComponent implements OnInit, OnDestroy {
     return '/assets/images/default-avatar.png';
   }
 
-  // Galleria Methods (copied and adapted from DiscussionViewComponent)
-  /**
-   * Formats FileInfoDTO array into a structure suitable for PrimeNG Galleria.
-   * @param files The array of FileInfoDTO.
-   * @returns An array of objects with 'image', 'thumbnail', 'alt', 'title' properties.
-   */
+  voteForDiscussion(discussion: DiscussionDTO, voteValue: 'up' | 'down'): void {
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/app/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+    if (!discussion.id) return;
+    this.voteService.voteOnDiscussion(discussion.id, voteValue).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Your vote has been recorded!' });
+          if (discussion.stat) {
+            if (voteValue === 'up') discussion.stat.voteUpCount = (discussion.stat.voteUpCount ?? 0) + 1;
+            else discussion.stat.voteDownCount = (discussion.stat.voteDownCount ?? 0) + 1;
+          }
+        } else {
+          const errorMessage = response.errors?.join(', ') || response.message || 'Failed to record vote.';
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+        }
+      },
+      error: (err) => {
+        console.error('Error voting on discussion:', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'An unexpected error occurred.' });
+      }
+    });
+  }
+
+  voteForComment(comment: CommentDTO, voteValue: 'up' | 'down'): void {
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/app/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+    if (!comment.id) return;
+    this.voteService.voteOnComment(comment.id, voteValue).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Your vote has been recorded!' });
+          if (!comment.commentVote) comment.commentVote = { voteUpCount: 0, voteDownCount: 0 };
+          if (voteValue === 'up') comment.commentVote.voteUpCount = (comment.commentVote.voteUpCount ?? 0) + 1;
+          else comment.commentVote.voteDownCount = (comment.commentVote.voteDownCount ?? 0) + 1;
+        } else {
+          const errorMessage = response.errors?.join(', ') || response.message || 'Failed to record vote.';
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+        }
+      },
+      error: (err) => {
+        console.error('Error voting on comment:', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'An unexpected error occurred.' });
+      }
+    });
+  }
+
+  // Galleria Methods
   private formatImagesForGalleria(files: FileInfoDTO[] | null | undefined): any[] {
     if (!files || files.length === 0) {
       return [];
     }
     return files.map(file => ({
-      image: `/api/public/files/${file.id}`, // URL for the full image
-      thumbnail: `/api/public/files/${file.id}`, // URL for the thumbnail
+      image: `/api/public/files/${file.id}`,
+      thumbnail: `/api/public/files/${file.id}`,
       alt: file.originalFilename,
       title: file.originalFilename
     }));
   }
 
-  /**
-   * Opens the Galleria dialog for a comment's images.
-   * @param images The array of FileInfoDTOs from the comment.
-   */
   openGalleria(images: FileInfoDTO[] | null | undefined): void {
     if (images && images.length > 0) {
       this.currentGalleriaImages = this.formatImagesForGalleria(images);
@@ -154,12 +203,9 @@ export class CommentThreadComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Closes the Galleria dialog.
-   */
   closeGalleria(): void {
     this.galleriaVisible = false;
-    this.currentGalleriaImages = []; // Clear images when closing
+    this.currentGalleriaImages = [];
   }
 
   ngOnDestroy(): void {
