@@ -24,14 +24,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
-public class DataInitializationService {
+public class DataSimulationService {
 
-    private static final Logger logger = LoggerFactory.getLogger(DataInitializationService.class);
+    private static final Logger logger = LoggerFactory.getLogger(DataSimulationService.class);
 
     private final GenericDAO genericDAO;
     private final DynamicDAO dynamicDAO;
@@ -45,10 +46,10 @@ public class DataInitializationService {
     private final Faker faker = new Faker();
     private final Random random = new Random();
 
-    public DataInitializationService(GenericDAO genericDAO, DynamicDAO dynamicDAO, FileService fileService,
-                                     StatService statService, SystemStatistic systemStatistic,
-                                     FileInfoMapper fileInfoMapper, ApplicationEventPublisher eventPublisher,
-                                     PasswordEncoder passwordEncoder, UserRepository userRepository) {
+    public DataSimulationService(GenericDAO genericDAO, DynamicDAO dynamicDAO, FileService fileService,
+                                 StatService statService, SystemStatistic systemStatistic,
+                                 FileInfoMapper fileInfoMapper, ApplicationEventPublisher eventPublisher,
+                                 PasswordEncoder passwordEncoder, UserRepository userRepository) {
         this.genericDAO = genericDAO;
         this.dynamicDAO = dynamicDAO;
         this.fileService = fileService;
@@ -124,8 +125,8 @@ public class DataInitializationService {
 
     @Async
     @Transactional
-    public void generateSimulatedData() {
-        logger.info("Starting simulated data generation...");
+    public void generateSimulatedDiscussions() {
+        logger.info("Starting generation of simulated discussion...");
 
         // Step 1: Fetch all fake users to use as authors for discussions and comments
         logger.info("Fetching fake users for content creation...");
@@ -185,6 +186,118 @@ public class DataInitializationService {
         }
 
         logger.info("Successfully completed simulated data generation.");
+    }
+
+    /**
+     * NEW: Generates simulated up/down votes for all existing discussions and comments.
+     * This method is designed to be run after other data simulation methods.
+     */
+    @Async
+    @Transactional
+    public void generateSimulatedVotes() {
+        logger.info("Starting simulated vote generation...");
+
+        List<User> allUsers = genericDAO.all(User.class);
+        List<Discussion> allDiscussions = genericDAO.all(Discussion.class);
+        List<Comment> allComments = genericDAO.all(Comment.class);
+
+        if (allUsers.isEmpty() || (allDiscussions.isEmpty() && allComments.isEmpty())) {
+            logger.warn("Not enough data to generate votes. Need at least one user and one discussion/comment.");
+            return;
+        }
+
+        logger.info("Generating votes for {} discussions...", allDiscussions.size());
+        for (Discussion discussion : allDiscussions) {
+            // Each user has a chance to vote on this discussion
+            for (User user : allUsers) {
+                // Skip if the user is the author of the discussion
+                if (user.getUsername().equals(discussion.getCreateBy())) {
+                    continue;
+                }
+
+                // 50% chance for a user to vote on any given discussion
+                if (random.nextBoolean()) {
+                    addVoteOnDiscussion(discussion, user.getUsername());
+                }
+            }
+        }
+
+        logger.info("Generating votes for {} comments...", allComments.size());
+        for (Comment comment : allComments) {
+            // Each user has a chance to vote on this comment
+            for (User user : allUsers) {
+                // Skip if the user is the author of the comment
+                if (user.getUsername().equals(comment.getCreateBy())) {
+                    continue;
+                }
+
+                // 30% chance for a user to vote on any given comment
+                if (random.nextInt(100) < 30) {
+                    addVoteOnComment(comment, user.getUsername());
+                }
+            }
+        }
+
+        logger.info("Successfully completed simulated vote generation.");
+    }
+
+    private void addVoteOnDiscussion(Discussion discussion, String username) {
+        DiscussionStat discussionStat = discussion.getStat();
+        if (discussionStat.getVotes() == null) {
+            discussionStat.setVotes(new HashSet<>());
+        }
+
+        // Check if user has already voted (precaution for this simulation context)
+        boolean alreadyVoted = discussionStat.getVotes().stream()
+                .anyMatch(v -> v.getVoterName().equals(username));
+        if (alreadyVoted) {
+            return;
+        }
+
+        Vote vote = createRandomVote(username);
+        discussionStat.getVotes().add(vote);
+
+        if (vote.getVoteValue() > 0) {
+            discussionStat.addVoteUpCount();
+        } else {
+            discussionStat.addVoteDownCount();
+        }
+    }
+
+    private void addVoteOnComment(Comment comment, String username) {
+        CommentVote commentVote = comment.getCommentVote();
+        if (commentVote == null) {
+            commentVote = new CommentVote();
+            comment.setCommentVote(commentVote);
+        }
+        if (commentVote.getVotes() == null) {
+            commentVote.setVotes(new HashSet<>());
+        }
+
+        // Check if user has already voted
+        boolean alreadyVoted = commentVote.getVotes().stream()
+                .anyMatch(v -> v.getVoterName().equals(username));
+        if (alreadyVoted) {
+            return;
+        }
+
+        Vote vote = createRandomVote(username);
+        commentVote.getVotes().add(vote);
+
+        if (vote.getVoteValue() > 0) {
+            commentVote.addVoteUpCount();
+        } else {
+            commentVote.addVoteDownCount();
+        }
+    }
+
+    private Vote createRandomVote(String username) {
+        Vote vote = new Vote();
+        vote.setVoterName(username);
+        // 75% chance for an upvote (1), 25% for a downvote (-1)
+        short voteValue = (random.nextInt(4) < 3) ? (short) 1 : (short) -1;
+        vote.setVoteValue(voteValue);
+        return vote;
     }
 
     private ForumGroup createForumGroup() {

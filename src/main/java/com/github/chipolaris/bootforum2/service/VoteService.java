@@ -1,9 +1,6 @@
 package com.github.chipolaris.bootforum2.service;
 
-import com.github.chipolaris.bootforum2.dao.DynamicDAO;
-import com.github.chipolaris.bootforum2.dao.FilterSpec;
 import com.github.chipolaris.bootforum2.dao.GenericDAO;
-import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.*;
 import com.github.chipolaris.bootforum2.event.CommentVotedEvent;
 import com.github.chipolaris.bootforum2.event.DiscussionVotedEvent;
@@ -40,7 +37,7 @@ public class VoteService {
     }
 
     @Transactional(readOnly = false)
-    public ServiceResponse<Void> addVoteToComment(Long commentId, String voteValueInput) {
+    public ServiceResponse<Void> addVoteOnComment(Long commentId, String voteValueInput) {
 
         // Ensure user is logged in and get their username
         Optional<String> currentUsernameOpt = authenticationFacade.getCurrentUsername();
@@ -115,7 +112,7 @@ public class VoteService {
     }
 
     @Transactional(readOnly = false)
-    public ServiceResponse<Void> addVoteToDiscussion(Long discussionId, String voteValueInput) {
+    public ServiceResponse<Void> addVoteOnDiscussion(Long discussionId, String voteValueInput) {
 
         // Ensure user is logged in and get their username
         Optional<String> currentUsernameOpt = authenticationFacade.getCurrentUsername();

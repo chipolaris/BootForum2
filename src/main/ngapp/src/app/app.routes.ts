@@ -46,7 +46,7 @@ export const routes: Routes = [
     data: { roles: ['ADMIN'] }
   },
   {
-    path: 'app/admin/data-generation', component: AdminDataComponent, canActivate: [authGuard],
+    path: 'app/admin/data-simulation', component: AdminDataComponent, canActivate: [authGuard],
     data: { roles: ['ADMIN'] }
   },
   { path: 'app/discussions/list', component: DiscussionListComponent },

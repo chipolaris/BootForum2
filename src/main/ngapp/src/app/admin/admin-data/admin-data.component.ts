@@ -21,6 +21,7 @@ export class AdminDataComponent {
 
   isUserLoading = false;
   isForumDataLoading = false;
+  isVoteDataLoading = false; // New loading state
   userCount = 50;
 
   constructor() {}
@@ -37,13 +38,13 @@ export class AdminDataComponent {
     }
 
     this.confirmationService.confirm({
-      message: `Are you sure you want to generate ${this.userCount} new users? This may take some time.`,
+      message: `Are you sure you want to simulate ${this.userCount} new users? This may take some time.`,
       header: 'Confirm User Generation',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
         this.isUserLoading = true;
-        this.adminService.triggerUserGeneration(this.userCount).subscribe({
-          next: (response) => this.handleResponse(response, 'User generation process started.'),
+        this.adminService.triggerUserSimulation(this.userCount).subscribe({
+          next: (response) => this.handleResponse(response, 'User simulation process started.'),
           error: (err) => this.handleError(err),
           complete: () => this.isUserLoading = false
         });
@@ -53,15 +54,34 @@ export class AdminDataComponent {
 
   generateForumData(): void {
     this.confirmationService.confirm({
-      message: 'This is a one-time action to populate an empty database. Are you sure you want to proceed?',
-      header: 'Confirm Forum Data Generation',
+      message: 'Simulate Discussion data. This may take some time. Are you sure you want to proceed?',
+      header: 'Confirm Forum Discussion Simulation',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
         this.isForumDataLoading = true;
-        this.adminService.triggerDataGeneration().subscribe({
-          next: (response) => this.handleResponse(response, 'Forum data generation process started.'),
+        this.adminService.triggerDiscussionSimulation().subscribe({
+          next: (response) => this.handleResponse(response, 'Forum discussion simulation process started.'),
           error: (err) => this.handleError(err),
           complete: () => this.isForumDataLoading = false
+        });
+      }
+    });
+  }
+
+  /**
+   * NEW: Triggers the generation of simulated votes.
+   */
+  generateVotes(): void {
+    this.confirmationService.confirm({
+      message: 'This will generate a large number of simulated up/down votes for existing content. Are you sure you want to proceed?',
+      header: 'Confirm Vote Simulation',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.isVoteDataLoading = true;
+        this.adminService.triggerVoteSimulation().subscribe({
+          next: (response) => this.handleResponse(response, 'Vote simulation process started.'),
+          error: (err) => this.handleError(err),
+          complete: () => this.isVoteDataLoading = false
         });
       }
     });
@@ -95,5 +115,6 @@ export class AdminDataComponent {
     // Ensure loading spinners are turned off on error
     this.isUserLoading = false;
     this.isForumDataLoading = false;
+    this.isVoteDataLoading = false; // Update to include new loading state
   }
 }

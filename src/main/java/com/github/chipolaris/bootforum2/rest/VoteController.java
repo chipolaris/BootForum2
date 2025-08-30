@@ -34,7 +34,7 @@ public class VoteController {
         }
 
         try {
-            ServiceResponse<Void> serviceResponse = voteService.addVoteToComment(commentId, voteValue);
+            ServiceResponse<Void> serviceResponse = voteService.addVoteOnComment(commentId, voteValue);
 
             if (serviceResponse.isSuccess()) {
                 return ApiResponse.success(serviceResponse.getDataObject(), "Vote processed successfully.");
@@ -62,7 +62,7 @@ public class VoteController {
         }
 
         try {
-            ServiceResponse<Void> serviceResponse = voteService.addVoteToDiscussion(discussionId, voteValue);
+            ServiceResponse<Void> serviceResponse = voteService.addVoteOnDiscussion(discussionId, voteValue);
 
             if (serviceResponse.isSuccess()) {
                 return ApiResponse.success(serviceResponse.getDataObject(), "Vote processed successfully.");

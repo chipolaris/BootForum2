@@ -26,16 +26,23 @@ export class AdminService {
    * Triggers backend generation of simulated users.
    * @param count The number of users to generate.
    */
-  triggerUserGeneration(count: number): Observable<ApiResponse<string>> {
+  triggerUserSimulation(count: number): Observable<ApiResponse<string>> {
     const params = new HttpParams().set('count', count.toString());
-    return this.http.post<ApiResponse<string>>(`${this.baseAdminApiUrl}/data/generate-users`, null, { params });
+    return this.http.post<ApiResponse<string>>(`${this.baseAdminApiUrl}/data/simulate-users`, null, { params });
   }
 
   /**
    * Triggers backend generation of simulated forum data (groups, forums, discussions, comments).
    */
-  triggerDataGeneration(): Observable<ApiResponse<string>> {
-    return this.http.post<ApiResponse<string>>(`${this.baseAdminApiUrl}/data/generate`, null);
+  triggerDiscussionSimulation(): Observable<ApiResponse<string>> {
+    return this.http.post<ApiResponse<string>>(`${this.baseAdminApiUrl}/data/simulate-discussions`, null);
+  }
+
+  /**
+   * NEW: Triggers backend generation of simulated votes for discussions and comments.
+   */
+  triggerVoteSimulation(): Observable<ApiResponse<string>> {
+    return this.http.post<ApiResponse<string>>(`${this.baseAdminApiUrl}/data/simulate-votes`, null);
   }
 
   /**

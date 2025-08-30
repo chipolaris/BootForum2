@@ -1,7 +1,7 @@
 package com.github.chipolaris.bootforum2.rest;
 
 import com.github.chipolaris.bootforum2.dto.ApiResponse;
-import com.github.chipolaris.bootforum2.service.DataInitializationService; // <-- IMPORT
+import com.github.chipolaris.bootforum2.service.DataSimulationService;
 import com.github.chipolaris.bootforum2.service.IndexingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,23 +19,23 @@ public class AdminController {
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
     private final IndexingService indexingService;
-    private final DataInitializationService dataInitializationService; // <-- INJECT
+    private final DataSimulationService dataSimulationService;
 
     public AdminController(IndexingService indexingService,
-                           DataInitializationService dataInitializationService) { // <-- ADD TO CONSTRUCTOR
+                           DataSimulationService dataSimulationService) {
         this.indexingService = indexingService;
-        this.dataInitializationService = dataInitializationService; // <-- INITIALIZE
+        this.dataSimulationService = dataSimulationService;
     }
 
     /**
      * NEW: Endpoint to trigger generation of simulated users.
      * This is a long-running process that will execute in the background.
      *
-     * @param count The number of users to generate.
+     * @param count The number of users to simulate.
      * @return An ApiResponse confirming that the process has started.
      */
-    @PostMapping("/data/generate-users")
-    public ApiResponse<?> triggerUserGeneration(@RequestParam(defaultValue = "50") int count) {
+    @PostMapping("/data/simulate-users")
+    public ApiResponse<?> triggerUserSimulation(@RequestParam(defaultValue = "50") int count) {
         logger.info("Admin request received to generate {} simulated users", count);
 
         // Add some basic sanity checks for the input parameter
@@ -43,7 +43,7 @@ public class AdminController {
             return ApiResponse.error("User count must be between 1 and 5,000.");
         }
 
-        dataInitializationService.generateSimulatedUsers(count);
+        dataSimulationService.generateSimulatedUsers(count);
 
         String message = String.format("%d simulated users are being generated in the background. " +
                 "This may take a few moments. Check server logs for progress.", count);
@@ -51,20 +51,37 @@ public class AdminController {
     }
 
     /**
-     * Endpoint to trigger generation of simulated data.
+     * Endpoint to trigger generation of simulated discussion.
      * This is a long-running process that will execute in the background.
      *
      * @return An ApiResponse confirming that the process has started.
      */
-    @PostMapping("/data/generate")
-    public ApiResponse<?> triggerDataGeneration() {
-        logger.info("Admin request received to generate simulated data");
+    @PostMapping("/data/simulate-discussions")
+    public ApiResponse<?> triggerDiscussionSimulation() {
+        logger.info("Admin request received to generate simulated discussion");
 
         // Call the async service method. This call returns immediately.
-        dataInitializationService.generateSimulatedData();
+        dataSimulationService.generateSimulatedDiscussions();
 
         String message = "Simulated data generation has been started in the background. " +
                 "This may take several minutes. Check server logs for progress and completion status.";
+        return ApiResponse.success(message);
+    }
+
+    /**
+     * NEW: Endpoint to trigger generation of simulated votes.
+     * This is a long-running process that will execute in the background.
+     *
+     * @return An ApiResponse confirming that the process has started.
+     */
+    @PostMapping("/data/simulate-votes")
+    public ApiResponse<?> triggerVoteSimulation() {
+        logger.info("Admin request received to generate simulated votes");
+
+        dataSimulationService.generateSimulatedVotes();
+
+        String message = "Simulated vote generation has been started in the background. " +
+                "This may take a few moments. Check server logs for progress.";
         return ApiResponse.success(message);
     }
 
