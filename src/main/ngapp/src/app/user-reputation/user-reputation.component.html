@@ -40,7 +40,15 @@
 
     <!-- Ranked Discussion Panels -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <p-panel header="Most Viewed Discussions" [toggleable]="true">
+      <p-panel [toggleable]="true">
+        <ng-template pTemplate="header">
+          <div class="flex items-center space-x-3">
+            <ng-icon name="heroEyeSolid" class="h-8 w-8 text-indigo-500 group-hover:text-white" />
+            <h4 class="text-slate-900 dark:text-slate-100 group-hover:text-white text-lg font-semibold">
+              Most Viewed Discussions
+            </h4>
+          </div>
+        </ng-template>
         <p-table [value]="reputation.mostViewedDiscussions" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '25rem'}">
           <ng-template pTemplate="header"><tr><th>Title</th><th class="w-24 text-center">Views</th></tr></ng-template>
           <ng-template pTemplate="body" let-item>
@@ -53,7 +61,15 @@
         </p-table>
       </p-panel>
 
-      <p-panel header="Most Liked Discussions" [toggleable]="true">
+      <p-panel [toggleable]="true">
+        <ng-template pTemplate="header">
+          <div class="flex items-center space-x-3">
+            <ng-icon name="heroHandThumbUpSolid" class="h-8 w-8 text-indigo-500 group-hover:text-white" />
+            <h4 class="text-slate-900 dark:text-slate-100 group-hover:text-white text-lg font-semibold">
+              Most Liked Discussions
+            </h4>
+          </div>
+        </ng-template>
         <p-table [value]="reputation.mostLikedDiscussions" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '25rem'}">
           <ng-template pTemplate="header"><tr><th>Title</th><th class="w-24 text-center">Likes</th></tr></ng-template>
           <ng-template pTemplate="body" let-item>
@@ -66,7 +82,15 @@
         </p-table>
       </p-panel>
 
-      <p-panel header="Most Disliked Discussions" [toggleable]="true">
+      <p-panel [toggleable]="true">
+        <ng-template pTemplate="header">
+          <div class="flex items-center space-x-3">
+            <ng-icon name="heroHandThumbDownSolid" class="h-8 w-8 text-indigo-500 group-hover:text-white" />
+            <h4 class="text-slate-900 dark:text-slate-100 group-hover:text-white text-lg font-semibold">
+              Most Disliked Discussions
+            </h4>
+          </div>
+        </ng-template>
         <p-table [value]="reputation.mostDislikedDiscussions" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '25rem'}">
           <ng-template pTemplate="header"><tr><th>Title</th><th class="w-24 text-center">Dislikes</th></tr></ng-template>
           <ng-template pTemplate="body" let-item>
@@ -79,9 +103,17 @@
         </p-table>
       </p-panel>
 
-      <p-panel header="Top Net-Liked Discussions" [toggleable]="true">
+      <p-panel [toggleable]="true">
+        <ng-template pTemplate="header">
+          <div class="flex items-center space-x-3">
+            <ng-icon name="heroHandThumbUpSolid" class="h-8 w-8 text-indigo-500 group-hover:text-white" />
+            <h4 class="text-slate-900 dark:text-slate-100 group-hover:text-white text-lg font-semibold">
+              Top Net-Liked Discussions
+            </h4>
+          </div>
+        </ng-template>
         <p-table [value]="reputation.mostNetLikedDiscussions" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '25rem'}">
-          <ng-template pTemplate="header"><tr><th>Title</th><th class="w-24 text-center">Net Score</th></tr></ng-template>
+          <ng-template pTemplate="header"><tr><th>Title</th><th class="w-24 text-center">Score</th></tr></ng-template>
           <ng-template pTemplate="body" let-item>
             <tr>
               <td><a [routerLink]="['/app/discussions', item.id, 'view']" class="table-link">{{ item.title }}</a></td>
@@ -95,7 +127,15 @@
 
     <!-- Ranked Comment Panels -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <p-panel header="Most Liked Comments" [toggleable]="true" [collapsed]="true">
+      <p-panel [toggleable]="true" [collapsed]="true">
+        <ng-template pTemplate="header">
+          <div class="flex items-center space-x-3">
+            <ng-icon name="heroHandThumbUpSolid" class="h-8 w-8 text-indigo-500 group-hover:text-white" />
+            <h4 class="text-slate-900 dark:text-slate-100 group-hover:text-white text-lg font-semibold">
+              Most Liked Comments
+            </h4>
+          </div>
+        </ng-template>
         <p-table [value]="reputation.mostLikedComments" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '25rem'}">
           <ng-template pTemplate="header"><tr><th>Comment</th><th class="w-24 text-center">Likes</th></tr></ng-template>
           <ng-template pTemplate="body" let-item>
@@ -111,7 +151,15 @@
         </p-table>
       </p-panel>
 
-      <p-panel header="Most Disliked Comments" [toggleable]="true" [collapsed]="true">
+      <p-panel [toggleable]="true" [collapsed]="true">
+        <ng-template pTemplate="header">
+          <div class="flex items-center space-x-3">
+            <ng-icon name="heroHandThumbDownSolid" class="h-8 w-8 text-indigo-500 group-hover:text-white" />
+            <h4 class="text-slate-900 dark:text-slate-100 group-hover:text-white text-lg font-semibold">
+              Most Disliked Comments
+            </h4>
+          </div>
+        </ng-template>
         <p-table [value]="reputation.mostDislikedComments" styleClass="p-datatable-sm" [tableStyle]="{'min-width': '25rem'}">
           <ng-template pTemplate="header"><tr><th>Comment</th><th class="w-24 text-center">Dislikes</th></tr></ng-template>
           <ng-template pTemplate="body" let-item>

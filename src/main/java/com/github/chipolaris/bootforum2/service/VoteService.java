@@ -65,7 +65,6 @@ public class VoteService {
         if(commentVote == null) {
             commentVote = new CommentVote();
             comment.setCommentVote(commentVote);
-            //genericDAO.merge(comment);
         }
 
         if (commentVote.getVotes() == null) {

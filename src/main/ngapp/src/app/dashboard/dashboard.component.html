@@ -1,3 +1,57 @@
-<div class="mx-auto flex h-16 max-w-screen-xl gap-8 px-4 sm:px-6 lg:px-8">
-  <h2 class="m-8 text-2xl font-extrabold dark:text-white min-w-full text-center">Dashboard Works!</h2>
+<div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+  <header class="mb-8">
+    <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-100">
+      <!-- FIX: Use an alias 'firstName' to create a non-null local variable -->
+      @if (currentUser?.person?.firstName; as firstName) {
+      <span>Welcome back, {{ firstName }}!</span>
+      } @else {
+      <span>Dashboard</span>
+      }
+    </h1>
+    <p class="text-slate-600 dark:text-slate-300 mt-1">Manage your account and track your activity.</p>
+  </header>
+
+  <!-- Navigation Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    <!-- My Account Card -->
+    <a routerLink="/app/user-account" class="group block rounded-lg p-6 bg-white dark:bg-slate-800 ring-1 ring-slate-900/5 shadow-lg space-y-3 hover:bg-sky-500 hover:ring-sky-500 transition-all duration-200">
+      <div class="flex items-center space-x-3">
+        <ng-icon name="heroUserCircle" class="h-8 w-8 text-sky-500 group-hover:text-white" />
+        <h3 class="text-slate-900 dark:text-slate-100 group-hover:text-white text-lg font-semibold">
+          My Account
+        </h3>
+      </div>
+      <p class="text-slate-500 dark:text-slate-300 group-hover:text-sky-100 text-sm">
+        Update your profile, change your password, and manage your avatar.
+      </p>
+    </a>
+
+    <!-- My Activities Card -->
+    <a routerLink="/app/user-activities" class="group block rounded-lg p-6 bg-white dark:bg-slate-800 ring-1 ring-slate-900/5 shadow-lg space-y-3 hover:bg-indigo-500 hover:ring-indigo-500 transition-all duration-200">
+      <div class="flex items-center space-x-3">
+        <ng-icon name="heroQueueList" class="h-8 w-8 text-indigo-500 group-hover:text-white" />
+        <h3 class="text-slate-900 dark:text-slate-100 group-hover:text-white text-lg font-semibold">
+          My Activities
+        </h3>
+      </div>
+      <p class="text-slate-500 dark:text-slate-300 group-hover:text-indigo-100 text-sm">
+        Track your recent discussions, comments, and replies from others.
+      </p>
+    </a>
+
+    <!-- My Reputation Card -->
+    <a routerLink="/app/user-reputation" class="group block rounded-lg p-6 bg-white dark:bg-slate-800 ring-1 ring-slate-900/5 shadow-lg space-y-3 hover:bg-emerald-500 hover:ring-emerald-500 transition-all duration-200">
+      <div class="flex items-center space-x-3">
+        <ng-icon name="heroChartBar" class="h-8 w-8 text-emerald-500 group-hover:text-white" />
+        <h3 class="text-slate-900 dark:text-slate-100 group-hover:text-white text-lg font-semibold">
+          My Reputation
+        </h3>
+      </div>
+      <p class="text-slate-500 dark:text-slate-300 group-hover:text-emerald-100 text-sm">
+        View your forum statistics, reputation points, and top content.
+      </p>
+    </a>
+
+  </div>
 </div>

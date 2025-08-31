@@ -35,6 +35,11 @@ import {
   heroQuestionMarkCircle,
   heroCheckBadge,
   heroMegaphone,
+  heroUserCircle,
+  heroQueueList,
+  heroChartBar,
+  heroHandThumbUp,
+  heroHandThumbDown,
 } from '@ng-icons/heroicons/outline';
 
 import {
@@ -73,6 +78,11 @@ import {
   heroQuestionMarkCircleSolid,
   heroCheckBadgeSolid,
   heroMegaphoneSolid,
+  heroUserCircleSolid,
+  heroQueueListSolid,
+  heroChartBarSolid,
+  heroHandThumbUpSolid,
+  heroHandThumbDownSolid,
 } from '@ng-icons/heroicons/solid';
 
 /**
@@ -162,6 +172,11 @@ export const APP_ICONS = {
   heroQuestionMarkCircle,
   heroCheckBadge,
   heroMegaphone,
+  heroUserCircle,
+  heroQueueList,
+  heroChartBar,
+  heroHandThumbUp,
+  heroHandThumbDown,
   // Solid icons
   heroUserSolid,
   heroHomeSolid,
@@ -197,5 +212,10 @@ export const APP_ICONS = {
   heroQuestionMarkCircleSolid,
   heroCheckBadgeSolid,
   heroMegaphoneSolid,
+  heroUserCircleSolid,
+  heroQueueListSolid,
+  heroChartBarSolid,
+  heroHandThumbUpSolid,
+  heroHandThumbDownSolid,
   // Add any other globally used HeroIcons here
 };

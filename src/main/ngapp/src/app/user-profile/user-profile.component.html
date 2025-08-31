@@ -14,7 +14,7 @@
   </div>
 
   <!-- Main Content: Profile -->
-  <div *ngIf="userProfile && !isLoading && !error" class="flex flex-col md:flex-row gap-8">
+  <div *ngIf="userProfile && !isLoading && !error" class="flex flex-col-reverse md:flex-row gap-8">
 
     <!-- Left Column: Activity Feed (75%) -->
     <div class="md:w-3/4 space-y-8">
@@ -94,16 +94,16 @@
             <dd class="font-bold text-green-600 dark:text-green-400">{{ userProfile.reputation }}</dd>
           </div>
           <div class="flex justify-between">
-            <dt class="font-medium text-gray-600 dark:text-slate-300">Profile Views:</dt>
-            <dd class="text-gray-800 dark:text-slate-100">{{ userProfile.profileViewed }}</dd>
-          </div>
-          <div class="flex justify-between">
             <dt class="font-medium text-gray-600 dark:text-slate-300">Discussions Started:</dt>
             <dd class="text-gray-800 dark:text-slate-100">{{ userProfile.discussionCreatedCount }}</dd>
           </div>
           <div class="flex justify-between">
             <dt class="font-medium text-gray-600 dark:text-slate-300">Total Comments:</dt>
             <dd class="text-gray-800 dark:text-slate-100">{{ userProfile.commentCount }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="font-medium text-gray-600 dark:text-slate-300">Profile Views:</dt>
+            <dd class="text-gray-800 dark:text-slate-100">{{ userProfile.profileViewed }}</dd>
           </div>
         </dl>
       </div>
