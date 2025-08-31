@@ -36,6 +36,7 @@
       <div class="flex justify-center">
         <button type="submit" [disabled]="isLoading"
                 class="inline-block rounded-lg bg-indigo-600 px-8 py-3 text-sm font-medium text-white hover:bg-indigo-700 disabled:bg-blue-400 disabled:cursor-not-allowed cursor-pointer">
+          <span *ngIf="!isLoading" class="pi pi-search mr-2"></span>
           <span *ngIf="!isLoading">Search</span>
           <span *ngIf="isLoading" class="flex items-center">
             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

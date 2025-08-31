@@ -29,6 +29,8 @@ import {
   heroRocketLaunch,
   heroWrenchScrewdriver,
   heroClock,
+  heroChatBubbleBottomCenterText,
+  heroChatBubbleLeft,
   heroChatBubbleLeftRight,
   heroEye,
   heroCog,
@@ -40,6 +42,7 @@ import {
   heroChartBar,
   heroHandThumbUp,
   heroHandThumbDown,
+  heroMagnifyingGlass,
 } from '@ng-icons/heroicons/outline';
 
 import {
@@ -72,6 +75,8 @@ import {
   heroRocketLaunchSolid,
   heroWrenchScrewdriverSolid,
   heroClockSolid,
+  heroChatBubbleBottomCenterTextSolid,
+  heroChatBubbleLeftSolid,
   heroChatBubbleLeftRightSolid,
   heroEyeSolid,
   heroCogSolid,
@@ -83,6 +88,7 @@ import {
   heroChartBarSolid,
   heroHandThumbUpSolid,
   heroHandThumbDownSolid,
+  heroMagnifyingGlassSolid,
 } from '@ng-icons/heroicons/solid';
 
 /**
@@ -166,6 +172,8 @@ export const APP_ICONS = {
   heroRocketLaunch,
   heroWrenchScrewdriver,
   heroClock,
+  heroChatBubbleBottomCenterText,
+  heroChatBubbleLeft,
   heroChatBubbleLeftRight,
   heroEye,
   heroCog,
@@ -177,6 +185,7 @@ export const APP_ICONS = {
   heroChartBar,
   heroHandThumbUp,
   heroHandThumbDown,
+  heroMagnifyingGlass,
   // Solid icons
   heroUserSolid,
   heroHomeSolid,
@@ -206,6 +215,8 @@ export const APP_ICONS = {
   heroRocketLaunchSolid,
   heroWrenchScrewdriverSolid,
   heroClockSolid,
+  heroChatBubbleBottomCenterTextSolid,
+  heroChatBubbleLeftSolid,
   heroChatBubbleLeftRightSolid,
   heroEyeSolid,
   heroCogSolid,
@@ -217,5 +228,6 @@ export const APP_ICONS = {
   heroChartBarSolid,
   heroHandThumbUpSolid,
   heroHandThumbDownSolid,
+  heroMagnifyingGlassSolid,
   // Add any other globally used HeroIcons here
 };

@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, inject } from '@an
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, Subscription, of, forkJoin } from 'rxjs';
+import { Observable, Subscription, of } from 'rxjs';
 import { finalize, switchMap, catchError, tap } from 'rxjs/operators';
 
 import { Editor } from '@toast-ui/editor';
@@ -81,29 +81,36 @@ export class CommentCreateComponent implements OnInit, OnDestroy {
     this.loadValidationConfig();
   }
 
+  /**
+   * REFACTORED: Use the more efficient getSettings() method to fetch all
+   * required configuration in a single network request.
+   */
   private loadValidationConfig(): void {
     this.isLoading = true;
-    const configObservables = {
-      minLength: this.configService.getSetting('content.posts.minLength'),
-      maxLength: this.configService.getSetting('content.posts.maxLength'),
-      maxImageSize: this.configService.getSetting('images.maxFileSizeMB'),
-      allowedImageTypes: this.configService.getSetting('images.allowedTypes'),
-      maxAttachmentSize: this.configService.getSetting('attachments.maxFileSizeMB'),
-      allowedAttachmentTypes: this.configService.getSetting('attachments.allowedTypes')
-    };
+    const requiredSettings = [
+      'content.posts.minLength',
+      'content.posts.maxLength',
+      'images.maxFileSizeMB',
+      'images.allowedTypes',
+      'attachments.maxFileSizeMB',
+      'attachments.allowedTypes'
+    ];
 
     this.subscriptions.add(
-      forkJoin(configObservables).subscribe({
-        next: (configs) => {
-          this.validationConfig.content.posts.minLength = configs.minLength ?? this.validationConfig.content.posts.minLength;
-          this.validationConfig.content.posts.maxLength = configs.maxLength ?? this.validationConfig.content.posts.maxLength;
-          this.validationConfig.images.maxFileSizeMB = configs.maxImageSize ?? this.validationConfig.images.maxFileSizeMB;
-          this.validationConfig.images.allowedTypes = configs.allowedImageTypes ?? this.validationConfig.images.allowedTypes;
-          this.validationConfig.attachments.maxFileSizeMB = configs.maxAttachmentSize ?? this.validationConfig.attachments.maxFileSizeMB;
-          this.validationConfig.attachments.allowedTypes = configs.allowedAttachmentTypes ?? this.validationConfig.attachments.allowedTypes;
+      this.configService.getSettings(requiredSettings).subscribe({
+        next: (settingsMap) => {
+          this.validationConfig.content.posts.minLength = settingsMap.get('content.posts.minLength') ?? this.validationConfig.content.posts.minLength;
+          this.validationConfig.content.posts.maxLength = settingsMap.get('content.posts.maxLength') ?? this.validationConfig.content.posts.maxLength;
+          this.validationConfig.images.maxFileSizeMB = settingsMap.get('images.maxFileSizeMB') ?? this.validationConfig.images.maxFileSizeMB;
+          this.validationConfig.images.allowedTypes = settingsMap.get('images.allowedTypes') ?? this.validationConfig.images.allowedTypes;
+          this.validationConfig.attachments.maxFileSizeMB = settingsMap.get('attachments.maxFileSizeMB') ?? this.validationConfig.attachments.maxFileSizeMB;
+          this.validationConfig.attachments.allowedTypes = settingsMap.get('attachments.allowedTypes') ?? this.validationConfig.attachments.allowedTypes;
+
           this.loadInitialData();
         },
         error: (err) => {
+          // The getSettings service is designed to handle errors gracefully,
+          // but we keep this for catastrophic failures.
           console.error("Failed to load validation configuration, using defaults.", err);
           this.loadInitialData();
         }

@@ -3,10 +3,10 @@ package com.github.chipolaris.bootforum2.rest;
 import com.github.chipolaris.bootforum2.dto.ApiResponse;
 import com.github.chipolaris.bootforum2.service.ForumSettingService;
 import com.github.chipolaris.bootforum2.service.ServiceResponse;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/public/config")
@@ -16,6 +16,19 @@ public class PublicConfigController {
 
     public PublicConfigController(ForumSettingService forumSettingService) {
         this.forumSettingService = forumSettingService;
+    }
+
+    @PostMapping("/settings")
+    public ApiResponse<?> getSettings(@RequestBody List<String> keys) {
+        if (keys == null || keys.isEmpty()) {
+            return ApiResponse.error("No setting keys provided.");
+        }
+
+        ServiceResponse<Map<String, Object>> response = forumSettingService.getSettingValues(keys);
+
+        // This endpoint always returns success with the data it found.
+        // The frontend is responsible for handling any missing keys.
+        return ApiResponse.success(response.getDataObject());
     }
 
     @GetMapping("/setting")

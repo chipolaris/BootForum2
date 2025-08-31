@@ -12,7 +12,7 @@ import { ConfigService } from '../_services/config.service'; // Import ConfigSer
 import { FileValidationService, FileValidationError } from '../_services/file-validation.service'; // Import new validation service
 import { DiscussionDTO, TagDTO } from '../_data/dtos';
 import { finalize } from 'rxjs/operators';
-import { Subscription, forkJoin } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { MultiSelectModule } from 'primeng/multiselect';
 
 @Component({
@@ -77,34 +77,37 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
   private fileValidationService = inject(FileValidationService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private routeSubscription: Subscription | undefined;
-  private forumTitleSubscription: Subscription | undefined;
+  private subscriptions = new Subscription();
 
   ngOnInit(): void {
     this.loadValidationConfig(); // Start by loading config
   }
 
+  /**
+   * REFACTORED: Use the more efficient getSettings() method to fetch all
+   * required configuration in a single network request.
+   */
   private loadValidationConfig(): void {
     this.isLoading = true;
-    const configObservables = {
-      minLength: this.configService.getSetting('content.posts.minLength'),
-      maxLength: this.configService.getSetting('content.posts.maxLength'),
-      maxTags: this.configService.getSetting('content.tags.maxTagsPerPost'),
-      maxImageSize: this.configService.getSetting('images.maxFileSizeMB'),
-      allowedImageTypes: this.configService.getSetting('images.allowedTypes'),
-      maxAttachmentSize: this.configService.getSetting('attachments.maxFileSizeMB'),
-      allowedAttachmentTypes: this.configService.getSetting('attachments.allowedTypes')
-    };
+    const requiredSettings = [
+      'content.posts.minLength',
+      'content.posts.maxLength',
+      'content.tags.maxTagsPerPost',
+      'images.maxFileSizeMB',
+      'images.allowedTypes',
+      'attachments.maxFileSizeMB',
+      'attachments.allowedTypes'
+    ];
 
-    forkJoin(configObservables).subscribe({
-      next: (configs) => {
-        this.validationConfig.content.posts.minLength = configs.minLength ?? this.validationConfig.content.posts.minLength;
-        this.validationConfig.content.posts.maxLength = configs.maxLength ?? this.validationConfig.content.posts.maxLength;
-        this.validationConfig.content.tags.maxTagsPerPost = configs.maxTags ?? this.validationConfig.content.tags.maxTagsPerPost;
-        this.validationConfig.images.maxFileSizeMB = configs.maxImageSize ?? this.validationConfig.images.maxFileSizeMB;
-        this.validationConfig.images.allowedTypes = configs.allowedImageTypes ?? this.validationConfig.images.allowedTypes;
-        this.validationConfig.attachments.maxFileSizeMB = configs.maxAttachmentSize ?? this.validationConfig.attachments.maxFileSizeMB;
-        this.validationConfig.attachments.allowedTypes = configs.allowedAttachmentTypes ?? this.validationConfig.attachments.allowedTypes;
+    const configSub = this.configService.getSettings(requiredSettings).subscribe({
+      next: (settingsMap) => {
+        this.validationConfig.content.posts.minLength = settingsMap.get('content.posts.minLength') ?? this.validationConfig.content.posts.minLength;
+        this.validationConfig.content.posts.maxLength = settingsMap.get('content.posts.maxLength') ?? this.validationConfig.content.posts.maxLength;
+        this.validationConfig.content.tags.maxTagsPerPost = settingsMap.get('content.tags.maxTagsPerPost') ?? this.validationConfig.content.tags.maxTagsPerPost;
+        this.validationConfig.images.maxFileSizeMB = settingsMap.get('images.maxFileSizeMB') ?? this.validationConfig.images.maxFileSizeMB;
+        this.validationConfig.images.allowedTypes = settingsMap.get('images.allowedTypes') ?? this.validationConfig.images.allowedTypes;
+        this.validationConfig.attachments.maxFileSizeMB = settingsMap.get('attachments.maxFileSizeMB') ?? this.validationConfig.attachments.maxFileSizeMB;
+        this.validationConfig.attachments.allowedTypes = settingsMap.get('attachments.allowedTypes') ?? this.validationConfig.attachments.allowedTypes;
 
         this.loadInitialData(); // Proceed with original logic
       },
@@ -113,10 +116,12 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
         this.loadInitialData(); // Proceed with defaults on error
       }
     });
+
+    this.subscriptions.add(configSub);
   }
 
   private loadInitialData(): void {
-    this.routeSubscription = this.route.paramMap.subscribe(params => {
+    const routeSub = this.route.paramMap.subscribe(params => {
       const idParam = params.get('forumId');
       if (idParam) {
         const parsedId = +idParam;
@@ -135,11 +140,12 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
         console.error(this.generalError);
       }
     });
+    this.subscriptions.add(routeSub);
   }
 
   private fetchForumTitleAndPrepareForm(): void {
     this.isLoading = true;
-    this.forumTitleSubscription = this.forumService.getForumById(this.forumId).subscribe({
+    const forumTitleSub = this.forumService.getForumById(this.forumId).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.forumTitle = response.data.title;
@@ -154,6 +160,7 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
         this.setupForm();
       }
     });
+    this.subscriptions.add(forumTitleSub);
   }
 
   private setupForm(): void {
@@ -166,7 +173,7 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
   }
 
   private loadAvailableTags(): void {
-    this.tagService.getAllTags().subscribe({
+    const tagsSub = this.tagService.getAllTags().subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.availableTags = response.data.filter(tag => !tag.disabled);
@@ -176,6 +183,7 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
       },
       error: (err) => console.error('Error fetching tags:', err)
     });
+    this.subscriptions.add(tagsSub);
   }
 
   private maxTagsValidator(max: number) {
@@ -210,8 +218,7 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
      this.contentEditor?.destroy();
-     this.routeSubscription?.unsubscribe();
-     this.forumTitleSubscription?.unsubscribe();
+     this.subscriptions.unsubscribe();
   }
 
   get f() { return this.discussionForm.controls; }
@@ -307,13 +314,13 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.discussionService.createDiscussion(formData)
+    const submitSub = this.discussionService.createDiscussion(formData)
       .pipe(finalize(() => this.isLoading = false))
       .subscribe({
         next: (response) => {
           if (response.success && response.data) {
             this.discussionCreationResult.emit({ success: true, data: response.data });
-            this.router.navigate(['/app/forums', this.forumId, 'view']);
+            this.router.navigate(['/app/discussions', response.data.id, 'view']);
             this.resetForm();
           } else {
             this.generalError = response.message || 'Failed to create discussion. Please try again.';
@@ -328,6 +335,7 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
           this.discussionCreationResult.emit({ success: false, error: this.generalError ?? undefined});
         }
       });
+    this.subscriptions.add(submitSub);
   }
 
   resetForm(): void {

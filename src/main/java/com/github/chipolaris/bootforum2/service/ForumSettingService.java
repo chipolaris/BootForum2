@@ -101,6 +101,33 @@ public class ForumSettingService {
     }
 
     @Transactional(readOnly = true)
+    public ServiceResponse<Map<String, Object>> getSettingValues(List<String> keys) {
+        Map<String, Object> results = new HashMap<>();
+        List<String> errors = new ArrayList<>();
+
+        for (String key : keys) {
+            String[] parts = key.split("\\.", 2);
+            if (parts.length == 2) {
+                ServiceResponse<Object> response = getSettingValue(parts[0], parts[1]);
+                if (response.isSuccess()) {
+                    results.put(key, response.getDataObject());
+                }
+                // Even if not found, we just don't add it to the map.
+                // The frontend will handle nulls.
+            } else {
+                errors.add("Invalid key format: " + key);
+            }
+        }
+
+        if (!errors.isEmpty()) {
+            // This case is less likely if requests come from our own frontend, but good for robustness.
+            logger.warn("Errors encountered while fetching multiple settings: {}", errors);
+        }
+
+        return ServiceResponse.success("Fetched multiple settings", results);
+    }
+
+    @Transactional(readOnly = true)
     public ServiceResponse<Object> getSettingValue(String category, String key) {
         // 1. Check DB first
         Optional<ForumSetting> dbSettingOpt = forumSettingRepository.findByCategoryAndKeyName(category, key);

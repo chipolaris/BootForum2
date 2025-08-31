@@ -20,7 +20,15 @@
   <div *ngIf="activities && !isLoading" class="space-y-8">
 
     <!-- My Recent Discussions -->
-    <p-panel header="My Recent Discussions" [toggleable]="true">
+    <p-panel [toggleable]="true">
+      <ng-template pTemplate="header">
+        <div class="flex items-center space-x-3">
+          <ng-icon name="heroChatBubbleBottomCenterText" class="h-8 w-8 text-indigo-500 group-hover:text-white" />
+          <h4 class="text-slate-900 dark:text-slate-100 group-hover:text-white text-lg font-semibold">
+            My Recent Discussions
+          </h4>
+        </div>
+      </ng-template>
       <p-table [value]="activities.recentDiscussions" styleClass="p-datatable-sm p-datatable-striped" [tableStyle]="{'min-width': '50rem'}">
         <ng-template pTemplate="header">
           <tr>
@@ -57,7 +65,15 @@
     </p-panel>
 
     <!-- My Recent Comments -->
-    <p-panel header="My Recent Comments" [toggleable]="true" [collapsed]="true">
+    <p-panel [toggleable]="true" [collapsed]="true">
+      <ng-template pTemplate="header">
+        <div class="flex items-center space-x-3">
+          <ng-icon name="heroChatBubbleLeft" class="h-8 w-8 text-indigo-500 group-hover:text-white" />
+          <h4 class="text-slate-900 dark:text-slate-100 group-hover:text-white text-lg font-semibold">
+            My Recent Comments
+          </h4>
+        </div>
+      </ng-template>
       <p-table [value]="activities.recentComments" styleClass="p-datatable-sm p-datatable-striped" [tableStyle]="{'min-width': '50rem'}">
         <ng-template pTemplate="header">
           <tr>
@@ -90,7 +106,15 @@
     </p-panel>
 
     <!-- Replies to My Comments -->
-    <p-panel header="Replies to My Comments" [toggleable]="true" [collapsed]="true">
+    <p-panel [toggleable]="true" [collapsed]="true">
+      <ng-template pTemplate="header">
+        <div class="flex items-center space-x-3">
+          <ng-icon name="heroChatBubbleLeftRight" class="h-8 w-8 text-indigo-500 group-hover:text-white" />
+          <h4 class="text-slate-900 dark:text-slate-100 group-hover:text-white text-lg font-semibold">
+            Replies to My Comments
+          </h4>
+        </div>
+      </ng-template>
       <p-table [value]="activities.repliesToMyComments" styleClass="p-datatable-sm p-datatable-striped" [tableStyle]="{'min-width': '50rem'}">
         <ng-template pTemplate="header">
           <tr>
@@ -125,7 +149,15 @@
     </p-panel>
 
     <!-- My Liked Discussions -->
-    <p-panel header="My Liked Discussions" [toggleable]="true" [collapsed]="true">
+    <p-panel [toggleable]="true" [collapsed]="true">
+      <ng-template pTemplate="header">
+        <div class="flex items-center space-x-3">
+          <ng-icon name="heroHandThumbUp" class="h-8 w-8 text-indigo-500 group-hover:text-white" />
+          <h4 class="text-slate-900 dark:text-slate-100 group-hover:text-white text-lg font-semibold">
+            My Liked Discussions
+          </h4>
+        </div>
+      </ng-template>
       <p-table [value]="activities.likedDiscussions" styleClass="p-datatable-sm p-datatable-striped" [tableStyle]="{'min-width': '50rem'}">
         <ng-template pTemplate="header">
           <tr>
@@ -154,7 +186,15 @@
     </p-panel>
 
     <!-- My Liked Comments -->
-    <p-panel header="My Liked Comments" [toggleable]="true" [collapsed]="true">
+    <p-panel [toggleable]="true" [collapsed]="true">
+      <ng-template pTemplate="header">
+        <div class="flex items-center space-x-3">
+          <ng-icon name="heroHandThumbUp" class="h-8 w-8 text-indigo-500 group-hover:text-white" />
+          <h4 class="text-slate-900 dark:text-slate-100 group-hover:text-white text-lg font-semibold">
+            My Liked Comments
+          </h4>
+        </div>
+      </ng-template>
       <p-table [value]="activities.likedComments" styleClass="p-datatable-sm p-datatable-striped" [tableStyle]="{'min-width': '50rem'}">
         <ng-template pTemplate="header">
           <tr>
