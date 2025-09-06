@@ -1,0 +1,28 @@
+# Docker Compose file for running the BootForum2 application
+# Version of the Docker Compose file format
+# Updated: version attribute is obsolete and will generate a warning on the 'docker compose' command. So comment out:
+# version: '3.8'
+
+services:
+  # Define the application service
+  bootforum:
+    # Build the Docker image from the Dockerfile in the current directory
+    build: .
+    # Name the container for easier identification
+    container_name: bootforum-app
+    # Map port 8080 on the host to port 8080 in the container
+    ports:
+      - "8080:8080"
+    # Mount a named volume to persist all application data
+    # This single volume will contain the H2 database, uploads, and Lucene indexes,
+    # ensuring data is not lost when the container is restarted.
+    volumes:
+      - bootforum-data:/root/BootForum2
+    # Optional: A restart policy to automatically restart the container
+    restart: unless-stopped
+
+# Define the named volume for data persistence
+volumes:
+  bootforum-data:
+    # The 'local' driver is the default and stores the volume on the host Docker machine
+    driver: local
