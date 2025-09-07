@@ -1,19 +1,18 @@
 package com.github.chipolaris.bootforum2.repository;
 
-import com.github.chipolaris.bootforum2.domain.Comment;
 import com.github.chipolaris.bootforum2.domain.Discussion;
 import com.github.chipolaris.bootforum2.domain.Forum;
-import com.github.chipolaris.bootforum2.domain.User;
-import com.github.chipolaris.bootforum2.dto.DiscussionSummaryDTO;
 import com.github.chipolaris.bootforum2.dto.MyLikedDiscussionDTO;
 import com.github.chipolaris.bootforum2.dto.MyRecentDiscussionDTO;
 import com.github.chipolaris.bootforum2.dto.RankedDiscussionDTO;
+import com.github.chipolaris.bootforum2.dto.RankedListItemDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -182,4 +181,33 @@ public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
             """)
     List<RankedDiscussionDTO> findMostNetLikedDiscussionsForUser(@Param("username") String username, Pageable pageable);
 
+    @Query("""
+            SELECT new com.github.chipolaris.bootforum2.dto.RankedListItemDTO(d.id, d.title, d.forum.title, d.stat.viewCount)
+            FROM Discussion d
+            WHERE d.createDate >= :since
+            ORDER BY d.stat.viewCount DESC
+            """)
+    List<RankedListItemDTO> findTopDiscussionsByViews(@Param("since") LocalDateTime since, Pageable pageable);
+
+    @Query("""
+            SELECT new com.github.chipolaris.bootforum2.dto.RankedListItemDTO(d.id, d.title, d.forum.title, d.stat.commentCount)
+            FROM Discussion d
+            WHERE d.createDate >= :since
+            ORDER BY d.stat.commentCount DESC
+            """)
+    List<RankedListItemDTO> findTopDiscussionsByComments(@Param("since") LocalDateTime since, Pageable pageable);
+
+    /**
+     * Sums the total number of images from all discussion stats.
+     * @return The total count of images in discussions.
+     */
+    @Query("SELECT SUM(d.stat.imageCount) FROM Discussion d")
+    Long sumImageCount();
+
+    /**
+     * Sums the total number of attachments from all discussion stats.
+     * @return The total count of attachments in discussions.
+     */
+    @Query("SELECT SUM(d.stat.attachmentCount) FROM Discussion d")
+    Long sumAttachmentCount();
 }

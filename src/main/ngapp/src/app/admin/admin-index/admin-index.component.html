@@ -1,12 +1,11 @@
 <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
 
-  <h2 class="text-2xl font-semibold mb-6 text-indigo-700 dark:text-indigo-300">Manage Search Index</h2>
+  <header class="mb-8">
+    <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-100">Manage Search Index</h1>
+    <p class="text-slate-600 dark:text-slate-300 mt-1">Use this tool to rebuild the full-text search index. This can be a long-running process and should only be done when necessary (e.g., after a large data import or to resolve index inconsistencies). The process runs in the background; check the server logs for progress.</p>
+  </header>
 
   <div class="space-y-6 bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md">
-    <p class="text-sm text-gray-600 dark:text-slate-300">
-      Use this tool to rebuild the full-text search index. This can be a long-running process and should only be done when necessary (e.g., after a large data import or to resolve index inconsistencies). The process runs in the background; check the server logs for progress.
-    </p>
-
     <!-- Re-index Target -->
     <div>
       <label class="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Select Target to Re-index</label>

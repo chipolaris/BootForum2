@@ -28,9 +28,10 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { SearchViewComponent } from './search-view/search-view.component';
 import { CommentThreadComponent } from './comment-thread/comment-thread.component';
 import { authGuard } from './_guards/auth.guard';
-import { UserReputationComponent } from './user-reputation/user-reputation.component'; // Import the new component
+import { UserReputationComponent } from './user-reputation/user-reputation.component';
 import { TagListComponent } from './admin/tag-list/tag-list.component';
-import { ForumSettingsComponent } from './admin/forum-settings/forum-settings.component'; // Import the new component
+import { ForumSettingsComponent } from './admin/forum-settings/forum-settings.component';
+import { AdminDashboardComponent } from './admin/admin-dashboard/admin-dashboard.component';
 
 export const routes: Routes = [
   { path: 'home', component: HomeComponent },
@@ -95,6 +96,10 @@ export const routes: Routes = [
   {
     path: 'app/comments/create/:discussionId/reply-to/:replyToId', // For replying to a specific comment
     component: CommentCreateComponent, canActivate: [authGuard]
+  },
+  {
+    path: 'app/admin/dashboard', component: AdminDashboardComponent, canActivate: [authGuard],
+    data: { roles: ['ADMIN'] }
   },
   { path: 'app/registration', component: RegistrationComponent },
   { path: 'app/comments/:id/thread', component: CommentThreadComponent },

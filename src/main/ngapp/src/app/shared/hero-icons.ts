@@ -1,6 +1,7 @@
 // HeroIcon's names can be found here: https://ng-icons.github.io/ng-icons/#/browse-icons
 import {
   heroUser,
+  heroUsers,
   heroHome,
   heroCog6Tooth,
   heroBell,
@@ -43,10 +44,12 @@ import {
   heroHandThumbUp,
   heroHandThumbDown,
   heroMagnifyingGlass,
+  heroPaperClip,
 } from '@ng-icons/heroicons/outline';
 
 import {
   heroUserSolid,
+  heroUsersSolid,
   heroHomeSolid,
   heroCog6ToothSolid,
   heroBellSolid,
@@ -89,6 +92,7 @@ import {
   heroHandThumbUpSolid,
   heroHandThumbDownSolid,
   heroMagnifyingGlassSolid,
+  heroPaperClipSolid,
 } from '@ng-icons/heroicons/solid';
 
 /**
@@ -105,6 +109,7 @@ export interface AppIconDefinition {
  */
 export const APP_PICKER_AVAILABLE_ICONS: AppIconDefinition[] = [
   { displayName: 'User', name: 'heroUserSolid' },
+  { displayName: 'Users', name: 'heroUsersSolid' },
   { displayName: 'Home', name: 'heroHomeSolid' },
   { displayName: 'Settings', name: 'heroCog6ToothSolid' },
   { displayName: 'Bell', name: 'heroBellSolid' },
@@ -145,6 +150,7 @@ export const APP_PICKER_AVAILABLE_ICONS: AppIconDefinition[] = [
  */
 export const APP_ICONS = {
   heroUser,
+  heroUsers,
   heroHome,
   heroCog6Tooth,
   heroBell,
@@ -186,8 +192,10 @@ export const APP_ICONS = {
   heroHandThumbUp,
   heroHandThumbDown,
   heroMagnifyingGlass,
+  heroPaperClip,
   // Solid icons
   heroUserSolid,
+  heroUsersSolid,
   heroHomeSolid,
   heroCog6ToothSolid,
   heroBellSolid,
@@ -229,5 +237,6 @@ export const APP_ICONS = {
   heroHandThumbUpSolid,
   heroHandThumbDownSolid,
   heroMagnifyingGlassSolid,
+  heroPaperClipSolid,
   // Add any other globally used HeroIcons here
 };

@@ -193,4 +193,18 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     @Query("SELECT new com.github.chipolaris.bootforum2.dto.RankedCommentDTO(c.id, c.title, CAST(c.commentVote.voteDownCount AS long), c.discussion.id, c.discussion.title) FROM Comment c WHERE c.createBy = :username")
     List<RankedCommentDTO> findMostDislikedCommentsForUser(@Param("username") String username, Pageable pageable);
+
+    /**
+     * Counts the total number of attachments across all comments.
+     * @return The total count of attachments.
+     */
+    @Query("SELECT COUNT(a) FROM Comment c JOIN c.attachments a")
+    long countAllAttachments();
+
+    /**
+     * Counts the total number of images across all comments.
+     * @return The total count of images.
+     */
+    @Query("SELECT COUNT(i) FROM Comment c JOIN c.images i")
+    long countAllImages();
 }

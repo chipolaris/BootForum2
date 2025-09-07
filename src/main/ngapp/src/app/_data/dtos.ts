@@ -436,3 +436,32 @@ export interface SettingDTO {
   options: string[];
 }
 
+export interface SnapshotStatsDTO {
+  memberCount: number;
+  forumCount: number;
+  discussionCount: number;
+  tagCount: number;
+  commentCount: number;
+  attachmentCount: number;
+  imageCount: number;
+}
+
+export interface RankedListItemDTO {
+  id: number;
+  name: string;
+  subtext: string;
+  value: number;
+}
+
+export interface AdminDashboardDTO {
+  snapshotStats: SnapshotStatsDTO;
+  usersByDiscussions: RankedListItemDTO[];
+  usersByComments: RankedListItemDTO[];
+  usersByReputation: RankedListItemDTO[];
+  discussionsByViews: RankedListItemDTO[];
+  discussionsByComments: RankedListItemDTO[];
+  tagsByViews: RankedListItemDTO[];
+  tagsByComments: RankedListItemDTO[];
+  forumsByViews: RankedListItemDTO[];
+  forumsByComments: RankedListItemDTO[];
+}
