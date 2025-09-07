@@ -1,7 +1,10 @@
 <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
   <p-toast></p-toast>
 
-  <h2 class="text-2xl font-semibold mb-6 text-indigo-700">Forum Structure</h2>
+  <header class="mb-8">
+    <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-100">Administrator - Manage Forums</h1>
+    <p class="text-slate-600 dark:text-slate-300 mt-1">Add and edit forum groups and forums</p>
+  </header>
 
   <div *ngIf="isLoading" class="flex justify-center items-center my-8">
     <p-progressSpinner styleClass="w-12 h-12" strokeWidth="4"></p-progressSpinner>
