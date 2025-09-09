@@ -465,3 +465,37 @@ export interface AdminDashboardDTO {
   forumsByViews: RankedListItemDTO[];
   forumsByComments: RankedListItemDTO[];
 }
+
+//... (existing DTOs)
+
+export interface AdminDashboardDTO {
+  snapshotStats: SnapshotStatsDTO;
+  usersByDiscussions: RankedListItemDTO[];
+  usersByComments: RankedListItemDTO[];
+  usersByReputation: RankedListItemDTO[];
+  discussionsByViews: RankedListItemDTO[];
+  discussionsByComments: RankedListItemDTO[];
+  tagsByViews: RankedListItemDTO[];
+  tagsByComments: RankedListItemDTO[];
+  forumsByViews: RankedListItemDTO[];
+  forumsByComments: RankedListItemDTO[];
+}
+
+export interface UserSummaryDTO {
+  id: number;
+  username: string;
+  firstName: string;
+  lastName: string;
+  roles: string[];
+  accountStatus: string;
+  lastLogin: string; // ISO date string
+}
+
+export interface AdminUserUpdateDTO {
+  roles: string[];
+  accountStatus: string;
+}
+
+export interface AdminPasswordChangeDTO {
+  newPassword: string;
+}

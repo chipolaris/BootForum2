@@ -12,7 +12,7 @@
 
   <div class="card">
     <p-table [value]="tags" [loading]="isLoading" dataKey="id" [reorderableColumns]="true" (onRowReorder)="onRowReorder($event)"
-             styleClass="p-datatable-striped" [tableStyle]="{'min-width': '50rem'}">
+             stripedRows [tableStyle]="{'min-width': '50rem'}">
       <ng-template pTemplate="header">
         <tr>
           <th style="width: 4rem" class="text-center">Order</th>

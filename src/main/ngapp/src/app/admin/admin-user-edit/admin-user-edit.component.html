@@ -1,0 +1,21 @@
+<form [formGroup]="editForm" (ngSubmit)="onSubmit()" class="p-fluid">
+  <div class="field">
+    <label for="roles">Roles</label>
+    <p-multiSelect id="roles" [options]="availableRoles" formControlName="roles" optionLabel="label" optionValue="value"
+                   placeholder="Select Roles" display="chip"></p-multiSelect>
+  </div>
+
+  <div class="field">
+    <label for="status">Account Status</label>
+    <p-dropdown id="status" [options]="accountStatuses" formControlName="accountStatus" placeholder="Select Status"></p-dropdown>
+  </div>
+
+  <div class="field mt-5">
+    <button pButton type="button" label="Change Password..." (click)="openPasswordChangeDialog()" class="p-button-secondary p-button-outlined"></button>
+  </div>
+
+  <div class="flex justify-end gap-2 mt-6">
+    <button pButton type="button" label="Cancel" (click)="onCancel()" class="p-button-text"></button>
+    <button pButton type="submit" label="Save Changes" [loading]="isSubmitting" [disabled]="!editForm.dirty"></button>
+  </div>
+</form>

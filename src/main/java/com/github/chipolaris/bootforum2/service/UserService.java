@@ -2,6 +2,11 @@ package com.github.chipolaris.bootforum2.service;
 
 import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.dto.*;
+import com.github.chipolaris.bootforum2.dto.AdminPasswordChangeDTO;
+import com.github.chipolaris.bootforum2.dto.AdminUserUpdateDTO;
+import com.github.chipolaris.bootforum2.dto.UserSummaryDTO;
+import com.github.chipolaris.bootforum2.enumeration.AccountStatus;
+import com.github.chipolaris.bootforum2.enumeration.UserRole;
 import com.github.chipolaris.bootforum2.mapper.PersonMapper;
 import com.github.chipolaris.bootforum2.mapper.UserMapper;
 import com.github.chipolaris.bootforum2.repository.CommentRepository;
@@ -9,6 +14,7 @@ import com.github.chipolaris.bootforum2.repository.DiscussionRepository;
 import com.github.chipolaris.bootforum2.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -18,8 +24,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class UserService {
 
 	private static final Logger logger = LoggerFactory.getLogger(UserService.class);
@@ -46,10 +55,68 @@ public class UserService {
 	}
 
 	@Transactional(readOnly = true)
+	public ServiceResponse<Page<UserSummaryDTO>> getUsers(Pageable pageable) {
+		try {
+			Page<User> userPage = userRepository.findAll(pageable);
+			Page<UserSummaryDTO> dtoPage = userPage.map(userMapper::toUserSummaryDTO);
+			return ServiceResponse.success("Users retrieved successfully", dtoPage);
+		} catch (Exception e) {
+			logger.error("Error retrieving users", e);
+			return ServiceResponse.failure("An unexpected error occurred while retrieving users.");
+		}
+	}
+
+	@Transactional(readOnly = true)
 	public ServiceResponse<UserDTO> getUser(String username) {
 		return userRepository.findByUsername(username)
 				.map(user -> ServiceResponse.success("User found", userMapper.toDTO(user)))
 				.orElse(ServiceResponse.failure("User not found: " + username));
+	}
+
+	public ServiceResponse<Void> updateUserByAdmin(Long userId, AdminUserUpdateDTO updateDTO) {
+		Optional<User> userOpt = userRepository.findById(userId);
+		if (userOpt.isEmpty()) {
+			return ServiceResponse.failure("User not found with ID: " + userId);
+		}
+
+		User user = userOpt.get();
+		String adminUsername = authenticationFacade.getCurrentUsername().orElse("system");
+
+		try {
+			// Update roles
+			Set<UserRole> newRoles = updateDTO.roles().stream()
+					.map(UserRole::valueOf)
+					.collect(Collectors.toSet());
+			user.setUserRoles(newRoles);
+
+			// Update status
+			user.setAccountStatus(AccountStatus.valueOf(updateDTO.accountStatus()));
+			user.setUpdateBy(adminUsername);
+			userRepository.save(user);
+			logger.info("Admin '{}' updated user '{}'", adminUsername, user.getUsername());
+			return ServiceResponse.success("User updated successfully.");
+
+		} catch (IllegalArgumentException e) {
+			logger.warn("Invalid role or status value provided by admin '{}' for user '{}'", adminUsername, user.getUsername());
+			return ServiceResponse.failure("Invalid role or status value provided.");
+		}
+	}
+
+	public ServiceResponse<Void> changePasswordByAdmin(Long userId, AdminPasswordChangeDTO passwordDTO) {
+		Optional<User> userOpt = userRepository.findById(userId);
+		if (userOpt.isEmpty()) {
+			return ServiceResponse.failure("User not found with ID: " + userId);
+		}
+
+		User user = userOpt.get();
+		String adminUsername = authenticationFacade.getCurrentUsername().orElse("system");
+
+		user.setPassword(passwordEncoder.encode(passwordDTO.newPassword()));
+		user.setUpdateBy(adminUsername);
+		userRepository.save(user);
+		logger.info("Admin '{}' changed password for user '{}'", adminUsername, user.getUsername());
+
+		return ServiceResponse.success("Password changed successfully.");
 	}
 
 	/**
@@ -58,7 +125,6 @@ public class UserService {
 	 * @param personUpateDTO DTO containing the new personal information.
 	 * @return A ServiceResponse containing the updated UserDTO.
 	 */
-	@Transactional(readOnly = false)
 	public ServiceResponse<UserDTO> updatePersonInfo(PersonUpdateDTO personUpateDTO) {
 
 		Optional<String> currentUsernameOpt = authenticationFacade.getCurrentUsername();
@@ -88,7 +154,6 @@ public class UserService {
 	 * @param passwordChangeDTO The DTO containing old, new, and confirmation passwords.
 	 * @return A ServiceResponse indicating success or failure.
 	 */
-	@Transactional(readOnly = false)
 	public ServiceResponse<Void> updatePassword(PasswordChangeDTO passwordChangeDTO) {
 
 		Optional<String> currentUsernameOpt = authenticationFacade.getCurrentUsername();

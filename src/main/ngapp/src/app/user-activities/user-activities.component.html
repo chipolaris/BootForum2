@@ -29,7 +29,7 @@
           </h4>
         </div>
       </ng-template>
-      <p-table [value]="activities.recentDiscussions" styleClass="p-datatable-sm p-datatable-striped" [tableStyle]="{'min-width': '50rem'}">
+      <p-table [value]="activities.recentDiscussions" styleClass="p-datatable-sm" stripedRows [tableStyle]="{'min-width': '50rem'}">
         <ng-template pTemplate="header">
           <tr>
             <th>Title</th>
@@ -74,7 +74,7 @@
           </h4>
         </div>
       </ng-template>
-      <p-table [value]="activities.recentComments" styleClass="p-datatable-sm p-datatable-striped" [tableStyle]="{'min-width': '50rem'}">
+      <p-table [value]="activities.recentComments" styleClass="p-datatable-sm" stripedRows [tableStyle]="{'min-width': '50rem'}">
         <ng-template pTemplate="header">
           <tr>
             <th>My Comment Title</th>
@@ -115,7 +115,7 @@
           </h4>
         </div>
       </ng-template>
-      <p-table [value]="activities.repliesToMyComments" styleClass="p-datatable-sm p-datatable-striped" [tableStyle]="{'min-width': '50rem'}">
+      <p-table [value]="activities.repliesToMyComments" styleClass="p-datatable-sm" stripedRows [tableStyle]="{'min-width': '50rem'}">
         <ng-template pTemplate="header">
           <tr>
             <th>Reply</th>
@@ -158,7 +158,7 @@
           </h4>
         </div>
       </ng-template>
-      <p-table [value]="activities.likedDiscussions" styleClass="p-datatable-sm p-datatable-striped" [tableStyle]="{'min-width': '50rem'}">
+      <p-table [value]="activities.likedDiscussions" styleClass="p-datatable-sm" stripedRows [tableStyle]="{'min-width': '50rem'}">
         <ng-template pTemplate="header">
           <tr>
             <th>Discussion Title</th>
@@ -195,7 +195,7 @@
           </h4>
         </div>
       </ng-template>
-      <p-table [value]="activities.likedComments" styleClass="p-datatable-sm p-datatable-striped" [tableStyle]="{'min-width': '50rem'}">
+      <p-table [value]="activities.likedComments" styleClass="p-datatable-sm" stripedRows [tableStyle]="{'min-width': '50rem'}">
         <ng-template pTemplate="header">
           <tr>
             <th>Comment Title</th>
