@@ -7,11 +7,12 @@ import { CommentService } from '../_services/comment.service';
 import { Page, DiscussionInfoDTO, CommentDTO } from '../_data/dtos';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { APP_ICONS } from '../shared/hero-icons';
+import { HighlightPipe } from '../_pipes/highlight.pipe';
 
 @Component({
   selector: 'app-search-view',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NgIcon],
+  imports: [CommonModule, FormsModule, RouterModule, NgIcon, HighlightPipe], // Add HighlightPipe to imports
   providers: [provideIcons(APP_ICONS)],
   templateUrl: './search-view.component.html',
   styleUrls: ['./search-view.component.css']
