@@ -1,0 +1,48 @@
+<div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+  <p-toast></p-toast>
+  <header class="mb-8">
+    <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-100">Forum Analytics</h1>
+    <p class="text-slate-600 dark:text-slate-300 mt-1">Visual insights into forum activity.</p>
+  </header>
+
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <!-- Content Activity Chart -->
+    <div class="card bg-white dark:bg-slate-800 p-4 rounded-lg shadow">
+      <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">New Content (Last 12 Months)</h2>
+      <div *ngIf="isLoading" class="relative h-96">
+        <p-skeleton height="100%"></p-skeleton>
+      </div>
+      <div *ngIf="!isLoading && contentActivityData" class="relative h-96">
+        <p-chart type="bar" [data]="contentActivityData" [options]="contentActivityOptions"></p-chart>
+      </div>
+    </div>
+
+    <!-- New Users Chart -->
+    <div class="card bg-white dark:bg-slate-800 p-4 rounded-lg shadow">
+      <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">New Users (Last 12 Months)</h2>
+      <div *ngIf="isLoading" class="relative h-96">
+        <p-skeleton height="100%"></p-skeleton>
+      </div>
+      <div *ngIf="!isLoading && newUsersData" class="relative h-96">
+        <p-chart type="bar" [data]="newUsersData" [options]="newUsersOptions"></p-chart>
+      </div>
+    </div>
+
+    <!-- Forum Activity Chart -->
+    <div class="card bg-white dark:bg-slate-800 p-4 rounded-lg shadow xl:col-span-2">
+      <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">Top 10 Forums by Activity</h2>
+      <div *ngIf="isLoading" class="relative h-96">
+        <p-skeleton height="100%"></p-skeleton>
+      </div>
+      <div *ngIf="!isLoading && forumActivityData" class="relative h-96">
+        <p-chart type="bar" [data]="forumActivityData" [options]="forumActivityOptions"></p-chart>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error && !isLoading" class="mt-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md" role="alert">
+    <p class="font-bold">Error Loading Charts</p>
+    <p>{{ error }}</p>
+  </div>
+</div>

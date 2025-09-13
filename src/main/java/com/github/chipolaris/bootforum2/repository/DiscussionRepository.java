@@ -6,6 +6,7 @@ import com.github.chipolaris.bootforum2.dto.MyLikedDiscussionDTO;
 import com.github.chipolaris.bootforum2.dto.MyRecentDiscussionDTO;
 import com.github.chipolaris.bootforum2.dto.RankedDiscussionDTO;
 import com.github.chipolaris.bootforum2.dto.RankedListItemDTO;
+import com.github.chipolaris.bootforum2.dto.admin.CountPerMonthDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -196,6 +197,16 @@ public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
             ORDER BY d.stat.commentCount DESC
             """)
     List<RankedListItemDTO> findTopDiscussionsByComments(@Param("since") LocalDateTime since, Pageable pageable);
+
+    @Query("""
+            SELECT new com.github.chipolaris.bootforum2.dto.admin.CountPerMonthDTO(
+                YEAR(d.createDate), MONTH(d.createDate), COUNT(d.id))
+            FROM Discussion d
+            WHERE d.createDate >= :since
+            GROUP BY YEAR(d.createDate), MONTH(d.createDate)
+            ORDER BY YEAR(d.createDate), MONTH(d.createDate)
+            """)
+    List<CountPerMonthDTO> countByMonth(@Param("since") LocalDateTime since);
 
     /**
      * Sums the total number of images from all discussion stats.

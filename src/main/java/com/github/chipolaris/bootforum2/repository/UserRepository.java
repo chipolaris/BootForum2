@@ -1,6 +1,7 @@
 package com.github.chipolaris.bootforum2.repository;
 
 import com.github.chipolaris.bootforum2.domain.User;
+import com.github.chipolaris.bootforum2.dto.admin.CountPerMonthDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -36,6 +37,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
             ORDER BY COUNT(c.id) DESC
             """)
     List<RankedListItemDTO> findTopUsersByCommentCount(@Param("since") LocalDateTime since, Pageable pageable);
+
+    @Query("""
+        SELECT new com.github.chipolaris.bootforum2.dto.admin.CountPerMonthDTO(
+            YEAR(u.createDate), MONTH(u.createDate), COUNT(u.id))
+        FROM User u
+        WHERE u.createDate >= :since
+        GROUP BY YEAR(u.createDate), MONTH(u.createDate)
+        ORDER BY YEAR(u.createDate), MONTH(u.createDate)
+        """)
+    List<CountPerMonthDTO> countByMonth(@Param("since") LocalDateTime since);
+
 
     @Query("""
             SELECT new com.github.chipolaris.bootforum2.dto.RankedListItemDTO(u.id, u.username, u.person.email, u.stat.reputation)

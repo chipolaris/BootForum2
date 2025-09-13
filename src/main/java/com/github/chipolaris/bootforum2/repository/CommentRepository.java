@@ -5,12 +5,14 @@ import com.github.chipolaris.bootforum2.domain.Discussion;
 import com.github.chipolaris.bootforum2.domain.Forum;
 import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.dto.*;
+import com.github.chipolaris.bootforum2.dto.admin.CountPerMonthDTO;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -193,6 +195,16 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     @Query("SELECT new com.github.chipolaris.bootforum2.dto.RankedCommentDTO(c.id, c.title, CAST(c.commentVote.voteDownCount AS long), c.discussion.id, c.discussion.title) FROM Comment c WHERE c.createBy = :username")
     List<RankedCommentDTO> findMostDislikedCommentsForUser(@Param("username") String username, Pageable pageable);
+
+    @Query("""
+            SELECT new com.github.chipolaris.bootforum2.dto.admin.CountPerMonthDTO(
+                YEAR(c.createDate), MONTH(c.createDate), COUNT(c.id))
+            FROM Comment c
+            WHERE c.createDate >= :since
+            GROUP BY YEAR(c.createDate), MONTH(c.createDate)
+            ORDER BY YEAR(c.createDate), MONTH(c.createDate)
+            """)
+    List<CountPerMonthDTO> countByMonth(@Param("since") LocalDateTime since);
 
     /**
      * Counts the total number of attachments across all comments.

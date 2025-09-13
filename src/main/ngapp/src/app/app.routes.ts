@@ -32,6 +32,7 @@ import { UserReputationComponent } from './user-reputation/user-reputation.compo
 import { TagListComponent } from './admin/tag-list/tag-list.component';
 import { ForumSettingsComponent } from './admin/forum-settings/forum-settings.component';
 import { AdminDashboardComponent } from './admin/admin-dashboard/admin-dashboard.component';
+import { AdminChartsComponent } from './admin/admin-charts/admin-charts.component';
 import { AdminUserListComponent } from './admin/admin-user-list/admin-user-list.component';
 
 export const routes: Routes = [
@@ -104,6 +105,10 @@ export const routes: Routes = [
   },
   {
     path: 'app/admin/users', component: AdminUserListComponent, canActivate: [authGuard],
+    data: { roles: ['ADMIN'] }
+  },
+  {
+    path: 'app/admin/charts', component: AdminChartsComponent, canActivate: [authGuard],
     data: { roles: ['ADMIN'] }
   },
   { path: 'app/registration', component: RegistrationComponent },

@@ -7,14 +7,14 @@
   <!-- Snapshot Stats -->
   <section class="mb-8">
     <h2 class="text-xl font-semibold text-slate-700 dark:text-slate-200 mb-4">Snapshot</h2>
-    <div *ngIf="isLoading" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-4">
-      <!-- Update skeleton to show 7 items -->
-      <p-skeleton height="6rem" styleClass="rounded-lg" *ngFor="let i of [1,2,3,4,5,6,7]"></p-skeleton>
+    <div *ngIf="isLoading" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <!-- Update skeleton to show 8 items -->
+      <p-skeleton height="6rem" styleClass="rounded-lg" *ngFor="let i of [1,2,3,4,5,6,7,8]"></p-skeleton>
     </div>
-    <div *ngIf="!isLoading && dashboardData?.snapshotStats as stats" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-4">
+    <div *ngIf="!isLoading && dashboardData?.snapshotStats as stats" class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <!-- Members -->
       <div class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow flex items-center gap-4">
-        <ng-icon name="heroUsers" class="h-8 w-8 text-sky-500"></ng-icon>
+        <ng-icon name="heroUsers" class="h-8 w-8 text-sky-500 transform scale-150"></ng-icon>
         <div>
           <p class="text-sm text-slate-500 dark:text-slate-400">Members</p>
           <p class="text-2xl font-bold text-slate-800 dark:text-slate-100">{{ stats.memberCount }}</p>
@@ -22,7 +22,7 @@
       </div>
       <!-- Forums -->
       <div class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow flex items-center gap-4">
-        <ng-icon name="heroChatBubbleBottomCenterText" class="h-8 w-8 text-indigo-500"></ng-icon>
+        <ng-icon name="heroChatBubbleBottomCenterText" class="h-8 w-8 text-indigo-500 transform scale-150"></ng-icon>
         <div>
           <p class="text-sm text-slate-500 dark:text-slate-400">Forums</p>
           <p class="text-2xl font-bold text-slate-800 dark:text-slate-100">{{ stats.forumCount }}</p>
@@ -30,7 +30,7 @@
       </div>
       <!-- Discussions -->
       <div class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow flex items-center gap-4">
-        <ng-icon name="heroChatBubbleLeftRight" class="h-8 w-8 text-emerald-500"></ng-icon>
+        <ng-icon name="heroChatBubbleLeftRight" class="h-8 w-8 text-emerald-500 transform scale-150"></ng-icon>
         <div>
           <p class="text-sm text-slate-500 dark:text-slate-400">Discussions</p>
           <p class="text-2xl font-bold text-slate-800 dark:text-slate-100">{{ stats.discussionCount }}</p>
@@ -38,7 +38,7 @@
       </div>
       <!-- Tags -->
       <div class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow flex items-center gap-4">
-        <ng-icon name="heroTag" class="h-8 w-8 text-amber-500"></ng-icon>
+        <ng-icon name="heroTag" class="h-8 w-8 text-amber-500 transform scale-150"></ng-icon>
         <div>
           <p class="text-sm text-slate-500 dark:text-slate-400">Tags</p>
           <p class="text-2xl font-bold text-slate-800 dark:text-slate-100">{{ stats.tagCount }}</p>
@@ -46,16 +46,15 @@
       </div>
       <!-- Comments -->
       <div class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow flex items-center gap-4">
-        <ng-icon name="heroChatBubbleLeft" class="h-8 w-8 text-rose-500"></ng-icon>
+        <ng-icon name="heroChatBubbleLeft" class="h-8 w-8 text-rose-500 transform scale-150"></ng-icon>
         <div>
           <p class="text-sm text-slate-500 dark:text-slate-400">Comments</p>
           <p class="text-2xl font-bold text-slate-800 dark:text-slate-100">{{ stats.commentCount }}</p>
         </div>
       </div>
-      <!-- START: New Cards -->
       <!-- Attachments -->
       <div class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow flex items-center gap-4">
-        <ng-icon name="heroPaperClip" class="h-8 w-8 text-slate-500"></ng-icon>
+        <ng-icon name="heroPaperClip" class="h-8 w-8 text-slate-500 transform scale-150"></ng-icon>
         <div>
           <p class="text-sm text-slate-500 dark:text-slate-400">Attachments</p>
           <p class="text-2xl font-bold text-slate-800 dark:text-slate-100">{{ stats.attachmentCount }}</p>
@@ -63,13 +62,21 @@
       </div>
       <!-- Images -->
       <div class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow flex items-center gap-4">
-        <ng-icon name="heroPhoto" class="h-8 w-8 text-violet-500"></ng-icon>
+        <ng-icon name="heroPhoto" class="h-8 w-8 text-violet-500 transform scale-150"></ng-icon>
         <div>
           <p class="text-sm text-slate-500 dark:text-slate-400">Images</p>
           <p class="text-2xl font-bold text-slate-800 dark:text-slate-100">{{ stats.imageCount }}</p>
         </div>
       </div>
-      <!-- END: New Cards -->
+      <!-- Analytics Link -->
+      <a routerLink="/app/admin/charts" class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+        <ng-icon name="heroChartBarSquare" class="h-8 w-8 text-rose-800 transform scale-150"></ng-icon>
+        <div>
+          <p class="text-sm text-rose-900 dark:text-rose-400">Analytics</p>
+          <p class="text-xl font-bold text-teal-700 dark:text-slate-100">View Charts</p>
+        </div>
+      </a>
+
     </div>
   </section>
 
@@ -86,7 +93,7 @@
         <h3 class="font-semibold text-slate-800 dark:text-slate-100 border-b dark:border-slate-700 pb-2">Top Members</h3>
         <!-- By Discussions -->
         <div *ngIf="!isLoading">
-          <h4 class="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Most Discussions</h4>
+          <h4 class="text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Most Discussions</h4>
           <ul *ngIf="dashboardData?.usersByDiscussions?.length; else noData" class="space-y-2">
             <li *ngFor="let item of dashboardData?.usersByDiscussions" class="flex justify-between items-center text-sm">
               <a [routerLink]="getRouterLink(item, 'user')" class="text-indigo-600 hover:underline dark:text-indigo-400 truncate" [title]="item.name">{{ item.name }}</a>
@@ -97,7 +104,7 @@
         <div *ngIf="isLoading"><p-skeleton height="8rem"></p-skeleton></div>
         <!-- By Comments -->
         <div *ngIf="!isLoading">
-          <h4 class="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Most Comments</h4>
+          <h4 class="text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Most Comments</h4>
           <ul *ngIf="dashboardData?.usersByComments?.length; else noData" class="space-y-2">
             <li *ngFor="let item of dashboardData?.usersByComments" class="flex justify-between items-center text-sm">
               <a [routerLink]="getRouterLink(item, 'user')" class="text-indigo-600 hover:underline dark:text-indigo-400 truncate" [title]="item.name">{{ item.name }}</a>
@@ -108,7 +115,7 @@
         <div *ngIf="isLoading"><p-skeleton height="8rem"></p-skeleton></div>
         <!-- By Reputation -->
         <div *ngIf="!isLoading">
-          <h4 class="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Most Reputable</h4>
+          <h4 class="text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Most Reputable</h4>
           <ul *ngIf="dashboardData?.usersByReputation?.length; else noData" class="space-y-2">
             <li *ngFor="let item of dashboardData?.usersByReputation" class="flex justify-between items-center text-sm">
               <a [routerLink]="getRouterLink(item, 'user')" class="text-indigo-600 hover:underline dark:text-indigo-400 truncate" [title]="item.name">{{ item.name }}</a>
@@ -124,7 +131,7 @@
         <h3 class="font-semibold text-slate-800 dark:text-slate-100 border-b dark:border-slate-700 pb-2">Top Discussions</h3>
         <!-- By Views -->
         <div *ngIf="!isLoading">
-          <h4 class="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Most Viewed</h4>
+          <h4 class="text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Most Viewed</h4>
           <ul *ngIf="dashboardData?.discussionsByViews?.length; else noData" class="space-y-2">
             <li *ngFor="let item of dashboardData?.discussionsByViews" class="flex justify-between items-center text-sm">
               <a [routerLink]="getRouterLink(item, 'discussion')" class="text-indigo-600 hover:underline dark:text-indigo-400 truncate" [title]="item.name">{{ item.name }}</a>
@@ -135,7 +142,7 @@
         <div *ngIf="isLoading"><p-skeleton height="8rem"></p-skeleton></div>
         <!-- By Comments -->
         <div *ngIf="!isLoading">
-          <h4 class="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Most Commented</h4>
+          <h4 class="text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Most Commented</h4>
           <ul *ngIf="dashboardData?.discussionsByComments?.length; else noData" class="space-y-2">
             <li *ngFor="let item of dashboardData?.discussionsByComments" class="flex justify-between items-center text-sm">
               <a [routerLink]="getRouterLink(item, 'discussion')" class="text-indigo-600 hover:underline dark:text-indigo-400 truncate" [title]="item.name">{{ item.name }}</a>
@@ -151,7 +158,7 @@
         <h3 class="font-semibold text-slate-800 dark:text-slate-100 border-b dark:border-slate-700 pb-2">Top Categories</h3>
         <!-- Tags By Views -->
         <div *ngIf="!isLoading">
-          <h4 class="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Most Viewed Tags</h4>
+          <h4 class="text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Most Viewed Tags</h4>
           <ul *ngIf="dashboardData?.tagsByViews?.length; else noData" class="space-y-2">
             <li *ngFor="let item of dashboardData?.tagsByViews" class="flex justify-between items-center text-sm">
               <a [routerLink]="getRouterLink(item, 'tag')" [queryParams]="{ tagIds: item.id }" class="text-indigo-600 hover:underline dark:text-indigo-400 truncate" [title]="item.name">{{ item.name }}</a>
@@ -162,7 +169,7 @@
         <div *ngIf="isLoading"><p-skeleton height="8rem"></p-skeleton></div>
         <!-- Forums By Comments -->
         <div *ngIf="!isLoading">
-          <h4 class="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Most Active Forums</h4>
+          <h4 class="text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Most Active Forums</h4>
           <ul *ngIf="dashboardData?.forumsByComments?.length; else noData" class="space-y-2">
             <li *ngFor="let item of dashboardData?.forumsByComments" class="flex justify-between items-center text-sm">
               <a [routerLink]="getRouterLink(item, 'forum')" class="text-indigo-600 hover:underline dark:text-indigo-400 truncate" [title]="item.name">{{ item.name }}</a>

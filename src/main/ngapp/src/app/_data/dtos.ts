@@ -481,6 +481,22 @@ export interface AdminDashboardDTO {
   forumsByComments: RankedListItemDTO[];
 }
 
+export interface ChartDataSetDTO {
+  label: string;
+  data: number[];
+}
+
+export interface ChartDataDTO {
+  labels: string[];
+  datasets: ChartDataSetDTO[];
+}
+
+export interface AdminChartDTO {
+  contentActivity: ChartDataDTO;
+  newUsers: ChartDataDTO;
+  forumActivity: ChartDataDTO;
+}
+
 export interface UserSummaryDTO {
   id: number;
   username: string;

@@ -45,6 +45,8 @@ import {
   heroHandThumbDown,
   heroMagnifyingGlass,
   heroPaperClip,
+  heroChartPie,
+  heroChartBarSquare,
 } from '@ng-icons/heroicons/outline';
 
 import {
@@ -93,6 +95,8 @@ import {
   heroHandThumbDownSolid,
   heroMagnifyingGlassSolid,
   heroPaperClipSolid,
+  heroChartPieSolid,
+  heroChartBarSquareSolid,
 } from '@ng-icons/heroicons/solid';
 
 /**
@@ -140,6 +144,8 @@ export const APP_PICKER_AVAILABLE_ICONS: AppIconDefinition[] = [
   { displayName: 'Question Mark Circle', name: 'heroQuestionMarkCircleSolid' },
   { displayName: 'Check Badge', name: 'heroCheckBadgeSolid' },
   { displayName: 'Megaphone', name: 'heroMegaphoneSolid' },
+  { displayName: 'Chart Pie', name: 'heroChartPieSolid' },
+  { displayName: 'Chart Bar Square', name: 'heroChartBarSquareSolid' },
 ];
 
 /**
@@ -193,6 +199,8 @@ export const APP_ICONS = {
   heroHandThumbDown,
   heroMagnifyingGlass,
   heroPaperClip,
+  heroChartPie,
+  heroChartBarSquare,
   // Solid icons
   heroUserSolid,
   heroUsersSolid,
@@ -238,5 +246,7 @@ export const APP_ICONS = {
   heroHandThumbDownSolid,
   heroMagnifyingGlassSolid,
   heroPaperClipSolid,
+  heroChartPieSolid,
+  heroChartBarSquareSolid,
   // Add any other globally used HeroIcons here
 };

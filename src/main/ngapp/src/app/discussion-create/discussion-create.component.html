@@ -14,11 +14,10 @@
     </button>
   </div>
 
-
   <!-- Form Content (only show if not initial loading and no critical general error) -->
   <div *ngIf="!isLoading || discussionForm"> <!-- Show form once initial loading is done or form is ready -->
     <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-slate-100">
-      Create New Discussion <ng-container *ngIf="forumTitle">in "{{ forumTitle }}"</ng-container>
+      Create New Discussion <ng-container *ngIf="forumTitle">in forum "{{ forumTitle }}"</ng-container>
     </h2>
 
     <form *ngIf="discussionForm" [formGroup]="discussionForm" (ngSubmit)="onSubmit()" novalidate class="space-y-6 bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md">

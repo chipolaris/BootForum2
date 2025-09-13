@@ -2,6 +2,7 @@ package com.github.chipolaris.bootforum2.repository;
 
 import com.github.chipolaris.bootforum2.domain.Forum;
 import com.github.chipolaris.bootforum2.dto.RankedListItemDTO;
+import com.github.chipolaris.bootforum2.dto.admin.ForumActivityDTO;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -28,4 +29,12 @@ public interface ForumRepository extends JpaRepository<Forum, Long> {
             ORDER BY f.stat.commentCount DESC
             """)
     List<RankedListItemDTO> findTopForumsByComments(@Param("since") LocalDateTime since, Pageable pageable);
+
+    @Query("""
+            SELECT new com.github.chipolaris.bootforum2.dto.admin.ForumActivityDTO(
+                f.title, f.stat.discussionCount, f.stat.commentCount)
+            FROM Forum f
+            ORDER BY (f.stat.discussionCount + f.stat.commentCount) DESC
+            """)
+    List<ForumActivityDTO> findTopForumActivity(Pageable pageable);
 }
