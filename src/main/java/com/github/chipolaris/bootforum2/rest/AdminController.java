@@ -1,11 +1,13 @@
 package com.github.chipolaris.bootforum2.rest;
 
 import com.github.chipolaris.bootforum2.dto.ApiResponse;
+import com.github.chipolaris.bootforum2.dto.admin.DiscussionSimulationConfigDTO;
 import com.github.chipolaris.bootforum2.service.DataSimulationService;
 import com.github.chipolaris.bootforum2.service.IndexingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,7 +30,7 @@ public class AdminController {
     }
 
     /**
-     * NEW: Endpoint to trigger generation of simulated users.
+     * Endpoint to trigger generation of simulated users.
      * This is a long-running process that will execute in the background.
      *
      * @param count The number of users to simulate.
@@ -54,14 +56,15 @@ public class AdminController {
      * Endpoint to trigger generation of simulated discussion.
      * This is a long-running process that will execute in the background.
      *
+     * @param config The configuration for the simulation.
      * @return An ApiResponse confirming that the process has started.
      */
     @PostMapping("/data/simulate-discussions")
-    public ApiResponse<?> triggerDiscussionSimulation() {
-        logger.info("Admin request received to generate simulated discussion");
+    public ApiResponse<?> triggerDiscussionSimulation(@RequestBody DiscussionSimulationConfigDTO config) {
+        logger.info("Admin request received to generate simulated discussion with config: {}", config);
 
         // Call the async service method. This call returns immediately.
-        dataSimulationService.generateSimulatedDiscussions();
+        dataSimulationService.generateSimulatedDiscussions(config);
 
         String message = "Simulated data generation has been started in the background. " +
                 "This may take several minutes. Check server logs for progress and completion status.";
@@ -69,7 +72,7 @@ public class AdminController {
     }
 
     /**
-     * NEW: Endpoint to trigger generation of simulated votes.
+     * Endpoint to trigger generation of simulated votes.
      * This is a long-running process that will execute in the background.
      *
      * @return An ApiResponse confirming that the process has started.

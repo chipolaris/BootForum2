@@ -20,7 +20,7 @@
       <div>
         <label for="userCount" class="block text-sm font-medium text-gray-700 dark:text-slate-200">Number of Users to Create</label>
         <input type="number" name="userCount" id="userCount" [(ngModel)]="userCount"
-               class="p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200">
+               class="p-inputtext p-component w-full mt-1">
       </div>
       <div class="flex items-center justify-end pt-4 border-t border-gray-200 dark:border-slate-600">
         <button type="button" (click)="generateUsers()" [disabled]="isUserLoading"
@@ -37,13 +37,52 @@
     </div>
 
     <!-- Generate Forum Data Card -->
-    <div class="space-y-6 bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md">
-      <div>
+    <div class="space-y-4 bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md flex flex-col">
+      <div class="flex-grow">
         <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-slate-100">Generate Forum Content</h3>
         <p class="mt-1 text-sm text-gray-600 dark:text-slate-300">
-          This will create a full set of simulated forum groups, forums, discussions, and comments. This is a one-time action to populate an empty database.
+          Create simulated forum groups, forums, discussions, and comments based on the parameters below.
         </p>
       </div>
+
+      <!-- Form fields for config -->
+      <div class="space-y-4">
+        <div>
+          <label for="forumGroupCount" class="block text-sm font-medium text-gray-700 dark:text-slate-200">Number of Forum Groups</label>
+          <input type="number" id="forumGroupCount" [(ngModel)]="discussionConfig.numberOfForumGroups" class="p-inputtext p-component w-full mt-1">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="minForums" class="block text-sm font-medium text-gray-700 dark:text-slate-200">Min Forums / Group</label>
+            <input type="number" id="minForums" [(ngModel)]="discussionConfig.minForumsPerGroup" class="p-inputtext p-component w-full mt-1">
+          </div>
+          <div>
+            <label for="maxForums" class="block text-sm font-medium text-gray-700 dark:text-slate-200">Max Forums / Group</label>
+            <input type="number" id="maxForums" [(ngModel)]="discussionConfig.maxForumsPerGroup" class="p-inputtext p-component w-full mt-1">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="minDiscussions" class="block text-sm font-medium text-gray-700 dark:text-slate-200">Min Discussions / Forum</label>
+            <input type="number" id="minDiscussions" [(ngModel)]="discussionConfig.minDiscussionsPerForum" class="p-inputtext p-component w-full mt-1">
+          </div>
+          <div>
+            <label for="maxDiscussions" class="block text-sm font-medium text-gray-700 dark:text-slate-200">Max Discussions / Forum</label>
+            <input type="number" id="maxDiscussions" [(ngModel)]="discussionConfig.maxDiscussionsPerForum" class="p-inputtext p-component w-full mt-1">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="minComments" class="block text-sm font-medium text-gray-700 dark:text-slate-200">Min Comments / Discussion</label>
+            <input type="number" id="minComments" [(ngModel)]="discussionConfig.minCommentsPerDiscussion" class="p-inputtext p-component w-full mt-1">
+          </div>
+          <div>
+            <label for="maxComments" class="block text-sm font-medium text-gray-700 dark:text-slate-200">Max Comments / Discussion</label>
+            <input type="number" id="maxComments" [(ngModel)]="discussionConfig.maxCommentsPerDiscussion" class="p-inputtext p-component w-full mt-1">
+          </div>
+        </div>
+      </div>
+
       <div class="flex items-center justify-end pt-4 border-t border-gray-200 dark:border-slate-600">
         <button type="button" (click)="generateForumData()" [disabled]="isForumDataLoading"
                 class="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center cursor-pointer disabled:bg-indigo-400 disabled:cursor-not-allowed">
@@ -58,9 +97,9 @@
       </div>
     </div>
 
-    <!-- START: New Generate Vote Data Card -->
-    <div class="space-y-6 bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md">
-      <div>
+    <!-- Generate Vote Data Card -->
+    <div class="space-y-6 bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md flex flex-col">
+      <div class="flex-grow">
         <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-slate-100">Generate Votes</h3>
         <p class="mt-1 text-sm text-gray-600 dark:text-slate-300">
           This will create simulated upvotes and downvotes for all existing discussions and comments. Best used after generating forum content.
@@ -79,7 +118,6 @@
         </button>
       </div>
     </div>
-    <!-- END: New Generate Vote Data Card -->
 
   </div>
 </div>

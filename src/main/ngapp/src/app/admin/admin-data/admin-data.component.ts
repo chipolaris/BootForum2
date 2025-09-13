@@ -21,8 +21,19 @@ export class AdminDataComponent {
 
   isUserLoading = false;
   isForumDataLoading = false;
-  isVoteDataLoading = false; // New loading state
+  isVoteDataLoading = false;
   userCount = 50;
+
+  // Properties for discussion simulation config
+  discussionConfig = {
+    numberOfForumGroups: 2,
+    minForumsPerGroup: 2,
+    maxForumsPerGroup: 3,
+    minDiscussionsPerForum: 3,
+    maxDiscussionsPerForum: 5,
+    minCommentsPerDiscussion: 10,
+    maxCommentsPerDiscussion: 20
+  };
 
   constructor() {}
 
@@ -53,14 +64,27 @@ export class AdminDataComponent {
   }
 
   generateForumData(): void {
+    // Add validation for min/max values
+    if (this.discussionConfig.minForumsPerGroup > this.discussionConfig.maxForumsPerGroup ||
+      this.discussionConfig.minDiscussionsPerForum > this.discussionConfig.maxDiscussionsPerForum ||
+      this.discussionConfig.minCommentsPerDiscussion > this.discussionConfig.maxCommentsPerDiscussion) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Invalid Input',
+        detail: 'Min values cannot be greater than max values.',
+        life: 5000
+      });
+      return;
+    }
+
     this.confirmationService.confirm({
-      message: 'Simulate Discussion data. This may take some time. Are you sure you want to proceed?',
-      header: 'Confirm Forum Discussion Simulation',
+      message: 'This will create a new set of simulated forum content based on your parameters. Are you sure?',
+      header: 'Confirm Forum Content Simulation',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
         this.isForumDataLoading = true;
-        this.adminService.triggerDiscussionSimulation().subscribe({
-          next: (response) => this.handleResponse(response, 'Forum discussion simulation process started.'),
+        this.adminService.triggerDiscussionSimulation(this.discussionConfig).subscribe({
+          next: (response) => this.handleResponse(response, 'Forum content simulation process started.'),
           error: (err) => this.handleError(err),
           complete: () => this.isForumDataLoading = false
         });
@@ -69,7 +93,7 @@ export class AdminDataComponent {
   }
 
   /**
-   * NEW: Triggers the generation of simulated votes.
+   * Triggers the generation of simulated votes.
    */
   generateVotes(): void {
     this.confirmationService.confirm({
@@ -115,6 +139,6 @@ export class AdminDataComponent {
     // Ensure loading spinners are turned off on error
     this.isUserLoading = false;
     this.isForumDataLoading = false;
-    this.isVoteDataLoading = false; // Update to include new loading state
+    this.isVoteDataLoading = false;
   }
 }

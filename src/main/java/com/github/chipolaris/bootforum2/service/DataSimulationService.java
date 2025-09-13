@@ -6,6 +6,7 @@ import com.github.chipolaris.bootforum2.dao.GenericDAO;
 import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.*;
 import com.github.chipolaris.bootforum2.dto.FileCreatedDTO;
+import com.github.chipolaris.bootforum2.dto.admin.DiscussionSimulationConfigDTO;
 import com.github.chipolaris.bootforum2.event.*;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
 import com.github.chipolaris.bootforum2.repository.UserRepository;
@@ -81,7 +82,7 @@ public class DataSimulationService {
     );
 
     /**
-     * NEW: Generates a specified number of simulated users.
+     * Generates a specified number of simulated users.
      * @param count The number of users to create.
      */
     @Async
@@ -125,8 +126,16 @@ public class DataSimulationService {
 
     @Async
     @Transactional
-    public void generateSimulatedDiscussions() {
-        logger.info("Starting generation of simulated discussion...");
+    public void generateSimulatedDiscussions(DiscussionSimulationConfigDTO config) {
+        logger.info("Starting generation of simulated discussion with config: {}", config);
+
+        // Basic validation
+        if (config.minForumsPerGroup() > config.maxForumsPerGroup()
+                || config.minDiscussionsPerForum() > config.maxDiscussionsPerForum()
+                || config.minCommentsPerDiscussion() > config.maxCommentsPerDiscussion()) {
+            logger.error("Invalid simulation config: min values cannot be greater than max values.");
+            return;
+        }
 
         // Step 1: Fetch all fake users to use as authors for discussions and comments
         logger.info("Fetching fake users for content creation...");
@@ -145,36 +154,34 @@ public class DataSimulationService {
             logger.info("Found {} fake users to use as authors.", fakeUsernames.size());
         }
 
-        for (int i = 0; i < 3; i++) { // Create 3 Forum Groups
+        for (int i = 0; i < config.numberOfForumGroups(); i++) {
             ForumGroup forumGroup = createForumGroup();
-            // set root forum group as parent
             forumGroup.setParent(rootForumGroup);
 
-            // persist forum group
             genericDAO.persist(forumGroup);
             eventPublisher.publishEvent(new ForumGroupCreatedEvent(this, forumGroup));
 
-            for (int j = 0; j < 3; j++) { // Create 3 Forums in each group
+            int forumsInGroup = random.nextInt(config.maxForumsPerGroup() - config.minForumsPerGroup() + 1) + config.minForumsPerGroup();
+            for (int j = 0; j < forumsInGroup; j++) {
                 Forum forum = createForum(forumGroup);
                 genericDAO.persist(forum);
                 eventPublisher.publishEvent(new ForumCreatedEvent(this, forum));
 
-                for (int k = 0; k < 5; k++) { // Create 5 Discussions in each forum
-                    Discussion discussion = createDiscussion(forum, fakeUsernames); // Pass usernames
+                int discussionsInForum = random.nextInt(config.maxDiscussionsPerForum() - config.minDiscussionsPerForum() + 1) + config.minDiscussionsPerForum();
+                for (int k = 0; k < discussionsInForum; k++) {
+                    Discussion discussion = createDiscussion(forum, fakeUsernames);
                     genericDAO.persist(discussion);
 
                     List<Comment> commentsInDiscussion = new ArrayList<>();
-                    int commentCount = 10 + random.nextInt(11); // 10 to 20 comments
+                    int commentCount = random.nextInt(config.maxCommentsPerDiscussion() - config.minCommentsPerDiscussion() + 1) + config.minCommentsPerDiscussion();
                     for (int l = 0; l < commentCount; l++) {
-                        Comment comment = createComment(discussion, commentsInDiscussion, fakeUsernames); // Pass usernames
+                        Comment comment = createComment(discussion, commentsInDiscussion, fakeUsernames);
                         genericDAO.persist(comment);
 
                         commentsInDiscussion.add(comment);
                     }
-                    // sync discussion stat
                     statService.syncDiscussionStat(discussion);
                 }
-                // sync forum stat
                 statService.syncForumStat(forum);
             }
         }
@@ -189,7 +196,7 @@ public class DataSimulationService {
     }
 
     /**
-     * NEW: Generates simulated up/down votes for all existing discussions and comments.
+     * Generates simulated up/down votes for all existing discussions and comments.
      * This method is designed to be run after other data simulation methods.
      */
     @Async

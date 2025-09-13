@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ApiResponse, SettingDTO } from '../_data/dtos';
+import { ApiResponse, DiscussionSimulationConfigDTO, SettingDTO } from '../_data/dtos';
 
 @Injectable({
   providedIn: 'root'
@@ -33,13 +33,14 @@ export class AdminService {
 
   /**
    * Triggers backend generation of simulated forum data (groups, forums, discussions, comments).
+   * @param config The configuration for the simulation.
    */
-  triggerDiscussionSimulation(): Observable<ApiResponse<string>> {
-    return this.http.post<ApiResponse<string>>(`${this.baseAdminApiUrl}/data/simulate-discussions`, null);
+  triggerDiscussionSimulation(config: DiscussionSimulationConfigDTO): Observable<ApiResponse<string>> {
+    return this.http.post<ApiResponse<string>>(`${this.baseAdminApiUrl}/data/simulate-discussions`, config);
   }
 
   /**
-   * NEW: Triggers backend generation of simulated votes for discussions and comments.
+   * Triggers backend generation of simulated votes for discussions and comments.
    */
   triggerVoteSimulation(): Observable<ApiResponse<string>> {
     return this.http.post<ApiResponse<string>>(`${this.baseAdminApiUrl}/data/simulate-votes`, null);
