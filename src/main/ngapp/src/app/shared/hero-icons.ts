@@ -47,6 +47,7 @@ import {
   heroPaperClip,
   heroChartPie,
   heroChartBarSquare,
+  heroSparkles,
 } from '@ng-icons/heroicons/outline';
 
 import {
@@ -97,6 +98,7 @@ import {
   heroPaperClipSolid,
   heroChartPieSolid,
   heroChartBarSquareSolid,
+  heroSparklesSolid,
 } from '@ng-icons/heroicons/solid';
 
 /**
@@ -201,6 +203,7 @@ export const APP_ICONS = {
   heroPaperClip,
   heroChartPie,
   heroChartBarSquare,
+  heroSparkles,
   // Solid icons
   heroUserSolid,
   heroUsersSolid,
@@ -248,5 +251,6 @@ export const APP_ICONS = {
   heroPaperClipSolid,
   heroChartPieSolid,
   heroChartBarSquareSolid,
+  heroSparklesSolid,
   // Add any other globally used HeroIcons here
 };

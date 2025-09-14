@@ -466,21 +466,6 @@ export interface AdminDashboardDTO {
   forumsByComments: RankedListItemDTO[];
 }
 
-/*
-export interface AdminDashboardDTO {
-  snapshotStats: SnapshotStatsDTO;
-  usersByDiscussions: RankedListItemDTO[];
-  usersByComments: RankedListItemDTO[];
-  usersByReputation: RankedListItemDTO[];
-  discussionsByViews: RankedListItemDTO[];
-  discussionsByComments: RankedListItemDTO[];
-  tagsByViews: RankedListItemDTO[];
-  tagsByComments: RankedListItemDTO[];
-  forumsByViews: RankedListItemDTO[];
-  forumsByComments: RankedListItemDTO[];
-}
-*/
-
 export interface DiscussionSimulationConfigDTO {
   numberOfForumGroups: number;
   minForumsPerGroup: number;

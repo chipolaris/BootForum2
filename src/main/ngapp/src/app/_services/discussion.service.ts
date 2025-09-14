@@ -143,6 +143,16 @@ export class DiscussionService {
   }
 
   /**
+   * NEW: Fetches a list of discussions similar to the given one.
+   * @param id The ID of the source discussion.
+   * @returns An Observable of ApiResponse containing an array of DiscussionSummaryDTOs.
+   */
+  getSimilarDiscussions(id: number): Observable<ApiResponse<DiscussionSummaryDTO[]>> {
+    return this.http.get<ApiResponse<DiscussionSummaryDTO[]>>(`${this.basePublicApiUrl}/${id}/similar`)
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
    * Searches for discussions based on a keyword.
    * @param keyword The search term.
    * @param page The page number to retrieve (0-indexed).

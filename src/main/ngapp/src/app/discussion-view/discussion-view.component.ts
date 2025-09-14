@@ -17,7 +17,7 @@ import { CommentService } from '../_services/comment.service';
 import { VoteService } from '../_services/vote.service';
 import { AuthenticationService } from '../_services/authentication.service';
 import { AvatarService } from '../_services/avatar.service';
-import { DiscussionDTO, CommentDTO, FileInfoDTO, Page, ApiResponse } from '../_data/dtos';
+import { DiscussionDTO, CommentDTO, FileInfoDTO, Page, ApiResponse, DiscussionSummaryDTO } from '../_data/dtos';
 import { FileListComponent } from '../file-list/file-list.component';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -78,6 +78,12 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
   isLoadingDiscussion = true;
   discussionError: string | null = null;
 
+  // NEW: State for similar discussions
+  similarDiscussions: DiscussionSummaryDTO[] = [];
+  isLoadingSimilar = false;
+  similarDiscussionsLoaded = false;
+  similarDiscussionsError: string | null = null;
+
   avatarFileIdMap: Map<string, number | null> = new Map();
 
   private subscriptions = new Subscription();
@@ -124,6 +130,11 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
     this.discussionError = null;
     this.isLoadingComments = true;
     this.commentsError = null;
+    // NEW: Reset similar discussions state
+    this.similarDiscussions = [];
+    this.isLoadingSimilar = false;
+    this.similarDiscussionsLoaded = false;
+    this.similarDiscussionsError = null;
   }
 
   private loadDiscussionData(discussionId: number): void {
@@ -160,6 +171,34 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
       }
     });
     this.subscriptions.add(loadSub);
+  }
+
+  /**
+   * NEW: Fetches similar discussions on demand.
+   */
+  loadSimilarDiscussions(): void {
+    if (!this.discussionId || this.isLoadingSimilar) {
+      return;
+    }
+    this.isLoadingSimilar = true;
+    this.similarDiscussionsLoaded = true; // Mark as loaded to show the section
+    this.similarDiscussionsError = null;
+
+    const sub = this.discussionService.getSimilarDiscussions(this.discussionId).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.similarDiscussions = response.data;
+        } else {
+          this.similarDiscussionsError = response.message || 'Could not load similar discussions.';
+        }
+        this.isLoadingSimilar = false;
+      },
+      error: (err) => {
+        this.similarDiscussionsError = err.message || 'An unexpected error occurred.';
+        this.isLoadingSimilar = false;
+      }
+    });
+    this.subscriptions.add(sub);
   }
 
   fetchComments(discussionId: number, pageForComments: number, size: number, sortProperty: string, sortDirection: string): void {

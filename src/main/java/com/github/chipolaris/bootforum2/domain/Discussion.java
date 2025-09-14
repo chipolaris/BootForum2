@@ -1,14 +1,17 @@
 package com.github.chipolaris.bootforum2.domain;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import jakarta.persistence.*;
 import org.hibernate.search.engine.backend.types.Sortable;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*;
+
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+
 
 @Entity
 @Table(name="DISCUSSION_T")
@@ -188,13 +191,39 @@ public class Discussion extends BaseEntity {
         this.tags = tags;
     }
 
+    /****************************************************************************
+     * The fields below are to facilitate search
+     ****************************************************************************/
+    @Override
+    @GenericField(name="createBy")
+    public String getCreateBy() {
+        return super.getCreateBy();
+    }
+
     /**
      * Override getCreateDate to add @GenericField annotation
      * @return
      */
     @Override
-    @GenericField(sortable = Sortable.YES)
+    @GenericField(name="createDate", sortable = Sortable.YES)
     public LocalDateTime getCreateDate() {
         return super.getCreateDate();
+    }
+
+    // Index just the foreign key ID
+    @GenericField(name="forumId")
+    @Transient   // Tell JPA this is not a persistent column
+    @IndexingDependency(derivedFrom = @ObjectPath(@PropertyValue(propertyName = "forum")))
+    public Long getForumId() {
+        return forum != null ? forum.getId() : null;
+    }
+
+    // Index just the foreign key IDs (multi-valued field in Lucene)
+    @GenericField(name = "tagIds")
+    @IndexingDependency(derivedFrom = @ObjectPath(@PropertyValue(propertyName = "tags")))
+    @Transient
+    public Set<Long> getTagIds() {
+        return tags == null ? Collections.emptySet() :
+                tags.stream().map(Tag::getId).collect(Collectors.toSet());
     }
 }

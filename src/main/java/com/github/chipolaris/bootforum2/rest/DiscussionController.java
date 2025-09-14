@@ -77,7 +77,7 @@ public class DiscussionController {
             ServiceResponse<PageResponseDTO<DiscussionSummaryDTO>> serviceResponse;
 
             if (forumId != null) {
-                // If forumId is provided, get discussions for that forum
+                // If forumId is provided, get discussions for that specific forum
                 serviceResponse = discussionService.findPaginatedDiscussionSummariesForForum(forumId, pageable);
             } else {
                 // Otherwise, get all discussions
@@ -151,6 +151,29 @@ public class DiscussionController {
         } catch (Exception e) {
             logger.error(String.format("Unexpected error while retrieving discussion with ID %d", discussionId), e);
             return ApiResponse.error(String.format("An unexpected error occurred while retrieving discussion with ID %d.", discussionId));
+        }
+    }
+
+    /**
+     * NEW: Retrieves a list of discussions similar to the given one.
+     * @param discussionId The ID of the source discussion.
+     * @return ApiResponse containing a list of DiscussionSummaryDTOs.
+     */
+    @GetMapping("/public/discussions/{discussionId}/similar")
+    public ApiResponse<?> getSimilarDiscussions(@PathVariable Long discussionId) {
+        logger.info("Received request to get similar discussions for ID: {}", discussionId);
+
+        try {
+            ServiceResponse<List<DiscussionSummaryDTO>> response = discussionService.findSimilarDiscussions(discussionId, 10);
+
+            if (response.isSuccess()) {
+                return ApiResponse.success(response.getDataObject(), "Similar discussions retrieved successfully.");
+            } else {
+                return ApiResponse.error(response.getMessages(), "Failed to retrieve similar discussions.");
+            }
+        } catch (Exception e) {
+            logger.error("Unexpected error while getting similar discussions for ID " + discussionId, e);
+            return ApiResponse.error("An unexpected error occurred while retrieving similar discussions.");
         }
     }
 

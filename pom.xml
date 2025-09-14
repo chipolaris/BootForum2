@@ -39,6 +39,19 @@
 		<frontend.output.dir>${project.basedir}/src/main/resources/static/browser</frontend.output.dir>
 	</properties>
 
+	<!-- Add dependencyManagement to import the Hibernate Search BOM -->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.hibernate.search</groupId>
+				<artifactId>hibernate-search-bom</artifactId>
+				<version>${hibernate-search.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -58,11 +71,11 @@
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-<!--		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-tomcat</artifactId>
-			<scope>provided</scope>
-		</dependency>-->
+		<!--		<dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                    <scope>provided</scope>
+                </dependency>-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -107,15 +120,14 @@
 		</dependency>
 
 		<!-- Hibernate Search backed by Lucene -->
+		<!-- Remove explicit versions, they are now managed by the BOM -->
 		<dependency>
 			<groupId>org.hibernate.search</groupId>
 			<artifactId>hibernate-search-mapper-orm</artifactId>
-			<version>${hibernate-search.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate.search</groupId>
 			<artifactId>hibernate-search-backend-lucene</artifactId>
-			<version>${hibernate-search.version}</version>
 		</dependency>
 
 		<dependency>
@@ -190,7 +202,7 @@
 						</goals>
 						<configuration>
 							<!-- Check your package.json for the correct build script -->
-							<!-- Common: 'run build' or 'run build &#45;&#45; &#45;&#45;configuration production' -->
+							<!-- Common: 'run build' or 'run build - configuration production' -->
 							<arguments>run build -- --configuration production</arguments>
 						</configuration>
 						<phase>generate-resources</phase>

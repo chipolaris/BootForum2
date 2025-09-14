@@ -262,6 +262,52 @@
         </div>
       </div>
 
+      <!-- Similar Discussions Card -->
+      <div class="bg-slate-50 dark:bg-slate-700 p-4 rounded-lg shadow-md">
+        <h3 class="flex items-center text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3 border-b pb-2 dark:border-slate-600">
+          <ng-icon name="heroLink" size="1.4em" class="mr-2"/> Similar Discussions
+        </h3>
+        <!-- Initial state with button -->
+        <div *ngIf="!similarDiscussionsLoaded" class="text-center">
+          <button (click)="loadSimilarDiscussions()"
+                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 cursor-pointer">
+            <ng-icon name="heroSparkles" class="mr-2"></ng-icon>
+            Find Similar
+          </button>
+        </div>
+
+        <!-- Loading state -->
+        <div *ngIf="isLoadingSimilar" class="flex items-center justify-center py-4">
+          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-sky-500"></div>
+          <span class="ml-2 text-sm text-gray-600 dark:text-slate-300">Finding...</span>
+        </div>
+
+        <!-- Error state -->
+        <div *ngIf="similarDiscussionsError && !isLoadingSimilar" class="text-sm text-red-600 dark:text-red-400">
+          {{ similarDiscussionsError }}
+        </div>
+
+        <!-- Results list -->
+        <ul *ngIf="!isLoadingSimilar && similarDiscussions.length > 0" class="space-y-3">
+          <li *ngFor="let similar of similarDiscussions">
+            <a [routerLink]="['/app/discussions', similar.id, 'view']" class="group">
+              <p class="text-sm font-semibold text-indigo-600 group-hover:underline dark:text-indigo-400 truncate" [title]="similar.title">
+                {{ similar.title }}
+              </p>
+              <p class="text-xs text-gray-500 dark:text-slate-400">
+                by {{ similar.createBy }} in <span class="font-medium">{{ similar.forumTitle }}</span>
+              </p>
+            </a>
+          </li>
+        </ul>
+
+        <!-- No results state -->
+        <div *ngIf="similarDiscussionsLoaded && !isLoadingSimilar && similarDiscussions.length === 0 && !similarDiscussionsError"
+             class="text-center py-2 text-sm text-gray-500 dark:text-slate-400">
+          <p>No similar discussions found.</p>
+        </div>
+      </div>
+
     </aside> <!-- End Right Column -->
 
   </div> <!-- End Main Content -->

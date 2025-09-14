@@ -150,7 +150,8 @@
                  (onSort)="onSortChange($event)"
                  [sortField]="currentSortField"
                  [sortOrder]="currentSortOrderNumber"
-                 [customSort]="true">
+                 [customSort]="true"
+                 stripedRows>
           <ng-template pTemplate="header">
             <tr class="bg-gray-50 dark:bg-slate-600">
               <th scope="col" pSortableColumn="title" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">

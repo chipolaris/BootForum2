@@ -76,7 +76,8 @@ public class DiscussionService {
             MultipartFile[] images,
             MultipartFile[] attachments) {
 
-        // --- START: New Validation Logic ---
+        logger.info("Creating discussion: {}", discussionCreateDTO.title());
+
         List<String> validationErrors = new ArrayList<>();
         validateContent(discussionCreateDTO.content(), validationErrors);
         validateTags(discussionCreateDTO.tagIds(), validationErrors);
@@ -87,7 +88,6 @@ public class DiscussionService {
             logger.warn("Discussion creation failed due to validation errors: {}", validationErrors);
             return ServiceResponse.failure(String.join(", ", validationErrors));
         }
-        // --- END: New Validation Logic ---
 
         String username = authenticationFacade.getCurrentUsername().orElse("system");
 
@@ -407,6 +407,84 @@ public class DiscussionService {
         } catch (Exception e) {
             logger.error(String.format("Error retrieving discussion view for ID %d: ", discussionId), e);
             return ServiceResponse.failure("An unexpected error occurred while retrieving the discussion: %s".formatted(e.getMessage()));
+        }
+    }
+
+    /**
+     * NEW: Finds discussions similar to a given source discussion using a hybrid scoring model.
+     * @param sourceDiscussionId The ID of the discussion to find similar items for.
+     * @param limit The maximum number of similar discussions to return.
+     * @return A ServiceResponse containing a list of DiscussionSummaryDTOs.
+     */
+    @Transactional(readOnly = true)
+    public ServiceResponse<List<DiscussionSummaryDTO>> findSimilarDiscussions(Long sourceDiscussionId, int limit) {
+        logger.info("Finding similar discussions for discussion ID: {}", sourceDiscussionId);
+
+        Discussion sourceDiscussion = genericDAO.find(Discussion.class, sourceDiscussionId);
+        if (sourceDiscussion == null) {
+            return ServiceResponse.failure("Source discussion with ID " + sourceDiscussionId + " not found.");
+        }
+
+        SearchSession searchSession = Search.session(entityManager);
+
+        try {
+            List<Discussion> similarDiscussions = searchSession.search(Discussion.class)
+                    .where(f -> f.bool(b -> {
+                        b.mustNot(f.id().matching(sourceDiscussionId));
+
+                        // --- Text similarity replacement ---
+                        if (sourceDiscussion.getTitle() != null && !sourceDiscussion.getTitle().isBlank()) {
+                            b.should(f.match()
+                                    .field("title")
+                                    .matching(sourceDiscussion.getTitle())
+                                    .boost(2.0f));
+                        }
+                        if (sourceDiscussion.getContent() != null && !sourceDiscussion.getContent().isBlank()) {
+                            b.should(f.match()
+                                    .field("content")
+                                    .matching(sourceDiscussion.getContent())
+                                    .boost(1.5f));
+                        }
+
+                        // Forum similarity
+                        if (sourceDiscussion.getForum() != null) {
+                            b.should(f.match()
+                                    .field("forumId")
+                                    .matching(sourceDiscussion.getForum().getId())
+                                    .boost(3.0f));
+                        }
+
+                        // Tag similarity
+                        if (sourceDiscussion.getTags() != null) {
+                            for (Tag tag : sourceDiscussion.getTags()) {
+                                b.should(f.match()
+                                        .field("tagIds")
+                                        .matching(tag.getId())
+                                        .boost(2.5f));
+                            }
+                        }
+
+                        // Author similarity
+                        if (sourceDiscussion.getCreateBy() != null) {
+                            b.should(f.match()
+                                    .field("createBy")
+                                    .matching(sourceDiscussion.getCreateBy())
+                                    .boost(1.0f));
+                        }
+                    }))
+                    .sort(f -> f.score().desc())
+                    .fetch(limit)
+                    .hits();
+
+            List<DiscussionSummaryDTO> dtos = similarDiscussions.stream()
+                    .map(discussionMapper::toSummaryDTO)
+                    .collect(Collectors.toList());
+
+            return ServiceResponse.success("Successfully found similar discussions.", dtos);
+
+        } catch (Exception e) {
+            logger.error("Error finding similar discussions for ID " + sourceDiscussionId, e);
+            return ServiceResponse.failure("An unexpected error occurred while finding similar discussions.");
         }
     }
 
