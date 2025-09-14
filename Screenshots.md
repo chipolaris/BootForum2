@@ -8,7 +8,7 @@
 <img width="1592" height="1442" alt="Image" src="https://github.com/user-attachments/assets/d442dd03-ac0d-4c16-bbb4-a17145753cfe" />
 
 ### Discussion
-<img width="1585" height="1444" alt="Image" src="https://github.com/user-attachments/assets/d7eef8d1-e8e4-444e-b993-9ff084a8e228" />
+<img width="1592" height="1442" alt="Image" src="https://github.com/user-attachments/assets/0f0aea13-6c82-42c1-aa5d-232f53a6997e" />
 
 ### Discussion List
 <img width="1592" height="1442" alt="Image" src="https://github.com/user-attachments/assets/3b7bc8ea-5b56-4c99-862e-5807251c98f6" />
