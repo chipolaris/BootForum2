@@ -207,6 +207,13 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<CountPerMonthDTO> countByMonth(@Param("since") LocalDateTime since);
 
     /**
+     * Calculates the total reputation from votes on comments for each author.
+     * @return A list of object arrays, where each array contains the username and their total comment reputation.
+     */
+    @Query("SELECT c.createBy, SUM(CAST(v.voteValue AS long)) FROM Comment c JOIN c.commentVote.votes v GROUP BY c.createBy")
+    List<Object[]> getReputationFromComments();
+
+    /**
      * Counts the total number of attachments across all comments.
      * @return The total count of attachments.
      */

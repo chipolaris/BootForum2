@@ -209,6 +209,13 @@ public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
     List<CountPerMonthDTO> countByMonth(@Param("since") LocalDateTime since);
 
     /**
+     * Calculates the total reputation from votes on discussions for each author.
+     * @return A list of object arrays, where each array contains the username and their total discussion reputation.
+     */
+    @Query("SELECT d.createBy, SUM(CAST(v.voteValue AS long)) FROM Discussion d JOIN d.stat.votes v GROUP BY d.createBy")
+    List<Object[]> getReputationFromDiscussions();
+
+    /**
      * Sums the total number of images from all discussion stats.
      * @return The total count of images in discussions.
      */

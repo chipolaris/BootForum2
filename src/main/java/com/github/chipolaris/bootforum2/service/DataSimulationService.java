@@ -9,6 +9,8 @@ import com.github.chipolaris.bootforum2.dto.FileCreatedDTO;
 import com.github.chipolaris.bootforum2.dto.admin.DiscussionSimulationConfigDTO;
 import com.github.chipolaris.bootforum2.event.*;
 import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
+import com.github.chipolaris.bootforum2.repository.CommentRepository;
+import com.github.chipolaris.bootforum2.repository.DiscussionRepository;
 import com.github.chipolaris.bootforum2.repository.UserRepository;
 import com.github.javafaker.Faker;
 import org.slf4j.Logger;
@@ -24,10 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,13 +43,16 @@ public class DataSimulationService {
     private final ApplicationEventPublisher eventPublisher;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final DiscussionRepository discussionRepository;
+    private final CommentRepository commentRepository;
     private final Faker faker = new Faker();
     private final Random random = new Random();
 
     public DataSimulationService(GenericDAO genericDAO, DynamicDAO dynamicDAO, FileService fileService,
                                  StatService statService, SystemStatistic systemStatistic,
                                  FileInfoMapper fileInfoMapper, ApplicationEventPublisher eventPublisher,
-                                 PasswordEncoder passwordEncoder, UserRepository userRepository) {
+                                 PasswordEncoder passwordEncoder, UserRepository userRepository,
+                                 DiscussionRepository discussionRepository, CommentRepository commentRepository) {
         this.genericDAO = genericDAO;
         this.dynamicDAO = dynamicDAO;
         this.fileService = fileService;
@@ -60,6 +62,8 @@ public class DataSimulationService {
         this.eventPublisher = eventPublisher;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
+        this.discussionRepository = discussionRepository;
+        this.commentRepository = commentRepository;
     }
 
     private static final List<String> ICON_CHOICES = List.of(
@@ -245,7 +249,40 @@ public class DataSimulationService {
             }
         }
 
-        logger.info("Successfully completed simulated vote generation.");
+        logger.info("Vote generation complete. Starting user reputation synchronization...");
+
+        // Initialize a map with all users to ensure everyone's reputation is reset/calculated.
+        Map<String, Long> reputationMap = allUsers.stream()
+                .collect(Collectors.toMap(User::getUsername, u -> 0L));
+
+        // Aggregate reputation from discussions
+        List<Object[]> discussionReputations = discussionRepository.getReputationFromDiscussions();
+        for (Object[] result : discussionReputations) {
+            String username = (String) result[0];
+            Long reputation = (Long) result[1];
+            if (username != null && reputation != null) {
+                reputationMap.merge(username, reputation, Long::sum);
+            }
+        }
+
+        // Aggregate reputation from comments
+        List<Object[]> commentReputations = commentRepository.getReputationFromComments();
+        for (Object[] result : commentReputations) {
+            String username = (String) result[0];
+            Long reputation = (Long) result[1];
+            if (username != null && reputation != null) {
+                reputationMap.merge(username, reputation, Long::sum);
+            }
+        }
+
+        // Update each user's stat object. Since this method is @Transactional,
+        // changes to the managed 'User' entities will be persisted on commit.
+        for (User user : allUsers) {
+            long finalReputation = reputationMap.getOrDefault(user.getUsername(), 0L);
+            user.getStat().setReputation(finalReputation);
+        }
+
+        logger.info("Successfully completed simulated vote generation and user reputation sync.");
     }
 
     private void addVoteOnDiscussion(Discussion discussion, String username) {
