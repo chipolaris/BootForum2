@@ -29,11 +29,11 @@ COPY --from=build /app/target/*.jar app.jar
 # Define a mount point for persistent data.
 # Your application.yml uses ${user.home} for data paths. In this image,
 # the home directory for the root user is /root. We declare the parent
--directory as a volume to be managed by Docker.
+# directory as a volume to be managed by Docker.
 VOLUME /root/BootForum2
 
 # Expose the port the Spring Boot application runs on
-EXPOSE 8080
+EXPOSE 80
 
 # Define the command to run the application when the container starts
 ENTRYPOINT ["java", "-jar", "app.jar"]

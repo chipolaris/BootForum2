@@ -12,7 +12,7 @@ services:
     container_name: bootforum-app
     # Map port 8080 on the host to port 8080 in the container
     ports:
-      - "8080:8080"
+      - "80:80"
     # Mount a named volume to persist all application data
     # This single volume will contain the H2 database, uploads, and Lucene indexes,
     # ensuring data is not lost when the container is restarted.

@@ -4,10 +4,10 @@
 Development is done through [Prompt Engineering](https://en.wikipedia.org/wiki/Prompt_engineering) with [Google's Gemini
 Code Assist](https://codeassist.google/). In addition, [ChatGPT](https://chatgpt.com/) is used for more generic questions
 
-\* *Currently, in development*
+\* *Currently in development*
 
 ###  [**View BootForum2 Screenshots**](Screenshots.md "Screenshots")
-###  [**Live Demo**](http://3.90.20.207:8080 "BootForum2 Demo")
+###  [**Live Demo**](http://http://ec2-18-232-107-131.compute-1.amazonaws.com/ "BootForum2 Demo")
 
 ## Main Stacks
 
