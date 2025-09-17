@@ -33,7 +33,7 @@ COPY --from=build /app/target/*.jar app.jar
 VOLUME /root/BootForum2
 
 # Expose the port the Spring Boot application runs on
-EXPOSE 80
+EXPOSE 8080
 
 # Define the command to run the application when the container starts
 ENTRYPOINT ["java", "-jar", "app.jar"]
