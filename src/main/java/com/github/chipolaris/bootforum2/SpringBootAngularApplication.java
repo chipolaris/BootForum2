@@ -94,31 +94,17 @@ public class SpringBootAngularApplication {
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     // Authorization Rules
                     .authorizeHttpRequests(authz -> authz
-                            // Permit static resources, Angular app routes, public API, and NEW AUTH endpoint
-                            .requestMatchers(
-                                    "/",
-                                    "/index.html",
-                                    "/assets/**",      // Permit everything under assets
-                                    "/favicon.ico",
-                                    "/*.js",           // Matches main.js, polyfills.js, runtime.js etc. at the root
-                                    "/*.css",          // Matches styles.css etc. at the root
-                                    "/*.png", "/*.jpg", "/*.jpeg", "/*.gif", "/*.svg", // Common image types at the root (if any)
-                                    "/*.woff", "/*.woff2", "/*.ttf", "/*.eot", // Common font types at the root (if any)
-                                    "/manifest.webmanifest", // Example: PWA manifest
-                                    "/media/**", // primeicons files are put in the resources/static/browser/media folder
-                                    // Keep other permitted paths
-                                    "/attachment/**",  // Assuming this is public or handled separately
-                                    "/api/public/**",
-                                    "/error",
-                                    API_AUTH_PATH // Permit auth endpoint
-                            ).permitAll()
-                            // Secure specific API endpoints
-                            .requestMatchers(API_USER_PROFILE_PATH).authenticated() // Still requires authentication
-                            .requestMatchers("/api/secured/**").hasAnyRole(SECURED_ROLES)
-                            .requestMatchers("/api/user/**").hasAnyRole(SECURED_ROLES)
-                            .requestMatchers("/api/admin/**").hasAnyRole(ADMIN_ROLES)
-                            // Any other request must be authenticated
-                            .anyRequest().authenticated()
+                                    // --- START: SPA-aware security configuration ---
+                                    // 1. Secure API endpoints first
+                                    .requestMatchers("/api/admin/**").hasAnyRole(ADMIN_ROLES)
+                                    .requestMatchers("/api/user/**").hasAnyRole(SECURED_ROLES)
+                                    .requestMatchers("/api/secured/**").hasAnyRole(SECURED_ROLES)
+                                    // 2. Explicitly permit public API endpoints
+                                    .requestMatchers(API_AUTH_PATH, "/api/public/**").permitAll()
+                                    // 3. Permit all other requests (Angular routes, static assets like .js, .css, .ico)
+                                    // The PathResourceResolver will handle serving index.html for Angular routes.
+                                    .anyRequest().permitAll()
+                            // --- END: SPA-aware security configuration ---
                     );
 
             // *** Add JWT filter before the standard UsernamePasswordAuthenticationFilter ***
@@ -148,7 +134,7 @@ public class SpringBootAngularApplication {
     public class AngularResourceConfiguration implements WebMvcConfigurer {
         @Override
         public void addResourceHandlers(ResourceHandlerRegistry registry) {
-            registry.addResourceHandler("/**").addResourceLocations("classpath:/static/browser")
+            registry.addResourceHandler("/**").addResourceLocations("classpath:/static/browser/")
                     .resourceChain(true)
                     .addResolver(new PathResourceResolver() {
                         @Override
@@ -159,7 +145,6 @@ public class SpringBootAngularApplication {
                                     : new ClassPathResource("/static/browser/index.html");
                         }
                     });
-            //registry.setOrder(Integer.MAX_VALUE - 1);  // *2* make sure this order value is less than the one above (*1*)
         }
 
         /**
@@ -236,42 +221,6 @@ public class SpringBootAngularApplication {
         };
     }
 
-    /**
-     *
-     * @param forumSettingsService
-     * @param forumDefaultConfig
-     * @return
-     */
-    /*@Bean @Order(4)
-    CommandLineRunner initializeForumDefaults(ForumSettingService forumSettingsService, ForumDefaultConfig forumDefaultConfig) {
-        return args -> {
-            if (forumSettingsService.isEmpty()) {
-                logger.info("Initialize Forum Defaults...");
-                forumSettingsService.initializeFromDefaults(forumDefaultConfig);
-            }
-            else {
-                logger.info("Backfill Forum Defaults...");
-                forumSettingsService.backfillMissingDefaults(forumDefaultConfig);
-            }
-        };
-    }*/
-
-    /**
-     * Initialize SystemStatistic.
-     * Run this after all other CommandlineRunners.
-     * @param systemStatistic
-     * @return
-     */
-    /*@Bean @Order(5)
-    CommandLineRunner initializeSystemStatistic(SystemStatistic systemStatistic) {
-        return args -> systemStatistic.initializeStatistics();
-    }*/
-
-    /**
-     *
-     * @param forumSettingsService
-     * @return
-     */
     @Bean
     public ApplicationListener<ApplicationReadyEvent> initializeForumDefaults(
             ForumSettingService forumSettingsService) {
