@@ -43,6 +43,7 @@ export class AppComponent implements OnInit {
   systemStats: SystemStatisticDTO | null = null;
   statsError: string | null = null;
   isLoadingStats = true;
+  isMobileMenuOpen = false; // For mobile navigation
 
   constructor() {
     // The constructor is now clean, handling only observable setup.
@@ -96,7 +97,16 @@ export class AppComponent implements OnInit {
     });
   }
 
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen = false;
+  }
+
   logout() {
+    this.closeMobileMenu(); // Ensure menu closes on logout
     this.authService.logout();
     this.router.navigate(['/app/login']);
   }
