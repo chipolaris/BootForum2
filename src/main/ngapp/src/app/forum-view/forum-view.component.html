@@ -64,7 +64,7 @@
                 </div>
                 <p class="text-xs text-slate-500 dark:text-slate-400 ml-7">
                   by {{ forumDetails.stat.lastDiscussion.discussionCreator }}
-                  <span class="text-slate-400 dark:text-slate-500 mx-1">•</span>
+                  <span class="text-slate-600 dark:text-slate-800 mx-1">&bull;</span>
                   {{ forumDetails.stat.lastDiscussion.discussionCreateDate | date:'short' }}
                 </p>
               </ng-container>
@@ -89,7 +89,7 @@
                 </div>
                 <p class="text-xs text-slate-500 dark:text-slate-400 ml-7">
                   by {{ forumDetails.stat.lastComment.commentor }}
-                  <span class="text-slate-400 dark:text-slate-500 mx-1">•</span>
+                  <span class="text-slate-600 dark:text-slate-800 mx-1">&bull;</span>
                   {{ forumDetails.stat.lastComment.commentDate | date:'short' }}
                 </p>
               </ng-container>
@@ -129,104 +129,178 @@
         <p>{{ discussionsErrorMessage }}</p>
       </div>
 
-      <!-- Controls Bar for Page Size -->
-      <div *ngIf="!isLoadingDiscussions && !discussionsErrorMessage && discussionsPage && discussionsPage.content.length > 0"
-           class="mb-4 flex justify-end items-center">
-        <label for="pageSize" class="text-sm text-gray-700 dark:text-gray-300 mr-2">Items per page:</label>
-        <select id="pageSize" [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)" name="pageSizeSelect"
-                class="px-2 py-1.5 border border-gray-300 rounded-md text-sm dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 focus:ring-indigo-500 focus:border-indigo-500">
-          <option [value]="5">5</option>
-          <option [value]="10">10</option>
-          <option [value]="25">25</option>
-        </select>
-      </div>
+      <!-- START: Responsive Controls -->
+      <div *ngIf="!isLoadingDiscussions && !discussionsErrorMessage && discussionsPage && discussionsPage.content.length > 0">
+        <!-- Mobile Controls (Sort + Page Size) -->
+        <div class="block md:hidden mb-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg shadow-sm space-y-4">
+          <div>
+            <label for="mobileSort" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sort By:</label>
+            <select id="mobileSort" [(ngModel)]="sortOption" (ngModelChange)="onMobileSortChange()" name="mobileSortSelect"
+                    class="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 focus:ring-indigo-500 focus:border-indigo-500">
+              <option *ngFor="let option of sortOptions" [value]="option.value">{{ option.label }}</option>
+            </select>
+          </div>
+          <div>
+            <label for="mobilePageSize" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Items per page:</label>
+            <select id="mobilePageSize" [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)" name="mobilePageSizeSelect"
+                    class="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 focus:ring-indigo-500 focus:border-indigo-500">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+            </select>
+          </div>
+        </div>
 
-      <!-- Discussions Table -->
-      <div *ngIf="!isLoadingDiscussions && !discussionsErrorMessage && discussionsPage && discussionsPage.content.length > 0; else noDiscussions"
-           class="overflow-x-auto bg-white dark:bg-slate-700 shadow-md rounded-lg">
-        <p-table [value]="discussionsPage.content"
-                 tableStyleClass="min-w-full divide-y divide-gray-200 dark:divide-slate-600"
-                 responsiveLayout="scroll"
-                 (onSort)="onSortChange($event)"
-                 [sortField]="currentSortField"
-                 [sortOrder]="currentSortOrderNumber"
-                 [customSort]="true"
-                 stripedRows>
-          <ng-template pTemplate="header">
-            <tr class="bg-gray-50 dark:bg-slate-600">
-              <th scope="col" pSortableColumn="title" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Title <p-sortIcon field="title"></p-sortIcon>
-              </th>
-              <th scope="col" pSortableColumn="createDate" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Started On <p-sortIcon field="createDate"></p-sortIcon>
-              </th>
-              <th scope="col" pSortableColumn="stat.commentCount" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Replies <p-sortIcon field="stat.commentCount"></p-sortIcon>
-              </th>
-              <th scope="col" pSortableColumn="stat.lastComment.commentDate" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Last Reply <p-sortIcon field="stat.lastComment.commentDate"></p-sortIcon>
-              </th>
-              <th scope="col" pSortableColumn="stat.viewCount" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Views <p-sortIcon field="stat.viewCount"></p-sortIcon>
-              </th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-discussion>
-            <tr class="hover:bg-gray-50 dark:hover:bg-slate-600/50 transition-colors duration-150">
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div>
-                  <a [routerLink]="['/app/discussions', discussion.id, 'view']"
-                     class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
-                    {{ discussion.title }}
-                  </a>
+        <!-- Desktop Page Size Control -->
+        <div class="hidden md:flex mb-4 justify-end items-center">
+          <label for="pageSize" class="text-sm text-gray-700 dark:text-gray-300 mr-2">Items per page:</label>
+          <select id="pageSize" [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)" name="pageSizeSelect"
+                  class="px-2 py-1.5 border border-gray-300 rounded-md text-sm dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 focus:ring-indigo-500 focus:border-indigo-500">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+          </select>
+        </div>
+      </div>
+      <!-- END: Responsive Controls -->
+
+
+      <!-- START: Responsive Container for Discussion List -->
+      <div *ngIf="!isLoadingDiscussions && !discussionsErrorMessage && discussionsPage && discussionsPage.content.length > 0; else noDiscussions">
+
+        <!-- Card Layout for Mobile (visible on small screens, hidden on md and up) -->
+        <div class="block md:hidden space-y-4">
+          <div *ngFor="let discussion of discussionsPage.content" class="bg-white dark:bg-slate-700 shadow-md rounded-lg p-4">
+            <!-- Title -->
+            <a [routerLink]="['/app/discussions', discussion.id, 'view']"
+               class="text-base font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
+               [title]="discussion.title">
+              {{ discussion.title }}
+            </a>
+            <!-- Author -->
+            <div class="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <span>by&nbsp;</span>
+              <a [routerLink]="['/app/users', discussion.createBy, 'profile']" class="flex items-center hover:underline">
+                <img [src]="getAvatarUrl(discussion.createBy)" [alt]="discussion.createBy + '\'s avatar'"
+                     class="h-6 w-6 rounded-full mr-1.5 object-cover">
+                <span>{{ discussion.createBy }}</span>
+              </a>
+            </div>
+            <!-- Tags -->
+            <div class="flex flex-wrap items-center gap-2 mt-2">
+              <div *ngFor="let tag of discussion.tags"
+                   class="flex items-center gap-1.5 bg-gray-200 dark:bg-slate-600 text-gray-800 dark:text-slate-200 text-xs font-semibold px-2 py-0.5 rounded-full">
+                <ng-icon [name]="tag.icon" [style.color]="tag.iconColor" size="0.8em"></ng-icon>
+                <a routerLink="/app/discussions/by-tag" [queryParams]="{ tagIds: tag.id }" class="nav-link">
+                  <span>{{ tag.label }}</span>
+                </a>
+              </div>
+            </div>
+            <!-- Stats Footer -->
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-slate-600 grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
+              <div class="text-center">
+                <div class="text-xs font-medium text-gray-500 dark:text-gray-400">Replies</div>
+                <div class="font-semibold text-gray-800 dark:text-slate-200">{{ discussion.commentCount | number }}</div>
+              </div>
+              <div class="text-center">
+                <div class="text-xs font-medium text-gray-500 dark:text-gray-400">Views</div>
+                <div class="font-semibold text-gray-800 dark:text-slate-200">{{ discussion.viewCount | number }}</div>
+              </div>
+              <div class="text-center">
+                <div class="text-xs font-medium text-gray-500 dark:text-gray-400">Last Reply</div>
+                <div class="font-semibold text-gray-800 dark:text-slate-200">
+                  <ng-container *ngIf="discussion.lastCommentDate; else noLastCommentDateCard">{{ discussion.lastCommentDate | date:'shortDate' }}</ng-container>
+                  <ng-template #noLastCommentDateCard>N/A</ng-template>
                 </div>
-                <div class="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  <span>by&nbsp;</span>
-                  <a [routerLink]="['/app/users', discussion.createBy, 'profile']" class="flex items-center hover:underline">
-                    <img [src]="getAvatarUrl(discussion.createBy)" [alt]="discussion.createBy + '\'s avatar'"
-                         class="h-6 w-6 rounded-full mr-1.5 object-cover">
-                    <span>{{ discussion.createBy }}</span>
-                  </a>
-                </div>
-                <div class="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  <div *ngFor="let tag of discussion.tags"
-                       class="flex items-center gap-1.5 bg-gray-200 dark:bg-slate-600 text-gray-800 dark:text-slate-200 text-xs font-semibold mr-2 px-2 py-0.5 rounded-full">
-                    <ng-icon [name]="tag.icon" [style.color]="tag.iconColor" size="0.8em"></ng-icon>
-                    <a
-                      routerLink="/app/discussions/by-tag"
-                      [queryParams]="{ tagIds: tag.id }"
-                      routerLinkActive="active-nav-link"
-                      class="nav-link">
-                      <span>{{ tag.label }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table for Desktop (hidden on small screens, visible on md and up) -->
+        <div class="hidden md:block overflow-x-auto bg-white dark:bg-slate-700 shadow-md rounded-lg">
+          <p-table [value]="discussionsPage.content"
+                   tableStyleClass="min-w-full divide-y divide-gray-200 dark:divide-slate-600"
+                   responsiveLayout="scroll"
+                   (onSort)="onSortChange($event)"
+                   [sortField]="currentSortField"
+                   [sortOrder]="currentSortOrderNumber"
+                   [customSort]="true"
+                   stripedRows>
+            <ng-template pTemplate="header">
+              <tr class="bg-gray-50 dark:bg-slate-600">
+                <th scope="col" pSortableColumn="title" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Title <p-sortIcon field="title"></p-sortIcon>
+                </th>
+                <th scope="col" pSortableColumn="createDate" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Started On <p-sortIcon field="createDate"></p-sortIcon>
+                </th>
+                <th scope="col" pSortableColumn="stat.commentCount" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Replies <p-sortIcon field="stat.commentCount"></p-sortIcon>
+                </th>
+                <th scope="col" pSortableColumn="stat.lastComment.commentDate" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Last Reply <p-sortIcon field="stat.lastComment.commentDate"></p-sortIcon>
+                </th>
+                <th scope="col" pSortableColumn="stat.viewCount" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Views <p-sortIcon field="stat.viewCount"></p-sortIcon>
+                </th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-discussion>
+              <tr class="hover:bg-gray-50 dark:hover:bg-slate-600/50 transition-colors duration-150">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div>
+                    <a [routerLink]="['/app/discussions', discussion.id, 'view']"
+                       class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                      {{ discussion.title }}
                     </a>
                   </div>
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                {{ discussion.createDate | date:'mediumDate' }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500 dark:text-gray-300">
-                {{ discussion.commentCount | number }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                <ng-container *ngIf="discussion.lastCommentDate; else noLastCommentDate">
-                  {{ discussion.lastCommentDate | date:'mediumDate' }}
-                </ng-container>
-                <ng-template #noLastCommentDate>N/A</ng-template>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500 dark:text-gray-300">
-                {{ discussion.viewCount | number }}
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage">
-            <tr>
-              <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-300">
-                No discussions have been started in this forum yet.
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
+                  <div class="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    <span>by&nbsp;</span>
+                    <a [routerLink]="['/app/users', discussion.createBy, 'profile']" class="flex items-center hover:underline">
+                      <img [src]="getAvatarUrl(discussion.createBy)" [alt]="discussion.createBy + '\'s avatar'"
+                           class="h-6 w-6 rounded-full mr-1.5 object-cover">
+                      <span>{{ discussion.createBy }}</span>
+                    </a>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-2 mt-2">
+                    <div *ngFor="let tag of discussion.tags"
+                         class="flex items-center gap-1.5 bg-gray-200 dark:bg-slate-600 text-gray-800 dark:text-slate-200 text-xs font-semibold px-2 py-0.5 rounded-full">
+                      <ng-icon [name]="tag.icon" [style.color]="tag.iconColor" size="0.8em"></ng-icon>
+                      <a
+                        routerLink="/app/discussions/by-tag"
+                        [queryParams]="{ tagIds: tag.id }"
+                        routerLinkActive="active-nav-link"
+                        class="nav-link">
+                        <span>{{ tag.label }}</span>
+                      </a>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                  {{ discussion.createDate | date:'mediumDate' }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500 dark:text-gray-300">
+                  {{ discussion.commentCount | number }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                  <ng-container *ngIf="discussion.lastCommentDate; else noLastCommentDate">{{ discussion.lastCommentDate | date:'mediumDate' }}</ng-container>
+                  <ng-template #noLastCommentDate>N/A</ng-template>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500 dark:text-gray-300">
+                  {{ discussion.viewCount | number }}
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-300">
+                  No discussions have been started in this forum yet.
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
 
         <app-paginator *ngIf="discussionsPage && discussionsPage.totalPages > 1"
                        [currentPage]="discussionsPage.number"

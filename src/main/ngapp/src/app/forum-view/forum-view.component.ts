@@ -48,6 +48,17 @@ export class ForumViewComponent implements OnInit, OnDestroy {
   currentSortOrder: string = 'DESC';
   currentSortOrderNumber: number = -1;
 
+  // NEW: State for mobile sort dropdown
+  sortOption: string = 'stat.lastComment.commentDate,DESC';
+  sortOptions = [
+    { label: 'Latest Reply', value: 'stat.lastComment.commentDate,DESC' },
+    { label: 'Newest Discussions', value: 'createDate,DESC' },
+    { label: 'Most Replies', value: 'stat.commentCount,DESC' },
+    { label: 'Most Views', value: 'stat.viewCount,DESC' },
+    { label: 'Title (A-Z)', value: 'title,ASC' },
+    { label: 'Title (Z-A)', value: 'title,DESC' }
+  ];
+
   avatarFileIdMap: Map<string, number | null> = new Map();
 
   private subscriptions = new Subscription();
@@ -194,9 +205,26 @@ export class ForumViewComponent implements OnInit, OnDestroy {
         this.currentSortField = newSortField;
         this.currentSortOrderNumber = newSortOrderNumber;
         this.currentSortOrder = newSortOrder;
+        // Sync with mobile dropdown
+        this.sortOption = `${this.currentSortField},${this.currentSortOrder}`;
         this.currentPage = 0;
         this.fetchDiscussions(this.forumId, this.currentPage, this.pageSize, this.currentSortField, this.currentSortOrder);
       }
+    }
+  }
+
+  // NEW: Handle sorting from the mobile dropdown
+  onMobileSortChange(): void {
+    if (!this.forumId) return;
+
+    const [field, direction] = this.sortOption.split(',');
+
+    if (this.currentSortField !== field || this.currentSortOrder !== direction) {
+      this.currentSortField = field;
+      this.currentSortOrder = direction;
+      this.currentSortOrderNumber = direction === 'ASC' ? 1 : -1;
+      this.currentPage = 0; // Reset to first page on sort change
+      this.fetchDiscussions(this.forumId, this.currentPage, this.pageSize, this.currentSortField, this.currentSortOrder);
     }
   }
 
