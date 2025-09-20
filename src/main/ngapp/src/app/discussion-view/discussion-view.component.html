@@ -320,6 +320,10 @@
               <p class="text-xs text-gray-500 dark:text-slate-400">
                 by {{ similar.createBy }} in <span class="font-medium">{{ similar.forumTitle }}</span>
               </p>
+              <p class="text-xs text-gray-500 dark:text-slate-400">
+                on <span class="font-medium">{{ similar.createDate | date:'longDate' }}</span>
+              </p>
+
             </a>
           </li>
         </ul>

@@ -2,7 +2,6 @@
 
   <p-toast></p-toast>
 
-  <!--<h2 class="text-2xl font-semibold mb-6 text-indigo-700">Forums and Groups</h2>-->
   <header class="mb-8">
     <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
       Forums and Groups
@@ -12,89 +11,154 @@
     </p>
   </header>
 
-  <div *ngIf="isLoading" class="flex justify-content-center align-items-center py-5">
-    <p-progressSpinner strokeWidth="4" styleClass="w-8rem h-8rem"></p-progressSpinner>
+  <div *ngIf="isLoading" class="flex justify-center items-center py-10">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+    <p class="ml-3 text-lg text-gray-600">Loading forums...</p>
   </div>
 
-  <div *ngIf="!isLoading && errorMessage" class="p-message p-message-error m-2">
-    <div class="p-message-wrapper">
-      <span class="p-message-summary">Error</span>
-      <span class="p-message-detail">{{ errorMessage }}</span>
+  <div *ngIf="!isLoading && errorMessage" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md mb-6" role="alert">
+    <p class="font-bold">Error</p>
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage && treeTableNodes.length === 0" class="bg-blue-50 dark:bg-slate-700 border border-blue-200 dark:border-slate-600 text-blue-700 dark:text-blue-300 px-4 py-3 rounded-md shadow" role="status">
+    <p>No top-level forums or groups found to display.</p>
+  </div>
+
+  <!-- START: Responsive Container -->
+  <div *ngIf="!isLoading && !errorMessage && treeTableNodes.length > 0">
+
+    <!-- Card Layout for Mobile (visible on small screens, hidden on md and up) -->
+    <div class="block md:hidden space-y-2">
+      <ng-container *ngFor="let node of treeTableNodes">
+        <!-- We use a recursive template to render the nested structure -->
+        <ng-container [ngTemplateOutlet]="nodeTemplate" [ngTemplateOutletContext]="{ node: node, level: 0 }"></ng-container>
+      </ng-container>
+    </div>
+
+    <!-- Table for Desktop (hidden on small screens, visible on md and up) -->
+    <div class="hidden md:block bg-white dark:bg-slate-800 p-4 rounded-lg shadow-lg">
+      <p-treeTable [value]="treeTableNodes" dataKey="data.id">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 50%;">Title</th>
+            <th class="text-center">Discussions</th>
+            <th class="text-center">Comments</th>
+            <th class="text-right">Last Post</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-rowNode let-rowData="rowData"> <!-- rowData is node.data -->
+          <tr class="dark:text-slate-300 dark:hover:bg-slate-700">
+            <td>
+              <p-treeTableToggler [rowNode]="rowNode" *ngIf="!rowNode.leaf"></p-treeTableToggler>
+              <span [style.paddingLeft.px]="rowNode.leaf && rowNode.level > 0 ? (rowNode.level * 1.5 * 16) + 16 : (rowNode.leaf ? 16 : 0)"
+                    [ngClass]="{'font-semibold': rowData.type === 'forumGroup'}">
+
+                <i [ngClass]="rowData.type === 'forumGroup' ? 'pi pi-fw pi-folder text-amber-500' : 'pi pi-fw pi-comments text-sky-500'"></i>
+                <ng-container *ngIf="rowData.type === 'forum'; else nonForumTitle">
+                  <a [routerLink]="['/app/forums', rowData.originalDto.id, 'view']" class="text-indigo-600 hover:text-indigo-800 hover:underline dark:text-indigo-400 dark:hover:text-indigo-300">
+                    {{ rowData.title }}
+                  </a>
+                </ng-container>
+                <ng-template #nonForumTitle>
+                  {{ rowData.title }}
+                </ng-template>
+              </span>
+              <ng-container *ngIf="rowData.icon && rowData.iconColor">
+                <ng-container *ngIf="rowData.icon as iconName">
+                  <ng-icon
+                    [name]="iconName"
+                    [style.color]="rowData.iconColor"
+                    size="20"
+                    class="ml-2 inline-block align-middle">
+                  </ng-icon>
+                </ng-container>
+              </ng-container>
+            </td>
+            <td class="text-center">
+              <ng-container *ngIf="rowData.type === 'forum'">
+                {{ rowData.discussionCount }}
+              </ng-container>
+            </td>
+            <td class="text-center">
+              <ng-container *ngIf="rowData.type === 'forum'">
+                {{ rowData.commentCount }}
+              </ng-container>
+            </td>
+            <td class="text-right">
+              <ng-container *ngIf="rowData.type === 'forum' && rowData.lastCommentDate">
+                {{ rowData.lastCommentDate | date: 'MMM d, y, h:mm a' }}
+              </ng-container>
+              <ng-container *ngIf="rowData.type === 'forum' && !rowData.lastCommentDate">
+                N/A
+              </ng-container>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="4" class="text-center p-4">
+              No data available in TreeTable.
+            </td>
+          </tr>
+        </ng-template>
+      </p-treeTable>
     </div>
   </div>
-
-  <div *ngIf="!isLoading && !errorMessage && treeTableNodes.length === 0" class="p-message p-message-info m-2">
-    <div class="p-message-wrapper">
-      <span class="p-message-summary">Information</span>
-      <span class="p-message-detail">No top-level forums or groups found to display.</span>
-    </div>
-  </div>
-
-  <div *ngIf="!isLoading && !errorMessage && treeTableNodes.length > 0" class="bg-white p-4 rounded-lg shadow-lg">
-    <p-treeTable [value]="treeTableNodes" dataKey="data.id">
-      <ng-template pTemplate="header">
-        <tr>
-          <th style="width: 50%;">Title</th>
-          <th class="text-center">Discussions</th>
-          <th class="text-center">Comments</th>
-          <th class="text-right">Last Post</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-rowNode let-rowData="rowData"> <!-- rowData is node.data -->
-        <tr>
-          <td>
-            <p-treeTableToggler [rowNode]="rowNode" *ngIf="!rowNode.leaf"></p-treeTableToggler>
-            <span [style.paddingLeft.px]="rowNode.leaf && rowNode.level > 0 ? (rowNode.level * 1.5 * 16) + 16 : (rowNode.leaf ? 16 : 0)"
-                  [ngClass]="{'font-semibold': rowData.type === 'forumGroup'}">
-
-               <i [ngClass]="rowData.type === 'forumGroup' ? 'pi pi-fw pi-folder' : 'pi pi-fw pi-comments'"></i>
-               <ng-container *ngIf="rowData.type === 'forum'; else nonForumTitle">
-                 <a [routerLink]="['/app/forums', rowData.originalDto.id, 'view']" class="text-indigo-600 hover:text-indigo-800 hover:underline">
-                   {{ rowData.title }}
-                 </a>
-              </ng-container>
-              <ng-template #nonForumTitle>
-                {{ rowData.title }}
-              </ng-template>
-            </span>
-            <ng-container *ngIf="rowData.icon && rowData.iconColor">
-              <ng-container *ngIf="rowData.icon as iconName">
-                <ng-icon
-                  [name]="iconName"
-                  [style.color]="rowData.iconColor"
-                  size="20">
-                </ng-icon>
-              </ng-container>
-            </ng-container>
-          </td>
-          <td class="text-center">
-            <ng-container *ngIf="rowData.type === 'forum'">
-              {{ rowData.discussionCount }}
-            </ng-container>
-          </td>
-          <td class="text-center">
-            <ng-container *ngIf="rowData.type === 'forum'">
-              {{ rowData.commentCount }}
-            </ng-container>
-          </td>
-          <td class="text-right">
-            <ng-container *ngIf="rowData.type === 'forum' && rowData.lastCommentDate">
-              {{ rowData.lastCommentDate | date: 'MMM d, y, h:mm a' }}
-            </ng-container>
-            <ng-container *ngIf="rowData.type === 'forum' && !rowData.lastCommentDate">
-              N/A
-            </ng-container>
-          </td>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="4" class="text-center p-4">
-            No data available in TreeTable.
-          </td>
-        </tr>
-      </ng-template>
-    </p-treeTable>
-  </div>
-
 </div>
+
+<!-- Recursive Template for Mobile Card View -->
+<ng-template #nodeTemplate let-node="node" let-level="level">
+  <!-- Card for the current node -->
+  <div class="bg-white dark:bg-slate-800 shadow-md rounded-lg p-4" [style.margin-left.rem]="level * 1.25">
+    <!-- Node content -->
+    <div class="flex items-center justify-between">
+      <div class="flex-grow min-w-0">
+        <!-- Title and Icon -->
+        <div class="flex items-center gap-2">
+          <i [ngClass]="node.data.type === 'forumGroup' ? 'pi pi-fw pi-folder text-amber-500' : 'pi pi-fw pi-comments text-sky-500'"></i>
+          <ng-container *ngIf="node.data.type === 'forum'; else nonForumTitleCard">
+            <a [routerLink]="['/app/forums', node.data.originalDto.id, 'view']" class="font-semibold text-indigo-600 hover:underline dark:text-indigo-400 truncate">
+              {{ node.data.title }}
+            </a>
+          </ng-container>
+          <ng-template #nonForumTitleCard>
+            <span class="font-semibold text-slate-800 dark:text-slate-100 truncate">{{ node.data.title }}</span>
+          </ng-template>
+        </div>
+        <!-- Description for forums -->
+        <p *ngIf="node.data.type === 'forum'" class="text-xs text-gray-500 dark:text-slate-400 mt-1 truncate">
+          {{ node.data.originalDto.description }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Stats for forums -->
+    <div *ngIf="node.data.type === 'forum'" class="mt-3 pt-3 border-t border-gray-200 dark:border-slate-600 text-xs">
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div>
+          <div class="font-medium text-gray-500 dark:text-slate-400">Discussions</div>
+          <div class="font-semibold text-gray-800 dark:text-slate-200">{{ node.data.discussionCount }}</div>
+        </div>
+        <div>
+          <div class="font-medium text-gray-500 dark:text-slate-400">Comments</div>
+          <div class="font-semibold text-gray-800 dark:text-slate-200">{{ node.data.commentCount }}</div>
+        </div>
+        <div>
+          <div class="font-medium text-gray-500 dark:text-slate-400">Last Post</div>
+          <div class="font-semibold text-gray-800 dark:text-slate-200">
+            <span *ngIf="node.data.lastCommentDate; else noLastPost">{{ node.data.lastCommentDate | date:'shortDate' }}</span>
+            <ng-template #noLastPost>N/A</ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recursive call for children -->
+  <div *ngIf="node.children" class="mt-2 space-y-2">
+    <ng-container *ngFor="let childNode of node.children">
+      <ng-container [ngTemplateOutlet]="nodeTemplate" [ngTemplateOutletContext]="{ node: childNode, level: level + 1 }"></ng-container>
+    </ng-container>
+  </div>
+</ng-template>
