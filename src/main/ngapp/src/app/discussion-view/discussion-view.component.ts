@@ -78,11 +78,15 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
   isLoadingDiscussion = true;
   discussionError: string | null = null;
 
-  // NEW: State for similar discussions
+  // State for similar discussions
   similarDiscussions: DiscussionSummaryDTO[] = [];
   isLoadingSimilar = false;
   similarDiscussionsLoaded = false;
   similarDiscussionsError: string | null = null;
+
+  // NEW: State for participants card
+  sortedParticipants: { username: string, count: number }[] = [];
+  showAllParticipants = false;
 
   avatarFileIdMap: Map<string, number | null> = new Map();
 
@@ -130,11 +134,14 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
     this.discussionError = null;
     this.isLoadingComments = true;
     this.commentsError = null;
-    // NEW: Reset similar discussions state
+    // Reset similar discussions state
     this.similarDiscussions = [];
     this.isLoadingSimilar = false;
     this.similarDiscussionsLoaded = false;
     this.similarDiscussionsError = null;
+    // NEW: Reset participants state
+    this.sortedParticipants = [];
+    this.showAllParticipants = false;
   }
 
   private loadDiscussionData(discussionId: number): void {
@@ -148,6 +155,7 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
       next: ([discussionResponse, commentsResponse]) => {
         if (discussionResponse.success && discussionResponse.data) {
           this.discussionDetails = discussionResponse.data;
+          this.processParticipants(); // NEW: Process participants after data is loaded
         } else {
           this.handleError(discussionResponse.message || 'Failed to load discussion details.', 'discussion', discussionResponse.errors);
         }
@@ -174,7 +182,27 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * NEW: Fetches similar discussions on demand.
+   * NEW: Converts the participants map into a sorted array for display.
+   */
+  private processParticipants(): void {
+    if (this.discussionDetails?.stat?.participants) {
+      this.sortedParticipants = Object.entries(this.discussionDetails.stat.participants)
+        .map(([username, count]) => ({ username, count }))
+        .sort((a, b) => b.count - a.count); // Sort by comment count descending
+    } else {
+      this.sortedParticipants = [];
+    }
+  }
+
+  /**
+   * NEW: Toggles the visibility of the full participant list.
+   */
+  toggleShowAllParticipants(): void {
+    this.showAllParticipants = !this.showAllParticipants;
+  }
+
+  /**
+   * Fetches similar discussions on demand.
    */
   loadSimilarDiscussions(): void {
     if (!this.discussionId || this.isLoadingSimilar) {
@@ -231,6 +259,8 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
       usernames.add(this.discussionDetails.createBy);
     }
     this.commentsDataForViewers.forEach(comment => usernames.add(comment.createBy));
+    // NEW: Add participants to the avatar fetch list
+    this.sortedParticipants.forEach(p => usernames.add(p.username));
 
     if (usernames.size === 0) {
       return;
@@ -352,8 +382,6 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
     this.currentCommentsPage = 0; // Reset to first page on sort change
     this.fetchComments(this.discussionId, this.currentCommentsPage, this.commentsPageSize, this.commentsSortField, this.commentsSortDirection);
   }
-
-  // REMOVED unused onCommentsSortChange method
 
   public getObjectKeys(obj: any): string[] {
     return obj ? Object.keys(obj) : [];
