@@ -53,7 +53,7 @@
           <ng-template pTemplate="header"><tr><th>Title</th><th class="w-24 text-center">Views</th></tr></ng-template>
           <ng-template pTemplate="body" let-item>
             <tr>
-              <td><a [routerLink]="['/app/discussions', item.id, 'view']" class="table-link">{{ item.title }}</a></td>
+              <td><a [routerLink]="['/app/discussions', item.id, 'view']" class="font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">{{ item.title }}</a></td>
               <td class="text-center">{{ item.value | number }}</td>
             </tr>
           </ng-template>
@@ -74,7 +74,7 @@
           <ng-template pTemplate="header"><tr><th>Title</th><th class="w-24 text-center">Likes</th></tr></ng-template>
           <ng-template pTemplate="body" let-item>
             <tr>
-              <td><a [routerLink]="['/app/discussions', item.id, 'view']" class="table-link">{{ item.title }}</a></td>
+              <td><a [routerLink]="['/app/discussions', item.id, 'view']" class="font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">{{ item.title }}</a></td>
               <td class="text-center text-green-600 font-semibold">{{ item.value | number }}</td>
             </tr>
           </ng-template>
@@ -95,7 +95,7 @@
           <ng-template pTemplate="header"><tr><th>Title</th><th class="w-24 text-center">Dislikes</th></tr></ng-template>
           <ng-template pTemplate="body" let-item>
             <tr>
-              <td><a [routerLink]="['/app/discussions', item.id, 'view']" class="table-link">{{ item.title }}</a></td>
+              <td><a [routerLink]="['/app/discussions', item.id, 'view']" class="font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">{{ item.title }}</a></td>
               <td class="text-center text-red-600 font-semibold">{{ item.value | number }}</td>
             </tr>
           </ng-template>
@@ -116,7 +116,7 @@
           <ng-template pTemplate="header"><tr><th>Title</th><th class="w-24 text-center">Score</th></tr></ng-template>
           <ng-template pTemplate="body" let-item>
             <tr>
-              <td><a [routerLink]="['/app/discussions', item.id, 'view']" class="table-link">{{ item.title }}</a></td>
+              <td><a [routerLink]="['/app/discussions', item.id, 'view']" class="font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">{{ item.title }}</a></td>
               <td class="text-center font-semibold" [ngClass]="{'text-green-600': item.value > 0, 'text-red-600': item.value < 0}">{{ item.value | number }}</td>
             </tr>
           </ng-template>
@@ -141,7 +141,7 @@
           <ng-template pTemplate="body" let-item>
             <tr>
               <td>
-                <a [routerLink]="['/app/comments', item.id, 'thread']" class="table-link">{{ item.title }}</a>
+                <a [routerLink]="['/app/comments', item.id, 'thread']" class="font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">{{ item.title }}</a>
                 <div class="text-xs text-gray-500 dark:text-gray-400">in: {{ item.discussionTitle }}</div>
               </td>
               <td class="text-center text-green-600 font-semibold">{{ item.value | number }}</td>
@@ -165,7 +165,7 @@
           <ng-template pTemplate="body" let-item>
             <tr>
               <td>
-                <a [routerLink]="['/app/comments', item.id, 'thread']" class="table-link">{{ item.title }}</a>
+                <a [routerLink]="['/app/comments', item.id, 'thread']" class="font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">{{ item.title }}</a>
                 <div class="text-xs text-gray-500 dark:text-gray-400">in: {{ item.discussionTitle }}</div>
               </td>
               <td class="text-center text-red-600 font-semibold">{{ item.value | number }}</td>
