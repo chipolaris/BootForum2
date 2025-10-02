@@ -46,17 +46,38 @@
             View Images ({{ discussionDetails.images.length }})
           </button>
         </div>
-        <app-file-list [files]="discussionDetails.attachments ?? []"></app-file-list>
-        <footer class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
-          <div>
+        <!-- INLINED RESPONSIVE ATTACHMENT LIST -->
+        <div *ngIf="discussionDetails.attachments && discussionDetails.attachments.length > 0" class="mt-4 space-y-2">
+          <h5 class="text-sm font-semibold text-gray-600 dark:text-slate-300">Attachments</h5>
+          <ul class="border border-gray-200 dark:border-slate-600 rounded-md divide-y divide-gray-200 dark:divide-slate-600">
+            <li *ngFor="let file of discussionDetails.attachments" class="px-3 py-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <ng-icon name="heroPaperClip" class="text-gray-500 flex-shrink-0"></ng-icon>
+                <span class="text-sm text-gray-800 dark:text-slate-200 truncate" [title]="file.originalFilename">
+                  {{ file.originalFilename }}
+                </span>
+                <span class="text-xs text-gray-500 dark:text-slate-400 flex-shrink-0">
+                  ({{ file.fileSize | number }} bytes)
+                </span>
+              </div>
+              <a *ngIf="file.id" [href]="getDownloadUrl(file.id)" target="_blank" rel="noopener noreferrer"
+                 class="flex-shrink-0 text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400 self-start sm:self-center mt-1 sm:mt-0">
+                Download
+              </a>
+            </li>
+          </ul>
+        </div>
+        <!-- RESPONSIVE DISCUSSION FOOTER -->
+        <footer class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
             <a [routerLink]="['/app/comments/create', discussionDetails.id]"
-               class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium mr-3 cursor-pointer">Reply</a>
+               class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium cursor-pointer">Reply</a>
             <a [routerLink]="['/app/comments/create', discussionDetails.id]"
                [queryParams]="{ quote: true }"
                [state]="{ contentToQuote: discussionDetails.content, authorToQuote: discussionDetails.createBy, quotedItemTitle: discussionDetails.title }"
                class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium cursor-pointer">Quote</a>
           </div>
-          <div class="flex items-center gap-x-3">
+          <div class="flex items-center gap-x-3 self-start sm:self-center">
             <button (click)="voteForDiscussion('up')" type="button" class="flex items-center text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-sm font-medium cursor-pointer">
               Vote Up
               <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-700 dark:text-green-100">
@@ -104,19 +125,40 @@
                 View Images ({{ comment.images.length }})
               </button>
             </div>
-            <app-file-list [files]="comment.attachments ?? []"></app-file-list>
-            <footer class="mt-3 pt-3 border-t border-gray-200 dark:border-slate-600 flex justify-between items-center">
-              <div>
+            <!-- INLINED RESPONSIVE ATTACHMENT LIST FOR COMMENTS -->
+            <div *ngIf="comment.attachments && comment.attachments.length > 0" class="mt-4 space-y-2">
+              <h5 class="text-sm font-semibold text-gray-600 dark:text-slate-300">Attachments</h5>
+              <ul class="border border-gray-200 dark:border-slate-600 rounded-md divide-y divide-gray-200 dark:divide-slate-600">
+                <li *ngFor="let file of comment.attachments" class="px-3 py-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <ng-icon name="heroPaperClip" class="text-gray-500 flex-shrink-0"></ng-icon>
+                    <span class="text-sm text-gray-800 dark:text-slate-200 truncate" [title]="file.originalFilename">
+                      {{ file.originalFilename }}
+                    </span>
+                    <span class="text-xs text-gray-500 dark:text-slate-400 flex-shrink-0">
+                      ({{ file.fileSize | number }} bytes)
+                    </span>
+                  </div>
+                  <a *ngIf="file.id" [href]="getDownloadUrl(file.id)" target="_blank" rel="noopener noreferrer"
+                     class="flex-shrink-0 text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400 self-start sm:self-center mt-1 sm:mt-0">
+                    Download
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <!-- RESPONSIVE COMMENT FOOTER -->
+            <footer class="mt-3 pt-3 border-t border-gray-200 dark:border-slate-600 flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-3">
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
                 <a [routerLink]="['/app/comments/create', discussionDetails.id, 'reply-to', comment.id]"
-                   class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium mr-2 cursor-pointer">Reply</a>
+                   class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium cursor-pointer">Reply</a>
                 <a [routerLink]="['/app/comments/create', discussionDetails.id, 'reply-to', comment.id]"
                    [queryParams]="{ quote: true }"
                    [state]="{ contentToQuote: comment.content, authorToQuote: comment.createBy, quotedItemTitle: comment.title }"
-                   class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium mr-2 cursor-pointer">Quote</a>
+                   class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium cursor-pointer">Quote</a>
                 <a [routerLink]="['/app/comments', comment.id, 'thread']"
                    class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-xs font-medium cursor-pointer">View Thread</a>
               </div>
-              <div class="flex items-center gap-x-2">
+              <div class="flex items-center gap-x-2 self-start sm:self-center">
                 <button (click)="voteForComment(comment, 'up')" type="button" class="flex items-center text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-xs font-medium cursor-pointer">
                   Vote Up
                   <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-700 dark:text-green-100">
@@ -157,12 +199,12 @@
         <h3 class="flex items-center text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3 border-b pb-2 dark:border-slate-600">
           <ng-icon name="heroInformationCircle" size="1.4em" class="mr-2"/> Discussion Info
         </h3>
-        <dl class="space-y-2 text-sm">
+        <dl class="space-y-3 text-sm">
           <div>
             <dt class="font-medium text-gray-600 dark:text-slate-300">In Forum:</dt>
-            <dd class="text-gray-800 dark:text-slate-100">
+            <dd class="mt-1 text-gray-800 dark:text-slate-100">
               <a [routerLink]="['/app/forums', discussionDetails.forumId, 'view']"
-                 class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                 class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 break-all">
                 {{ discussionDetails.forumTitle }}
               </a>
             </dd>
@@ -183,60 +225,63 @@
               </div>
             </dd>
           </div>
-          <div class="flex items-center space-x-2">
+          <div>
             <dt class="font-medium text-gray-600 dark:text-slate-300">Created by:</dt>
-            <dd class="text-gray-800 dark:text-slate-100 text-lg">
+            <dd class="mt-1 text-gray-800 dark:text-slate-100 text-base">
               <a [routerLink]="['/app/users', discussionDetails.createBy, 'profile']"
-                 class="hover:underline cursor-pointer">
+                 class="hover:underline cursor-pointer break-all">
                 {{ discussionDetails.createBy }}
               </a>
             </dd>
           </div>
-          <div class="flex items-center space-x-2">
+          <div>
             <dt class="font-medium text-gray-600 dark:text-slate-300">Created on:</dt>
-            <dd class="text-gray-800 dark:text-slate-100 text-lg">{{ discussionDetails.createDate | date:'longDate' }}</dd>
+            <dd class="mt-1 text-gray-800 dark:text-slate-100 text-base">{{ discussionDetails.createDate | date:'longDate' }}</dd>
           </div>
           <ng-container *ngIf="discussionDetails?.stat as stat">
-            <div class="flex items-center space-x-2">
+            <div>
               <dt class="font-medium text-gray-600 dark:text-slate-300">Total Replies:</dt>
-              <dd class="text-gray-800 dark:text-slate-100 text-lg">{{ stat.commentCount ?? 'N/A' }}</dd>
+              <dd class="mt-1 text-gray-800 dark:text-slate-100 text-base">{{ stat.commentCount ?? 'N/A' }}</dd>
             </div>
-            <div class="flex items-center space-x-2">
+            <div>
               <dt class="font-medium text-gray-600 dark:text-slate-300">Views:</dt>
-              <dd class="text-gray-800 dark:text-slate-100 text-lg">{{ stat.viewCount ?? 'N/A' }}</dd>
+              <dd class="mt-1 text-gray-800 dark:text-slate-100 text-base">{{ stat.viewCount ?? 'N/A' }}</dd>
             </div>
-            <div class="flex items-center space-x-2">
+            <div>
               <dt class="font-medium text-gray-600 dark:text-slate-300">Images:</dt>
-              <dd class="text-gray-800 dark:text-slate-100 text-lg">{{ stat.imageCount ?? '0' }}</dd>
+              <dd class="mt-1 text-gray-800 dark:text-slate-100 text-base">{{ stat.imageCount ?? '0' }}</dd>
             </div>
-            <div class="flex items-center space-x-2">
+            <div>
               <dt class="font-medium text-gray-600 dark:text-slate-300">Attachments:</dt>
-              <dd class="text-gray-800 dark:text-slate-100 text-lg">{{ stat.attachmentCount ?? '0' }}</dd>
+              <dd class="mt-1 text-gray-800 dark:text-slate-100 text-base">{{ stat.attachmentCount ?? '0' }}</dd>
             </div>
-            <!-- REMOVED: Participants line from this card -->
             <div>
               <dt class="font-medium text-gray-600 dark:text-slate-300">Last Activity:</dt>
-              <dd *ngIf="stat.lastComment?.commentDate && stat.lastComment?.commentor; else discussionCreated"
-                  class="text-gray-800 dark:text-slate-100">
-                <a [routerLink]="['/app/comments', stat.lastComment?.commentId, 'thread']"
+              <!-- Use the *ngIf to check the parent object directly for better type safety -->
+              <dd *ngIf="stat.lastComment; else discussionCreated"
+                  class="mt-1 text-gray-800 dark:text-slate-100">
+                <a [routerLink]="['/app/comments', stat.lastComment.commentId, 'thread']"
                    class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
-                  Comment on {{ stat.lastComment?.commentDate | date:'medium' }}
+                  Comment on {{ stat.lastComment.commentDate | date:'medium' }}
                 </a>
-                by
-                <a [routerLink]="['/app/users', stat.lastComment?.commentor, 'profile']"
-                   class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
-                  {{ stat.lastComment?.commentor }}
-                </a>
+                <span class="block">by
+                  <a [routerLink]="['/app/users', stat.lastComment.commentor, 'profile']"
+                     class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 break-all">
+                    {{ stat.lastComment.commentor }}
+                  </a>
+                </span>
               </dd>
-              <ng-template #discussionCreated class="text-gray-800 dark:text-slate-100">
-                Discussion created on {{ discussionDetails.createDate | date:'medium' }} by {{ discussionDetails.createBy }}
+              <ng-template #discussionCreated>
+                <dd class="mt-1 text-gray-800 dark:text-slate-100">
+                  Discussion created on {{ discussionDetails.createDate | date:'medium' }}
+                </dd>
               </ng-template>
             </div>
           </ng-container>
         </dl>
       </div>
 
-      <!-- NEW: Participants Card -->
+      <!-- Participants Card -->
       <div *ngIf="sortedParticipants.length > 0" class="bg-slate-50 dark:bg-slate-700 p-4 rounded-lg shadow-md">
         <h3 class="flex items-center text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3 border-b pb-2 dark:border-slate-600">
           <ng-icon name="heroUsers" size="1.4em" class="mr-2"/> Participants

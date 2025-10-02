@@ -18,7 +18,8 @@ import { VoteService } from '../_services/vote.service';
 import { AuthenticationService } from '../_services/authentication.service';
 import { AvatarService } from '../_services/avatar.service';
 import { DiscussionDTO, CommentDTO, FileInfoDTO, Page, ApiResponse, DiscussionSummaryDTO } from '../_data/dtos';
-import { FileListComponent } from '../file-list/file-list.component';
+// REMOVED: FileListComponent is no longer needed as we are inlining the template for responsiveness.
+// import { FileListComponent } from '../file-list/file-list.component';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { APP_ICONS } from '../shared/hero-icons';
@@ -40,7 +41,7 @@ import { PaginatorComponent } from '../shared/paginator/paginator.component';
     NgIcon,
     DatePipe,
     MarkdownModule,
-    FileListComponent,
+    // REMOVED: FileListComponent
     GalleriaModule,
     DialogModule,
     PaginatorComponent
@@ -286,6 +287,11 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
       }
     }
     return '/assets/images/default-avatar.png';
+  }
+
+  // ADDED: Helper method for inlined attachment list
+  getDownloadUrl(fileId: number): string {
+    return `/api/public/files/${fileId}/download`;
   }
 
   voteForDiscussion(voteValue: 'up' | 'down'): void {
