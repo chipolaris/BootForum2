@@ -1,16 +1,16 @@
 package com.github.chipolaris.bootforum2.domain;
 
+import jakarta.persistence.*;
+import org.hibernate.search.engine.backend.types.Aggregable;
+import org.hibernate.search.engine.backend.types.Sortable;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*;
+
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import jakarta.persistence.*;
-import org.hibernate.search.engine.backend.types.Sortable;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*;
-
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 
 
 @Entity
@@ -225,5 +225,34 @@ public class Discussion extends BaseEntity {
     public Set<Long> getTagIds() {
         return tags == null ? Collections.emptySet() :
                 tags.stream().map(Tag::getId).collect(Collectors.toSet());
+    }
+
+    /**
+     * NEW: Transient getter to provide tokenized terms for aggregation.
+     * This creates a multi-valued field in the index.
+     */
+    @Transient
+    @KeywordField(name = "title_terms", aggregable = Aggregable.YES)
+    @IndexingDependency(derivedFrom = @ObjectPath(@PropertyValue(propertyName = "title")))
+    public List<String> getTitleTerms() {
+        if (this.title == null || this.title.isBlank()) {
+            return Collections.emptyList();
+        }
+        // This is a basic tokenizer. A more advanced implementation could use a specific analyzer's logic.
+        return Arrays.stream(this.title.toLowerCase().split("[^a-zA-Z0-9]+"))
+                .filter(s -> !s.isBlank() && s.length() > 2) // Filter out short/empty strings
+                .collect(Collectors.toList());
+    }
+
+    @Transient
+    @KeywordField(name = "content_terms", aggregable = Aggregable.YES)
+    @IndexingDependency(derivedFrom = @ObjectPath(@PropertyValue(propertyName = "content")))
+    public List<String> getContentTerms() {
+        if (this.content == null || this.content.isBlank()) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(this.content.toLowerCase().split("[^a-zA-Z0-9]+"))
+                .filter(s -> !s.isBlank() && s.length() > 2) // Filter out short/empty strings
+                .collect(Collectors.toList());
     }
 }

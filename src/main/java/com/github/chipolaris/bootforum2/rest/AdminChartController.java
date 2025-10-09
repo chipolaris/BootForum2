@@ -2,6 +2,7 @@ package com.github.chipolaris.bootforum2.rest;
 
 import com.github.chipolaris.bootforum2.dto.ApiResponse;
 import com.github.chipolaris.bootforum2.dto.admin.AdminChartDTO;
+import com.github.chipolaris.bootforum2.dto.admin.ChartDataDTO; // ADDED
 import com.github.chipolaris.bootforum2.service.AdminChartService;
 import com.github.chipolaris.bootforum2.service.ServiceResponse;
 import org.slf4j.Logger;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/admin/charts")
+@RequestMapping("/api/admin")
 public class AdminChartController {
 
     private static final Logger logger = LoggerFactory.getLogger(AdminChartController.class);
@@ -22,9 +23,9 @@ public class AdminChartController {
         this.adminChartService = adminChartService;
     }
 
-    @GetMapping
+    @GetMapping("/charts")
     public ApiResponse<?> getChartData() {
-        logger.info("Getting chart data");
+        logger.info("Getting initial chart data");
         try {
             ServiceResponse<AdminChartDTO> response = adminChartService.getChartData();
 
@@ -38,6 +39,25 @@ public class AdminChartController {
         catch(Exception e) {
             logger.error("Unexpected error getting chart data", e);
             return ApiResponse.error(String.format("An unexpected error occurred getting chart data: %s", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/charts/top-terms")
+    public ApiResponse<?> getTopTermsChartData() {
+        logger.info("Getting top terms chart data");
+        try {
+            ServiceResponse<ChartDataDTO> response = adminChartService.getTopTermsChartData();
+
+            if(response.isSuccess()) {
+                return ApiResponse.success(response.getDataObject());
+            }
+            else {
+                return ApiResponse.error(response.getMessages(), "Error getting top terms chart data");
+            }
+        }
+        catch(Exception e) {
+            logger.error("Unexpected error getting top terms chart data", e);
+            return ApiResponse.error(String.format("An unexpected error occurred getting top terms chart data: %s", e.getMessage()));
         }
     }
 }

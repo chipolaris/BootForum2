@@ -490,6 +490,7 @@ export interface AdminChartDTO {
   contentActivity: ChartDataDTO;
   newUsers: ChartDataDTO;
   forumActivity: ChartDataDTO;
+  topTerms?: ChartDataDTO;
 }
 
 export interface UserSummaryDTO {

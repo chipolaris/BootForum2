@@ -13,6 +13,8 @@ import com.github.chipolaris.bootforum2.mapper.FileInfoMapper;
 import com.github.chipolaris.bootforum2.repository.DiscussionRepository;
 import com.github.chipolaris.bootforum2.repository.TagRepository;
 import jakarta.persistence.EntityManager;
+import org.hibernate.search.engine.search.aggregation.AggregationKey;
+import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.slf4j.Logger;
@@ -27,10 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -578,6 +577,87 @@ public class DiscussionService {
         } catch (Exception e) {
             logger.error(String.format("Error during discussion search for keyword '%s': ", keyword), e);
             return ServiceResponse.failure("An unexpected error occurred during the search.");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public ServiceResponse<List<KeywordCountDTO>> getTopTerms(String field, int limit) {
+
+        logger.info("Get discussion top terms for field '{}' with limit '{}'", field, limit);
+
+        // Basic validation for field name to prevent injection-like issues
+        if (!"title_terms".equals(field) && !"content_terms".equals(field)) {
+            logger.warn("Invalid field name for top terms aggregation: {}", field);
+            return ServiceResponse.failure("Invalid field for aggregation.");
+        }
+
+        try {
+            SearchSession searchSession = Search.session(entityManager);
+
+            // Define a reusable aggregation key
+            AggregationKey<Map<String, Long>> topTermsKey = AggregationKey.of("topTerms");
+
+            SearchResult<Discussion> result = searchSession.search(Discussion.class)
+                    .where(f -> f.matchAll())
+                    .aggregation(topTermsKey, f -> f.terms()
+                            .field(field, String.class) // Use the parameter here
+                            .orderByCountDescending()
+                            .minDocumentCount(1)
+                            .maxTermCount(limit) // Use the parameter here
+                    )
+                    .fetch(0); // No need to fetch hits, just aggregations
+
+            Map<String, Long> topTerms = result.aggregation(topTermsKey);
+
+            return ServiceResponse.success("Successfully get top terms",
+                    topTerms.entrySet().stream()
+                            .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                            // The aggregation already limits, but this ensures we don't exceed it
+                            .limit(limit)
+                            .map(entry -> new KeywordCountDTO(entry.getKey(), entry.getValue()))
+                            .collect(Collectors.toList())
+            );
+        } catch (Exception e) {
+            logger.error("Error getting top terms for field '{}': ", field, e);
+            return ServiceResponse.failure("An unexpected error occurred while getting top terms.");
+        }
+    }
+
+    /**
+     * Retrieve combined top N terms for multiple fields (e.g. title and content).
+     */
+    @Transactional(readOnly = true)
+    public ServiceResponse<List<KeywordCountDTO>> getTopTermsCombined(List<String> fields, int limit) {
+
+        logger.info("Get discussion top terms combined for fields '{}' with limit '{}'", fields, limit);
+
+        try {
+            Map<String, Long> combined = new HashMap<>();
+
+            for (String field : fields) {
+                // Append "_terms" to match the index field name
+                String aggregationField = field + "_terms";
+                ServiceResponse<List<KeywordCountDTO>> termsResponse = getTopTerms(aggregationField, limit);
+
+                if(termsResponse.isSuccess() && termsResponse.getDataObject() != null) {
+                    for (KeywordCountDTO entry : termsResponse.getDataObject()) {
+                        combined.merge(entry.keyword(), entry.count(), Long::sum);
+                    }
+                } else {
+                    logger.warn("Could not retrieve top terms for field '{}'", aggregationField);
+                }
+            }
+
+            return ServiceResponse.success("Successfully get top terms combined",
+                    combined.entrySet().stream()
+                            .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                            .limit(limit)
+                            .map(entry -> new KeywordCountDTO(entry.getKey(), entry.getValue()))
+                            .collect(Collectors.toList())
+            );
+        } catch (Exception e) {
+            logger.error("Error getting top terms for fields '{}': ", fields, e);
+            return ServiceResponse.failure("An unexpected error occurred while getting top terms combined.");
         }
     }
 }

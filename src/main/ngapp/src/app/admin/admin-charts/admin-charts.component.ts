@@ -4,7 +4,7 @@ import { ChartModule } from 'primeng/chart';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
 import { AdminChartService } from '../../_services/admin-chart.service';
-import { AdminChartDTO, errorMessageFromApiResponse } from '../../_data/dtos';
+import { AdminChartDTO, ChartDataDTO, errorMessageFromApiResponse } from '../../_data/dtos'; // ADDED ChartDataDTO
 import { Subscription } from 'rxjs';
 import { ToastModule } from 'primeng/toast';
 
@@ -18,7 +18,7 @@ export class AdminChartsComponent implements OnInit, OnDestroy {
 
   private chartService = inject(AdminChartService);
   private messageService = inject(MessageService);
-  private subscription!: Subscription;
+  private subscriptions: Subscription[] = []; // Use an array for multiple subscriptions
 
   isLoading = true;
   error: string | null = null;
@@ -32,20 +32,25 @@ export class AdminChartsComponent implements OnInit, OnDestroy {
   forumActivityData: any;
   forumActivityOptions: any;
 
+  // State for on-demand chart
+  topTermsData: any;
+  topTermsOptions: any;
+  isTopTermsLoading = false;
+  topTermsLoaded = false;
+
   ngOnInit(): void {
-    this.loadChartData();
+    this.loadInitialChartData();
   }
 
-  loadChartData(): void {
+  loadInitialChartData(): void {
     this.isLoading = true;
     this.error = null;
 
-    this.subscription = this.chartService.getChartData().subscribe({
+    const sub = this.chartService.getChartData().subscribe({
       next: response => {
         if (response.success && response.data) {
-          this.setupCharts(response.data);
+          this.setupInitialCharts(response.data);
         } else {
-          // FIX: Use a local constant for the message to ensure correct typing.
           const detailMessage = errorMessageFromApiResponse(response) || 'Failed to load chart data.';
           this.error = detailMessage;
           this.messageService.add({ severity: 'error', summary: 'Error', detail: detailMessage });
@@ -53,16 +58,41 @@ export class AdminChartsComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       },
       error: err => {
-        // FIX: Use a local constant for the message to ensure correct typing.
         const detailMessage = err.message || 'An unexpected server error occurred.';
         this.error = detailMessage;
         this.messageService.add({ severity: 'error', summary: 'Server Error', detail: detailMessage });
         this.isLoading = false;
       }
     });
+    this.subscriptions.push(sub);
   }
 
-  setupCharts(data: AdminChartDTO): void {
+  // NEW: Method to load top terms on demand
+  loadTopTerms(): void {
+    this.isTopTermsLoading = true;
+    this.topTermsLoaded = true; // Mark as loaded to show skeleton/chart area
+
+    const sub = this.chartService.getTopTermsChartData().subscribe({
+      next: response => {
+        if (response.success && response.data) {
+          this.setupTopTermsChart(response.data);
+        } else {
+          const detailMessage = errorMessageFromApiResponse(response) || 'Failed to load top terms data.';
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: detailMessage });
+        }
+        this.isTopTermsLoading = false;
+      },
+      error: err => {
+        const detailMessage = err.message || 'An unexpected server error occurred.';
+        this.messageService.add({ severity: 'error', summary: 'Server Error', detail: detailMessage });
+        this.isTopTermsLoading = false;
+      }
+    });
+    this.subscriptions.push(sub);
+  }
+
+  // RENAMED: To reflect it only sets up the initial charts
+  setupInitialCharts(data: AdminChartDTO): void {
     const documentStyle = getComputedStyle(document.documentElement);
     const textColor = documentStyle.getPropertyValue('--p-text-color');
     const textColorSecondary = documentStyle.getPropertyValue('--p-text-muted-color');
@@ -176,9 +206,54 @@ export class AdminChartsComponent implements OnInit, OnDestroy {
     };
   }
 
+  // NEW: Separate setup method for the on-demand chart
+  setupTopTermsChart(data: ChartDataDTO): void {
+    const documentStyle = getComputedStyle(document.documentElement);
+    const textColor = documentStyle.getPropertyValue('--p-text-color');
+    const textColorSecondary = documentStyle.getPropertyValue('--p-text-muted-color');
+    const surfaceBorder = documentStyle.getPropertyValue('--p-content-border-color');
+
+    this.topTermsData = {
+      labels: data.labels,
+      datasets: [
+        {
+          label: data.datasets[0].label, // Discussions
+          backgroundColor: documentStyle.getPropertyValue('--p-purple-500'),
+          borderColor: documentStyle.getPropertyValue('--p-purple-500'),
+          data: data.datasets[0].data
+        },
+        {
+          label: data.datasets[1].label, // Comments
+          backgroundColor: documentStyle.getPropertyValue('--p-pink-500'),
+          borderColor: documentStyle.getPropertyValue('--p-pink-500'),
+          data: data.datasets[1].data
+        }
+      ]
+    };
+    this.topTermsOptions = {
+      indexAxis: 'y', // Horizontal bar chart
+      maintainAspectRatio: false,
+      aspectRatio: 0.5, // Adjust aspect ratio for a taller chart
+      plugins: {
+        tooltip: { mode: 'index', intersect: false },
+        legend: { labels: { color: textColor } }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: { color: textColorSecondary },
+          grid: { color: surfaceBorder }
+        },
+        y: {
+          stacked: true,
+          ticks: { color: textColorSecondary },
+          grid: { color: surfaceBorder }
+        }
+      }
+    };
+  }
+
   ngOnDestroy(): void {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 }

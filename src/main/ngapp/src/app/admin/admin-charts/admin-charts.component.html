@@ -38,6 +38,31 @@
         <p-chart type="bar" [data]="forumActivityData" [options]="forumActivityOptions"></p-chart>
       </div>
     </div>
+
+    <!-- MODIFIED: Top Keywords Chart -->
+    <div class="card bg-white dark:bg-slate-800 p-4 rounded-lg shadow xl:col-span-2">
+      <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">Top 25 Keywords in Content</h2>
+
+      <!-- Initial state with button -->
+      <div *ngIf="!topTermsLoaded" class="text-center py-20">
+        <button (click)="loadTopTerms()"
+                class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 cursor-pointer">
+          <span class="pi pi-chart-bar mr-2"></span>
+          Load Top Keywords Chart
+        </button>
+        <p class="text-sm text-slate-500 mt-2">This is loaded on-demand to improve initial page performance.</p>
+      </div>
+
+      <!-- Loading and Chart display state -->
+      <div *ngIf="topTermsLoaded" class="relative" style="height: 600px">
+        <div *ngIf="isTopTermsLoading">
+          <p-skeleton height="100%"></p-skeleton>
+        </div>
+        <div *ngIf="!isTopTermsLoading && topTermsData">
+          <p-chart type="bar" [data]="topTermsData" [options]="topTermsOptions"></p-chart>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Error Message -->
