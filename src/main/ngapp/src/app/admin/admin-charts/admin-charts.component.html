@@ -39,9 +39,35 @@
       </div>
     </div>
 
-    <!-- MODIFIED: Top Keywords Chart -->
+    <!-- Top Keywords Chart -->
     <div class="card bg-white dark:bg-slate-800 p-4 rounded-lg shadow xl:col-span-2">
-      <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">Top 25 Keywords in Content</h2>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+        <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100">Top Keywords in Discussion's Title and Content</h2>
+
+        <!-- Filter Controls -->
+        <div *ngIf="topTermsLoaded" class="flex items-center justify-end gap-4 mt-4 sm:mt-0">
+          <!-- Period Dropdown -->
+          <div>
+            <label for="topTermsPeriod" class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Period:</label>
+            <select id="topTermsPeriod" [(ngModel)]="topTermsPeriod" class="rounded-md border-gray-300 shadow-sm dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 text-sm">
+              <option *ngFor="let option of periodOptions" [value]="option.value">{{ option.label }}</option>
+            </select>
+          </div>
+          <!-- Limit Dropdown -->
+          <div>
+            <label for="topTermsLimit" class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Limit:</label>
+            <select id="topTermsLimit" [(ngModel)]="topTermsLimit" class="rounded-md border-gray-300 shadow-sm dark:bg-slate-700 dark:text-gray-300 dark:border-slate-500 text-sm">
+              <option *ngFor="let option of limitOptions" [value]="option.value">{{ option.label }}</option>
+            </select>
+          </div>
+          <!-- Refresh Button -->
+          <button (click)="loadTopTerms()" [disabled]="isTopTermsLoading"
+                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 disabled:bg-sky-300">
+            <span class="pi pi-refresh" [ngClass]="{'animate-spin': isTopTermsLoading}"></span>
+            <span class="ml-2">Refresh</span>
+          </button>
+        </div>
+      </div>
 
       <!-- Initial state with button -->
       <div *ngIf="!topTermsLoaded" class="text-center py-20">
@@ -54,12 +80,13 @@
       </div>
 
       <!-- Loading and Chart display state -->
-      <div *ngIf="topTermsLoaded" class="relative" style="height: 600px">
+      <div *ngIf="topTermsLoaded" class="relative" [style.height.px]="topTermsChartHeight">
         <div *ngIf="isTopTermsLoading">
           <p-skeleton height="100%"></p-skeleton>
         </div>
-        <div *ngIf="!isTopTermsLoading && topTermsData">
-          <p-chart type="bar" [data]="topTermsData" [options]="topTermsOptions"></p-chart>
+        <div *ngIf="!isTopTermsLoading && topTermsData" class="h-full">
+          <!-- FIX: Added h-full to the chart component itself -->
+          <p-chart type="bar" [data]="topTermsData" [options]="topTermsOptions" width="100%" height="100%"></p-chart>
         </div>
       </div>
     </div>

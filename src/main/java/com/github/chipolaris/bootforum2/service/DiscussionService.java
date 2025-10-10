@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -581,9 +582,9 @@ public class DiscussionService {
     }
 
     @Transactional(readOnly = true)
-    public ServiceResponse<List<KeywordCountDTO>> getTopTerms(String field, int limit) {
+    public ServiceResponse<List<KeywordCountDTO>> getTopTerms(String field, int limit, String period) {
 
-        logger.info("Get discussion top terms for field '{}' with limit '{}'", field, limit);
+        logger.info("Get discussion top terms for field '{}' with limit '{}' and period '{}'", field, limit, period);
 
         // Basic validation for field name to prevent injection-like issues
         if (!"title_terms".equals(field) && !"content_terms".equals(field)) {
@@ -598,7 +599,22 @@ public class DiscussionService {
             AggregationKey<Map<String, Long>> topTermsKey = AggregationKey.of("topTerms");
 
             SearchResult<Discussion> result = searchSession.search(Discussion.class)
-                    .where(f -> f.matchAll())
+                    .where(f -> f.bool(b -> {
+                        b.must(f.matchAll()); // Start with all documents
+
+                        LocalDateTime fromDate = null;
+                        if ("week".equals(period)) {
+                            fromDate = LocalDateTime.now().minusWeeks(1);
+                        } else if ("month".equals(period)) {
+                            fromDate = LocalDateTime.now().minusMonths(1);
+                        } else if ("year".equals(period)) {
+                            fromDate = LocalDateTime.now().minusYears(1);
+                        }
+
+                        if (fromDate != null) {
+                            b.filter(f.range().field("createDate").greaterThan(fromDate));
+                        }
+                    }))
                     .aggregation(topTermsKey, f -> f.terms()
                             .field(field, String.class) // Use the parameter here
                             .orderByCountDescending()
@@ -620,44 +636,6 @@ public class DiscussionService {
         } catch (Exception e) {
             logger.error("Error getting top terms for field '{}': ", field, e);
             return ServiceResponse.failure("An unexpected error occurred while getting top terms.");
-        }
-    }
-
-    /**
-     * Retrieve combined top N terms for multiple fields (e.g. title and content).
-     */
-    @Transactional(readOnly = true)
-    public ServiceResponse<List<KeywordCountDTO>> getTopTermsCombined(List<String> fields, int limit) {
-
-        logger.info("Get discussion top terms combined for fields '{}' with limit '{}'", fields, limit);
-
-        try {
-            Map<String, Long> combined = new HashMap<>();
-
-            for (String field : fields) {
-                // Append "_terms" to match the index field name
-                String aggregationField = field + "_terms";
-                ServiceResponse<List<KeywordCountDTO>> termsResponse = getTopTerms(aggregationField, limit);
-
-                if(termsResponse.isSuccess() && termsResponse.getDataObject() != null) {
-                    for (KeywordCountDTO entry : termsResponse.getDataObject()) {
-                        combined.merge(entry.keyword(), entry.count(), Long::sum);
-                    }
-                } else {
-                    logger.warn("Could not retrieve top terms for field '{}'", aggregationField);
-                }
-            }
-
-            return ServiceResponse.success("Successfully get top terms combined",
-                    combined.entrySet().stream()
-                            .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-                            .limit(limit)
-                            .map(entry -> new KeywordCountDTO(entry.getKey(), entry.getValue()))
-                            .collect(Collectors.toList())
-            );
-        } catch (Exception e) {
-            logger.error("Error getting top terms for fields '{}': ", fields, e);
-            return ServiceResponse.failure("An unexpected error occurred while getting top terms combined.");
         }
     }
 }

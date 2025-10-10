@@ -1,17 +1,18 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms'; // ADDED
 import { ChartModule } from 'primeng/chart';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
 import { AdminChartService } from '../../_services/admin-chart.service';
-import { AdminChartDTO, ChartDataDTO, errorMessageFromApiResponse } from '../../_data/dtos'; // ADDED ChartDataDTO
+import { AdminChartDTO, ChartDataDTO, errorMessageFromApiResponse } from '../../_data/dtos';
 import { Subscription } from 'rxjs';
 import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-admin-charts',
   standalone: true,
-  imports: [CommonModule, ChartModule, SkeletonModule, ToastModule],
+  imports: [CommonModule, FormsModule, ChartModule, SkeletonModule, ToastModule], // ADDED FormsModule
   templateUrl: './admin-charts.component.html',
 })
 export class AdminChartsComponent implements OnInit, OnDestroy {
@@ -37,6 +38,24 @@ export class AdminChartsComponent implements OnInit, OnDestroy {
   topTermsOptions: any;
   isTopTermsLoading = false;
   topTermsLoaded = false;
+  topTermsChartHeight: number = 600; // NEW: For dynamic chart height, with a default
+
+  // Properties for the filter controls
+  topTermsLimit: number = 25;
+  topTermsPeriod: string = 'all';
+
+  limitOptions = [
+    { label: 'Top 25', value: 25 },
+    { label: 'Top 50', value: 50 },
+    { label: 'Top 100', value: 100 }
+  ];
+
+  periodOptions = [
+    { label: 'All Time', value: 'all' },
+    { label: 'Last Year', value: 'year' },
+    { label: 'Last Month', value: 'month' },
+    { label: 'Last Week', value: 'week' }
+  ];
 
   ngOnInit(): void {
     this.loadInitialChartData();
@@ -67,12 +86,18 @@ export class AdminChartsComponent implements OnInit, OnDestroy {
     this.subscriptions.push(sub);
   }
 
-  // NEW: Method to load top terms on demand
+  // MODIFIED: Method to load top terms on demand, now with height calculation
   loadTopTerms(): void {
     this.isTopTermsLoading = true;
     this.topTermsLoaded = true; // Mark as loaded to show skeleton/chart area
 
-    const sub = this.chartService.getTopTermsChartData().subscribe({
+    // NEW: Pre-calculate an estimated height for the skeleton to avoid layout shifts
+    const pixelsPerBar = 24; // Adjust as needed for good spacing
+    const chartPadding = 100; // For top/bottom padding, axes, etc.
+    const estimatedHeight = (this.topTermsLimit * pixelsPerBar) + chartPadding;
+    this.topTermsChartHeight = Math.max(400, estimatedHeight); // Use a minimum height
+
+    const sub = this.chartService.getTopTermsChartData(this.topTermsLimit, this.topTermsPeriod).subscribe({
       next: response => {
         if (response.success && response.data) {
           this.setupTopTermsChart(response.data);
@@ -206,12 +231,19 @@ export class AdminChartsComponent implements OnInit, OnDestroy {
     };
   }
 
-  // NEW: Separate setup method for the on-demand chart
+  // MODIFIED: Separate setup method for the on-demand chart, now with height calculation
   setupTopTermsChart(data: ChartDataDTO): void {
     const documentStyle = getComputedStyle(document.documentElement);
     const textColor = documentStyle.getPropertyValue('--p-text-color');
     const textColorSecondary = documentStyle.getPropertyValue('--p-text-muted-color');
     const surfaceBorder = documentStyle.getPropertyValue('--p-content-border-color');
+
+    // NEW: Calculate final height based on actual data received
+    const pixelsPerBar = 24;
+    const chartPadding = 100;
+    // Use the actual number of labels returned by the API
+    const finalHeight = (data.labels.length * pixelsPerBar) + chartPadding;
+    this.topTermsChartHeight = Math.max(400, finalHeight);
 
     this.topTermsData = {
       labels: data.labels,
@@ -233,7 +265,7 @@ export class AdminChartsComponent implements OnInit, OnDestroy {
     this.topTermsOptions = {
       indexAxis: 'y', // Horizontal bar chart
       maintainAspectRatio: false,
-      aspectRatio: 0.5, // Adjust aspect ratio for a taller chart
+      // aspectRatio is less important now that we control the height dynamically
       plugins: {
         tooltip: { mode: 'index', intersect: false },
         legend: { labels: { color: textColor } }

@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -43,10 +44,12 @@ public class AdminChartController {
     }
 
     @GetMapping("/charts/top-terms")
-    public ApiResponse<?> getTopTermsChartData() {
-        logger.info("Getting top terms chart data");
+    public ApiResponse<?> getTopTermsChartData(
+            @RequestParam(defaultValue = "25") int limit,
+            @RequestParam(defaultValue = "all") String period) { // MODIFIED
+        logger.info("Getting top terms chart data with limit {} and period {}", limit, period);
         try {
-            ServiceResponse<ChartDataDTO> response = adminChartService.getTopTermsChartData();
+            ServiceResponse<ChartDataDTO> response = adminChartService.getTopTermsChartData(limit, period); // MODIFIED
 
             if(response.isSuccess()) {
                 return ApiResponse.success(response.getDataObject());

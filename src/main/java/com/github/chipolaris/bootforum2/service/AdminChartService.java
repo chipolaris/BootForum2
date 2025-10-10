@@ -57,19 +57,18 @@ public class AdminChartService {
         }
     }
     /**
-     * NEW: Gets only the data for the top terms chart.
+     * Gets only the data for the top terms chart.
      */
-    public ServiceResponse<ChartDataDTO> getTopTermsChartData() {
+    public ServiceResponse<ChartDataDTO> getTopTermsChartData(int limit, String period) {
         logger.info("Fetching data for top terms chart");
         try {
-            ChartDataDTO topTerms = buildDiscussionTopTermsChart();
+            ChartDataDTO topTerms = buildDiscussionTopTermsChart(limit, period);
             return ServiceResponse.success("Top terms chart data retrieved successfully", topTerms);
         } catch (Exception e) {
             logger.error("Failed to retrieve top terms chart data", e);
             return ServiceResponse.failure("An unexpected error occurred while retrieving top terms chart data.");
         }
     }
-
 
     private ChartDataDTO buildContentActivityChart() {
         LocalDateTime twelveMonthsAgo = LocalDate.now().minusMonths(11).withDayOfMonth(1).atStartOfDay();
@@ -140,18 +139,17 @@ public class AdminChartService {
         return new ChartDataDTO(labels, datasets);
     }
 
-    private ChartDataDTO buildDiscussionTopTermsChart() {
-        int limit = 25;
+    private ChartDataDTO buildDiscussionTopTermsChart(int limit, String period) {
 
         // 1. Get top terms for Discussion from "title" and "content" fields
-        ServiceResponse<List<KeywordCountDTO>> discussionTitleTermsResponse = discussionService.getTopTerms("title_terms", limit);
+        ServiceResponse<List<KeywordCountDTO>> discussionTitleTermsResponse = discussionService.getTopTerms("title_terms", limit, period);
         Map<String, Long> titleTermMap = new HashMap<>();
         if (discussionTitleTermsResponse.isSuccess() && discussionTitleTermsResponse.getDataObject() != null) {
             titleTermMap = discussionTitleTermsResponse.getDataObject().stream()
                     .collect(Collectors.toMap(KeywordCountDTO::keyword, KeywordCountDTO::count));
         }
 
-        ServiceResponse<List<KeywordCountDTO>> discussionContentTermsResponse = discussionService.getTopTerms("content_terms", limit);
+        ServiceResponse<List<KeywordCountDTO>> discussionContentTermsResponse = discussionService.getTopTerms("content_terms", limit, period);
         Map<String, Long> contentTermMap = new HashMap<>();
         if (discussionContentTermsResponse.isSuccess() && discussionContentTermsResponse.getDataObject() != null) {
             contentTermMap = discussionContentTermsResponse.getDataObject().stream()
