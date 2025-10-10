@@ -46,10 +46,10 @@ public class AdminChartController {
     @GetMapping("/charts/top-terms")
     public ApiResponse<?> getTopTermsChartData(
             @RequestParam(defaultValue = "25") int limit,
-            @RequestParam(defaultValue = "all") String period) { // MODIFIED
+            @RequestParam(defaultValue = "all") String period) {
         logger.info("Getting top terms chart data with limit {} and period {}", limit, period);
         try {
-            ServiceResponse<ChartDataDTO> response = adminChartService.getTopTermsChartData(limit, period); // MODIFIED
+            ServiceResponse<ChartDataDTO> response = adminChartService.getTopTermsChartData(limit, period);
 
             if(response.isSuccess()) {
                 return ApiResponse.success(response.getDataObject());

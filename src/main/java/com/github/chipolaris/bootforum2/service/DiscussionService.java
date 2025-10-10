@@ -411,7 +411,7 @@ public class DiscussionService {
     }
 
     /**
-     * NEW: Finds discussions similar to a given source discussion using a hybrid scoring model.
+     * Finds discussions similar to a given source discussion using a hybrid scoring model.
      * @param sourceDiscussionId The ID of the discussion to find similar items for.
      * @param limit The maximum number of similar discussions to return.
      * @return A ServiceResponse containing a list of DiscussionSummaryDTOs.

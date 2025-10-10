@@ -86,12 +86,12 @@ export class AdminChartsComponent implements OnInit, OnDestroy {
     this.subscriptions.push(sub);
   }
 
-  // MODIFIED: Method to load top terms on demand, now with height calculation
+  // Method to load top terms on demand, now with height calculation
   loadTopTerms(): void {
     this.isTopTermsLoading = true;
     this.topTermsLoaded = true; // Mark as loaded to show skeleton/chart area
 
-    // NEW: Pre-calculate an estimated height for the skeleton to avoid layout shifts
+    // Pre-calculate an estimated height for the skeleton to avoid layout shifts
     const pixelsPerBar = 24; // Adjust as needed for good spacing
     const chartPadding = 100; // For top/bottom padding, axes, etc.
     const estimatedHeight = (this.topTermsLimit * pixelsPerBar) + chartPadding;
@@ -116,7 +116,7 @@ export class AdminChartsComponent implements OnInit, OnDestroy {
     this.subscriptions.push(sub);
   }
 
-  // RENAMED: To reflect it only sets up the initial charts
+  // Only sets up the initial charts
   setupInitialCharts(data: AdminChartDTO): void {
     const documentStyle = getComputedStyle(document.documentElement);
     const textColor = documentStyle.getPropertyValue('--p-text-color');
@@ -231,14 +231,14 @@ export class AdminChartsComponent implements OnInit, OnDestroy {
     };
   }
 
-  // MODIFIED: Separate setup method for the on-demand chart, now with height calculation
+  // Separate setup method for the on-demand chart, now with height calculation
   setupTopTermsChart(data: ChartDataDTO): void {
     const documentStyle = getComputedStyle(document.documentElement);
     const textColor = documentStyle.getPropertyValue('--p-text-color');
     const textColorSecondary = documentStyle.getPropertyValue('--p-text-muted-color');
     const surfaceBorder = documentStyle.getPropertyValue('--p-content-border-color');
 
-    // NEW: Calculate final height based on actual data received
+    // Calculate final height based on actual data received
     const pixelsPerBar = 24;
     const chartPadding = 100;
     // Use the actual number of labels returned by the API

@@ -228,7 +228,7 @@ public class Discussion extends BaseEntity {
     }
 
     /**
-     * NEW: Transient getter to provide tokenized terms for aggregation.
+     * Transient getter to provide tokenized terms for aggregation.
      * This creates a multi-valued field in the index.
      */
     @Transient

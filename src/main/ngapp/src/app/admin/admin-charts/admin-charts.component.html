@@ -85,7 +85,6 @@
           <p-skeleton height="100%"></p-skeleton>
         </div>
         <div *ngIf="!isTopTermsLoading && topTermsData" class="h-full">
-          <!-- FIX: Added h-full to the chart component itself -->
           <p-chart type="bar" [data]="topTermsData" [options]="topTermsOptions" width="100%" height="100%"></p-chart>
         </div>
       </div>
