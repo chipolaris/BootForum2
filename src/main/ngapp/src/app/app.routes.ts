@@ -111,16 +111,16 @@ export const routes: Routes = [
     path: 'app/admin/charts', component: AdminChartsComponent, canActivate: [authGuard],
     data: { roles: ['ADMIN'] }
   },
-  { path: 'app/registration', component: RegistrationComponent },
+  { path: 'app/registration', component: RegistrationComponent, data: { showStats: false } },
   { path: 'app/comments/:id/thread', component: CommentThreadComponent },
   { path: 'app/registration-confirmation', component: RegistrationConfirmationComponent },
   { path: 'app/confirm-email/:registrationKey', component: EmailConfirmationComponent },
-  { path: 'app/login', component: LoginComponent },
+  { path: 'app/login', component: LoginComponent, data: { showStats: false } },
   { path: 'app/dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'app/users/:username/profile', component: UserProfileComponent },
   { path: 'app/user-account', component: UserAccountComponent, canActivate: [authGuard] },
   { path: 'app/user-activities', component: UserActivitiesComponent, canActivate: [authGuard] },
   { path: 'app/user-reputation', component: UserReputationComponent, canActivate: [authGuard] },
-  { path: 'app/not-found', component: ResourceNotFoundComponent },
-  { path: '**', component: ResourceNotFoundComponent }, // Wildcard route for any unmatched paths
+  { path: 'app/not-found', component: ResourceNotFoundComponent, data: { showStats: false } },
+  { path: '**', component: ResourceNotFoundComponent, data: { showStats: false } }, // Wildcard route for any unmatched paths
 ];

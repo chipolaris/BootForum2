@@ -1,17 +1,17 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { Router, RouterLink, RouterModule, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterModule, RouterOutlet, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DynamicDialogModule } from 'primeng/dynamicdialog';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, filter, startWith } from 'rxjs/operators';
 import { NgIf, CommonModule } from '@angular/common';
 
 import { AuthenticationService } from './_services/authentication.service';
 import { ConfigService } from './_services/config.service';
 import { SystemStatisticService } from './_services/system-statistic.service';
 import { UserDTO as User, SystemStatisticDTO, errorMessageFromApiResponse } from './_data/dtos';
-import { NgIconComponent } from '@ng-icons/core'; // MODIFIED
+import { NgIconComponent } from '@ng-icons/core';
 
 @Component({
   selector: 'app-root',
@@ -38,6 +38,7 @@ export class AppComponent implements OnInit {
   private router = inject(Router);
   private configService = inject(ConfigService);
   private systemStatisticService = inject(SystemStatisticService);
+  private activatedRoute = inject(ActivatedRoute); // ADDED
 
   // --- Public properties for the template ---
   isLoggedIn$: Observable<boolean>;
@@ -47,6 +48,7 @@ export class AppComponent implements OnInit {
   isLoadingStats = true;
   isMobileMenuOpen = false; // For mobile navigation
   isDarkMode = false; // For theme toggling
+  showStats$!: Observable<boolean>; // ADDED
 
   constructor() {
     // The constructor is now clean, handling only observable setup.
@@ -62,6 +64,20 @@ export class AppComponent implements OnInit {
     this.loadSystemStatistics();
     this.loadConfigSetting();
     this.initializeTheme(); // Initialize the theme on startup
+
+    // ADDED: Logic to determine if the stats panel should be shown
+    this.showStats$ = this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      startWith(null), // Trigger on initial load
+      map(() => {
+        let route = this.activatedRoute;
+        while (route.firstChild) {
+          route = route.firstChild;
+        }
+        // Default to true if the 'showStats' property is not explicitly set to false
+        return route.snapshot.data['showStats'] !== false;
+      })
+    );
   }
 
   private initializeTheme(): void {

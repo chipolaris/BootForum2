@@ -1,11 +1,11 @@
-<!-- FIX: Added base background colors for light and dark modes to the root container -->
+<!-- Added base background colors for light and dark modes to the root container -->
 <div class="flex flex-col h-screen bg-white dark:bg-slate-900">
   <p-toast position="top-center"></p-toast>
 
-  <!-- FIX: Added dark mode background and border to the header -->
-  <header class="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 relative z-30">
+  <!-- Added dark mode background and border to the header -->
+  <header class="bg-indigo-100 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 relative z-30">
     <div class="mx-auto flex h-16 max-w-screen-xl items-center gap-8 px-4 sm:px-6 lg:px-8">
-      <!-- MODIFIED: Adjusted text color for better contrast in both modes -->
+      <!-- Adjusted text color for better contrast in both modes -->
       <a class="block text-teal-600 dark:text-teal-500" routerLink="/">
         <span class="sr-only">Home</span>
         {{ siteName }}
@@ -15,7 +15,7 @@
         <nav aria-label="Global" class="hidden md:block">
           <ul class="flex items-center gap-6 text-sm">
             <li>
-              <!-- MODIFIED: Adjusted text color for better contrast -->
+              <!-- Adjusted text color for better contrast -->
               <a class="text-gray-600 dark:text-gray-300 transition hover:text-gray-500/75" routerLink="/app/forums/tree-table"> Forums </a>
             </li>
             <li>
@@ -176,98 +176,102 @@
     </div>
   </header>
 
-  <!-- FIX: Added dark mode background for the main content area -->
+  <!-- Added dark mode background for the main content area -->
   <main class="bg-gray-100 dark:bg-slate-900 flex-grow">
     <router-outlet />
 
     <!-- System Statistics Panel -->
-    <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-8 mt-8">
-      <div *ngIf="isLoadingStats" class="flex justify-center items-center py-6">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        <p class="ml-2 text-gray-600 dark:text-gray-300">Loading system statistics...</p>
-      </div>
+    <!-- Conditionally show this block based on showStats$ variable -->
+    <div *ngIf="showStats$ | async">
+      <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-8 mt-8">
+        <div *ngIf="isLoadingStats" class="flex justify-center items-center py-6">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <p class="ml-2 text-gray-600 dark:text-gray-300">Loading system statistics...</p>
+        </div>
 
-      <div *ngIf="statsError && !isLoadingStats" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md" role="alert">
-        <p class="font-bold">Could not load System Statistics</p>
-        <p>{{ statsError }}</p>
-      </div>
+        <div *ngIf="statsError && !isLoadingStats" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md" role="alert">
+          <p class="font-bold">Could not load System Statistics</p>
+          <p>{{ statsError }}</p>
+        </div>
 
-      <div *ngIf="systemStats && !isLoadingStats && !statsError" class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-lg">
-        <h2 class="text-xl font-semibold text-gray-800 dark:text-slate-100 mb-4 border-b dark:border-slate-700 pb-2">
-          Forum Statistics
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
-          <div>
-            <dt class="font-medium text-gray-600 dark:text-slate-400">Total Forums:</dt>
-            <dd class="text-gray-800 dark:text-slate-200 text-lg font-semibold">{{ systemStats.forumCount }}</dd>
-          </div>
-          <div>
-            <dt class="font-medium text-gray-600 dark:text-slate-400">Total Discussions:</dt>
-            <dd class="text-gray-800 dark:text-slate-200 text-lg font-semibold">{{ systemStats.discussionCount }}</dd>
-          </div>
-          <div>
-            <dt class="font-medium text-gray-600 dark:text-slate-400">Total Comments:</dt>
-            <dd class="text-gray-800 dark:text-slate-200 text-lg font-semibold">{{ systemStats.commentCount }}</dd>
-          </div>
-          <div>
-            <dt class="font-medium text-gray-600 dark:text-slate-400">Total Users:</dt>
-            <dd class="text-gray-800 dark:text-slate-200 text-lg font-semibold">{{ systemStats.userCount }}</dd>
-          </div>
-          <div>
-            <dt class="font-medium text-gray-600 dark:text-slate-400">Latest Registered User:</dt>
-            <dd *ngIf="systemStats.lastUserRegisteredDate" class="text-gray-800 dark:text-slate-200">
-              <a [routerLink]="['/app/users', systemStats.lastRegisteredUser, 'profile']"
-                 class="font-bold hover:underline cursor-pointer">
-                {{ systemStats.lastRegisteredUser }}
-              </a>
-              <span class="block text-xs text-gray-500 dark:text-slate-500">
-                on {{ systemStats.lastUserRegisteredDate | date:'mediumDate' }}
-              </span>
-            </dd>
-            <dd *ngIf="!systemStats.lastUserRegisteredDate" class="text-gray-800 dark:text-slate-200">
-              N/A
-            </dd>
-          </div>
-          <div class="md:col-span-2 lg:col-span-1"> <!-- Adjust span for different screen sizes -->
-            <dt class="font-medium text-gray-600 dark:text-slate-400">Latest Activity:</dt>
-            <ng-container *ngIf="systemStats.lastComment && systemStats.lastComment.commentId > 0; else noRecentActivity">
-              <dd class="text-gray-800 dark:text-slate-200">
-                <span class="font-semibold">Comment:</span>
-                <a [routerLink]="['/app/comments', systemStats.lastComment.commentId, 'thread']"
-                   class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
-                  {{ systemStats.lastComment.title }}
-                </a>
-                by
-                <a [routerLink]="['/app/users', systemStats.lastComment.commentor, 'profile']"
+        <div *ngIf="systemStats && !isLoadingStats && !statsError" class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-lg">
+          <h2 class="text-xl font-semibold text-gray-800 dark:text-slate-100 mb-4 border-b dark:border-slate-700 pb-2">
+            Forum Statistics
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
+            <div>
+              <dt class="font-medium text-gray-600 dark:text-slate-400">Total Forums:</dt>
+              <dd class="text-gray-800 dark:text-slate-200 text-lg font-semibold">{{ systemStats.forumCount }}</dd>
+            </div>
+            <div>
+              <dt class="font-medium text-gray-600 dark:text-slate-400">Total Discussions:</dt>
+              <dd class="text-gray-800 dark:text-slate-200 text-lg font-semibold">{{ systemStats.discussionCount }}</dd>
+            </div>
+            <div>
+              <dt class="font-medium text-gray-600 dark:text-slate-400">Total Comments:</dt>
+              <dd class="text-gray-800 dark:text-slate-200 text-lg font-semibold">{{ systemStats.commentCount }}</dd>
+            </div>
+            <div>
+              <dt class="font-medium text-gray-600 dark:text-slate-400">Total Users:</dt>
+              <dd class="text-gray-800 dark:text-slate-200 text-lg font-semibold">{{ systemStats.userCount }}</dd>
+            </div>
+            <div>
+              <dt class="font-medium text-gray-600 dark:text-slate-400">Latest Registered User:</dt>
+              <dd *ngIf="systemStats.lastUserRegisteredDate" class="text-gray-800 dark:text-slate-200">
+                <a [routerLink]="['/app/users', systemStats.lastRegisteredUser, 'profile']"
                    class="font-bold hover:underline cursor-pointer">
-                  {{ systemStats.lastComment.commentor }}
+                  {{ systemStats.lastRegisteredUser }}
                 </a>
                 <span class="block text-xs text-gray-500 dark:text-slate-500">
-                  on {{ systemStats.lastComment.commentDate | date:'medium' }}
+                  on {{ systemStats.lastUserRegisteredDate | date:'mediumDate' }}
                 </span>
-
               </dd>
-            </ng-container>
-            <ng-template #noRecentActivity>
-              <ng-container *ngIf="systemStats.lastDiscussion && systemStats.lastDiscussion.discussionId > 0">
+              <dd *ngIf="!systemStats.lastUserRegisteredDate" class="text-gray-800 dark:text-slate-200">
+                N/A
+              </dd>
+            </div>
+            <div class="md:col-span-2 lg:col-span-1"> <!-- Adjust span for different screen sizes -->
+              <dt class="font-medium text-gray-600 dark:text-slate-400">Latest Activity:</dt>
+              <ng-container *ngIf="systemStats.lastComment && systemStats.lastComment.commentId > 0; else noRecentActivity">
                 <dd class="text-gray-800 dark:text-slate-200">
-                  <span class="font-semibold">Discussion:</span> "{{ systemStats.lastDiscussion.title }}"
+                  <span class="font-semibold">Comment:</span>
+                  <a [routerLink]="['/app/comments', systemStats.lastComment.commentId, 'thread']"
+                     class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                    {{ systemStats.lastComment.title }}
+                  </a>
+                  by
+                  <a [routerLink]="['/app/users', systemStats.lastComment.commentor, 'profile']"
+                     class="font-bold hover:underline cursor-pointer">
+                    {{ systemStats.lastComment.commentor }}
+                  </a>
                   <span class="block text-xs text-gray-500 dark:text-slate-500">
-                    by {{ systemStats.lastDiscussion.discussionCreator }} on {{ systemStats.lastDiscussion.discussionCreateDate | date:'medium' }}
+                    on {{ systemStats.lastComment.commentDate | date:'medium' }}
                   </span>
+
                 </dd>
               </ng-container>
-              <ng-container *ngIf="!(systemStats.lastComment && systemStats.lastComment.commentId > 0) && !(systemStats.lastDiscussion && systemStats.lastDiscussion.discussionId > 0)">
-                <dd class="text-gray-800 dark:text-slate-200">No recent activity.</dd>
-              </ng-container>
-            </ng-template>
+              <ng-template #noRecentActivity>
+                <ng-container *ngIf="systemStats.lastDiscussion && systemStats.lastDiscussion.discussionId > 0">
+                  <dd class="text-gray-800 dark:text-slate-200">
+                    <span class="font-semibold">Discussion:</span> "{{ systemStats.lastDiscussion.title }}"
+                    <span class="block text-xs text-gray-500 dark:text-slate-500">
+                      by {{ systemStats.lastDiscussion.discussionCreator }} on {{ systemStats.lastDiscussion.discussionCreateDate | date:'medium' }}
+                    </span>
+                  </dd>
+                </ng-container>
+                <ng-container *ngIf="!(systemStats.lastComment && systemStats.lastComment.commentId > 0) && !(systemStats.lastDiscussion && systemStats.lastDiscussion.discussionId > 0)">
+                  <dd class="text-gray-800 dark:text-slate-200">No recent activity.</dd>
+                </ng-container>
+              </ng-template>
+            </div>
           </div>
         </div>
       </div>
     </div>
+    <!-- End System Statistics Panel -->
   </main>
 
-  <!-- FIX: Added dark mode background and top border to the footer -->
+  <!-- Added dark mode background and top border to the footer -->
   <footer class="bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700">
     <div class="mx-auto flex h-16 max-w-screen-xl items-center gap-8 px-4 sm:px-6 lg:px-8">
       <span class="text-gray-500 dark:text-gray-400">Copyright &#64; 2025</span>
