@@ -15,6 +15,9 @@ import { MarkdownModule } from 'ngx-markdown';
 import { GalleriaModule } from 'primeng/galleria'; // Import GalleriaModule
 import { DialogModule } from 'primeng/dialog';     // Import DialogModule
 
+import { provideIcons } from '@ng-icons/core';
+import { APP_ICONS } from './shared/hero-icons';
+
 // Factory function for APP_INITIALIZER
 export function initializeAppFactory(authService: AuthenticationService): () => Observable<any> {
   return () => authService.initializeAuthState();
@@ -41,6 +44,8 @@ export const appConfig: ApplicationConfig = {
     MessageService,
     importProvidersFrom(MarkdownModule.forRoot()), // Import MarkdownModule ngx-markdown
     importProvidersFrom(GalleriaModule), // Provide GalleriaModule
-    importProvidersFrom(DialogModule)     // Provide DialogModule
+    importProvidersFrom(DialogModule),     // Provide DialogModule
+
+    provideIcons(APP_ICONS)
   ]
 };

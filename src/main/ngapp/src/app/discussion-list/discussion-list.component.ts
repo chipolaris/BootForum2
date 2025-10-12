@@ -6,14 +6,12 @@ import { DiscussionService } from '../_services/discussion.service';
 import { AvatarService } from '../_services/avatar.service';
 import { DiscussionSummaryDTO, Page, errorMessageFromApiResponse } from '../_data/dtos';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
-import { APP_ICONS } from '../shared/hero-icons';
 import { PaginatorComponent } from '../shared/paginator/paginator.component';
 
 @Component({
   selector: 'app-discussion-list',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, NgIconComponent, PaginatorComponent],
-  providers: [provideIcons(APP_ICONS)],
   templateUrl: './discussion-list.component.html',
   styleUrls: ['./discussion-list.component.css']
 })

@@ -7,7 +7,6 @@ import { AvatarService } from '../_services/avatar.service';
 import { TagService } from '../_services/tag.service';
 import { DiscussionSummaryDTO, Page, TagDTO, errorMessageFromApiResponse } from '../_data/dtos';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
-import { APP_ICONS } from '../shared/hero-icons';
 import { PaginatorComponent } from '../shared/paginator/paginator.component';
 import { MultiSelectModule } from 'primeng/multiselect';
 
@@ -15,7 +14,6 @@ import { MultiSelectModule } from 'primeng/multiselect';
   selector: 'app-discussion-tag',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, NgIconComponent, PaginatorComponent, MultiSelectModule],
-  providers: [provideIcons(APP_ICONS)],
   templateUrl: './discussion-tag.component.html',
   styleUrls: ['./discussion-tag.component.css']
 })

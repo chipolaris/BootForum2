@@ -10,7 +10,6 @@ import { CommonModule } from '@angular/common'; // Import CommonModule for *ngIf
 import { finalize } from 'rxjs/operators';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { APP_ICONS } from '../shared/hero-icons';
 
 // --- PrimeNG Modules ---
 import { MessageService } from 'primeng/api';
@@ -18,10 +17,8 @@ import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
-// --- Assume you have an AuthService like this ---
-import { AuthenticationService } from '../_services/authentication.service'; // Adjust path as needed
+import { AuthenticationService } from '../_services/authentication.service';
 // ---------------------------------------------
-
 
 @Component({
   selector: 'app-login',
@@ -36,9 +33,6 @@ import { AuthenticationService } from '../_services/authentication.service'; // 
     ProgressSpinnerModule,
     NgIcon,
     // -----------------------------------------
-  ],
-  providers: [
-    provideIcons(APP_ICONS)
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],

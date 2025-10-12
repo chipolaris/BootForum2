@@ -12,7 +12,6 @@ import { TableModule } from 'primeng/table';
 import { SortEvent } from 'primeng/api';
 
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
-import { APP_ICONS } from '../shared/hero-icons';
 import { PaginatorComponent } from '../shared/paginator/paginator.component';
 
 @Component({
@@ -26,7 +25,6 @@ import { PaginatorComponent } from '../shared/paginator/paginator.component';
     NgIconComponent,
     PaginatorComponent
   ],
-  providers: [provideIcons(APP_ICONS)],
   templateUrl: './forum-view.component.html',
   styleUrls: ['./forum-view.component.css']
 })
@@ -48,7 +46,7 @@ export class ForumViewComponent implements OnInit, OnDestroy {
   currentSortOrder: string = 'DESC';
   currentSortOrderNumber: number = -1;
 
-  // NEW: State for mobile sort dropdown
+  // State for mobile sort dropdown
   sortOption: string = 'stat.lastComment.commentDate,DESC';
   sortOptions = [
     { label: 'Latest Reply', value: 'stat.lastComment.commentDate,DESC' },
@@ -156,7 +154,7 @@ export class ForumViewComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * NEW: Fetches avatar IDs for all unique discussion creators on the current page.
+   * Fetches avatar IDs for all unique discussion creators on the current page.
    */
   private fetchAvatarFileIds(): void {
     if (!this.discussionsPage?.content) {
@@ -181,7 +179,7 @@ export class ForumViewComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * NEW: Generates the correct avatar URL for a given username.
+   * Generates the correct avatar URL for a given username.
    */
   getAvatarUrl(username: string): string {
     if (this.avatarFileIdMap.has(username)) {
@@ -213,7 +211,7 @@ export class ForumViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  // NEW: Handle sorting from the mobile dropdown
+  // Handle sorting from the mobile dropdown
   onMobileSortChange(): void {
     if (!this.forumId) return;
 

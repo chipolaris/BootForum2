@@ -6,14 +6,12 @@ import { UserService } from '../_services/user.service';
 import { AvatarService } from '../_services/avatar.service'; // <-- IMPORT
 import { UserProfileDTO } from '../_data/dtos';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { APP_ICONS } from '../shared/hero-icons';
 import { MarkdownModule } from 'ngx-markdown';
 
 @Component({
   selector: 'app-user-profile',
   standalone: true,
   imports: [CommonModule, RouterModule, MarkdownModule],
-  providers: [provideIcons(APP_ICONS)],
   templateUrl: './user-profile.component.html',
   styleUrls: ['./user-profile.component.css']
 })
@@ -21,11 +19,11 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private userService = inject(UserService);
-  private avatarService = inject(AvatarService); // <-- INJECT
+  private avatarService = inject(AvatarService);
   private subscription = new Subscription();
 
   userProfile: UserProfileDTO | null = null;
-  avatarFileId: number | null = null; // <-- ADD
+  avatarFileId: number | null = null;
   isLoading = true;
   error: string | null = null;
 
@@ -35,7 +33,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
         this.isLoading = true;
         this.error = null;
         this.userProfile = null;
-        this.avatarFileId = null; // <-- RESET
+        this.avatarFileId = null; // RESET
       }),
       switchMap(params => {
         const username = params.get('username');
@@ -72,7 +70,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * NEW: Fetches the avatar file ID for the current user profile.
+   * Fetches the avatar file ID for the current user profile.
    */
   private fetchAvatarId(username: string): void {
     const avatarSub = this.avatarService.getAvatarFileId(username).subscribe({
@@ -93,7 +91,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * NEW: Generates the correct avatar URL using the fetched file ID.
+   * Generates the correct avatar URL using the fetched file ID.
    */
   getAvatarUrl(): string {
     if (this.avatarFileId) {

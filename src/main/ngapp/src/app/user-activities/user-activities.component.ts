@@ -6,13 +6,11 @@ import { MyActivitiesDTO, errorMessageFromApiResponse } from '../_data/dtos';
 import { PanelModule } from 'primeng/panel';
 import { TableModule } from 'primeng/table';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { APP_ICONS } from '../shared/hero-icons';
 
 @Component({
   selector: 'app-my-activities',
   standalone: true,
   imports: [CommonModule, RouterModule, PanelModule, TableModule, NgIcon],
-  providers: [provideIcons(APP_ICONS)],
   templateUrl: './user-activities.component.html',
   styleUrls: ['./user-activities.component.css']
 })

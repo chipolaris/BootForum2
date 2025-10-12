@@ -17,7 +17,6 @@ import { FileListComponent } from '../file-list/file-list.component';
 
 // UI Modules
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { APP_ICONS } from '../shared/hero-icons';
 import { MarkdownModule } from 'ngx-markdown';
 import { GalleriaModule } from 'primeng/galleria';
 import { DialogModule } from 'primeng/dialog';
@@ -34,7 +33,6 @@ import { DialogModule } from 'primeng/dialog';
     GalleriaModule,
     DialogModule
   ],
-  providers: [provideIcons(APP_ICONS)],
   templateUrl: './comment-thread.component.html',
   styleUrls: ['./comment-thread.component.css']
 })

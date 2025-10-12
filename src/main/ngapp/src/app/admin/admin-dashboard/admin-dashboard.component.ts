@@ -4,7 +4,6 @@ import { AdminDashboardService } from '../../_services/admin-dashboard.service';
 import { AdminDashboardDTO, RankedListItemDTO, SnapshotStatsDTO, errorMessageFromApiResponse } from '../../_data/dtos';
 import { MessageService } from 'primeng/api';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { APP_ICONS } from '../../shared/hero-icons';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -14,7 +13,6 @@ import { SkeletonModule } from 'primeng/skeleton';
   selector: 'app-admin-dashboard',
   standalone: true,
   imports: [CommonModule, RouterModule, NgIcon, SelectButtonModule, FormsModule, SkeletonModule],
-  providers: [provideIcons(APP_ICONS)],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css']
 })

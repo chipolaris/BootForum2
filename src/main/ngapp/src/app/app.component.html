@@ -1,8 +1,12 @@
-<div class="flex flex-col h-screen">
+<!-- FIX: Added base background colors for light and dark modes to the root container -->
+<div class="flex flex-col h-screen bg-white dark:bg-slate-900">
   <p-toast position="top-center"></p-toast>
-  <header class="bg-indigo-100 relative z-30">
+
+  <!-- FIX: Added dark mode background and border to the header -->
+  <header class="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 relative z-30">
     <div class="mx-auto flex h-16 max-w-screen-xl items-center gap-8 px-4 sm:px-6 lg:px-8">
-      <a class="block text-teal-600" routerLink="/">
+      <!-- MODIFIED: Adjusted text color for better contrast in both modes -->
+      <a class="block text-teal-600 dark:text-teal-500" routerLink="/">
         <span class="sr-only">Home</span>
         {{ siteName }}
       </a>
@@ -11,18 +15,19 @@
         <nav aria-label="Global" class="hidden md:block">
           <ul class="flex items-center gap-6 text-sm">
             <li>
-              <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/forums/tree-table"> Forums </a>
+              <!-- MODIFIED: Adjusted text color for better contrast -->
+              <a class="text-gray-600 dark:text-gray-300 transition hover:text-gray-500/75" routerLink="/app/forums/tree-table"> Forums </a>
             </li>
             <li>
-              <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/discussions/search"> Search </a>
+              <a class="text-gray-600 dark:text-gray-300 transition hover:text-gray-500/75" routerLink="/app/discussions/search"> Search </a>
             </li>
             <li *ngIf="(isLoggedIn$ | async)">
-              <a class="text-gray-500 transition hover:text-gray-500/75" routerLink="/app/dashboard"> Dashboard </a>
+              <a class="text-gray-600 dark:text-gray-300 transition hover:text-gray-500/75" routerLink="/app/dashboard"> Dashboard </a>
             </li>
 
             <!-- Admin Links with Dropdown -->
             <li *ngIf="(isLoggedIn$ | async) && (isAdmin$ | async)" class="relative group">
-              <a routerLink="/app/admin/forums/all" class="text-gray-500 transition hover:text-gray-500/75 flex items-center gap-1">
+              <a routerLink="/app/admin/forums/all" class="text-gray-600 dark:text-gray-300 transition hover:text-gray-500/75 flex items-center gap-1">
                 Manage Forums
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover:rotate-180" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -48,7 +53,7 @@
 
             <!-- Admin Tools Dropdown -->
             <li *ngIf="(isLoggedIn$ | async) && (isAdmin$ | async)" class="relative group">
-              <span class="text-gray-500 transition hover:text-gray-500/75 flex items-center gap-1 cursor-pointer">
+              <span class="text-gray-600 dark:text-gray-300 transition hover:text-gray-500/75 flex items-center gap-1 cursor-pointer">
                 Admin Tools
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover:rotate-180" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -78,6 +83,14 @@
         </nav>
 
         <div class="flex items-center gap-4">
+          <!-- Dark Mode Toggle Button -->
+          <button (click)="toggleDarkMode()"
+                  class="rounded-full p-2.5 text-gray-600 transition hover:text-gray-600/75 dark:text-gray-300 dark:hover:text-gray-300/75 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <span class="sr-only">Toggle theme</span>
+            <ng-icon *ngIf="!isDarkMode" name="heroMoon" size="1.25rem" title="Dark Mode"></ng-icon>
+            <ng-icon *ngIf="isDarkMode" name="heroSun" size="1.25rem" title="Light Mode"></ng-icon>
+          </button>
+
           <div class="sm:flex sm:gap-4">
             <button *ngIf="isLoggedIn$ | async" (click)="logout()"
                     class="block rounded-md bg-orange-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-orange-700 cursor-pointer">
@@ -163,15 +176,15 @@
     </div>
   </header>
 
-  <!-- Container: Centers content vertically and horizontally, light gray background -->
-  <main class="bg-gray-100 flex-grow">
+  <!-- FIX: Added dark mode background for the main content area -->
+  <main class="bg-gray-100 dark:bg-slate-900 flex-grow">
     <router-outlet />
 
     <!-- System Statistics Panel -->
     <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-8 mt-8">
       <div *ngIf="isLoadingStats" class="flex justify-center items-center py-6">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        <p class="ml-2 text-gray-600">Loading system statistics...</p>
+        <p class="ml-2 text-gray-600 dark:text-gray-300">Loading system statistics...</p>
       </div>
 
       <div *ngIf="statsError && !isLoadingStats" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md" role="alert">
@@ -254,9 +267,10 @@
     </div>
   </main>
 
-  <footer class="">
+  <!-- FIX: Added dark mode background and top border to the footer -->
+  <footer class="bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700">
     <div class="mx-auto flex h-16 max-w-screen-xl items-center gap-8 px-4 sm:px-6 lg:px-8">
-      <span class="text-gray-500">Copyright &#64; 2025</span>
+      <span class="text-gray-500 dark:text-gray-400">Copyright &#64; 2025</span>
     </div>
   </footer>
 </div>

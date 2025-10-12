@@ -13,7 +13,6 @@ import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
 import { TagModule as PrimeTagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { APP_ICONS } from '../../shared/hero-icons';
 
 // Local Components
 import { TagFormComponent } from '../tag-form/tag-form.component';
@@ -34,7 +33,7 @@ import { TagFormComponent } from '../tag-form/tag-form.component';
   ],
   // These services should be provided globally in app.config.ts for a real app.
   // Providing them here makes the component self-contained for this example.
-  providers: [DialogService, ConfirmationService, MessageService, provideIcons(APP_ICONS)],
+  providers: [DialogService, ConfirmationService, MessageService],
   templateUrl: './tag-list.component.html',
   styleUrls: ['./tag-list.component.css']
 })

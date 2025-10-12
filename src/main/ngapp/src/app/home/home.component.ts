@@ -6,14 +6,12 @@ import { DiscussionService } from '../_services/discussion.service';
 import { AvatarService } from '../_services/avatar.service';
 import { ConfigService } from '../_services/config.service';
 import { DiscussionDTO, errorMessageFromApiResponse } from '../_data/dtos';
-import { NgIconComponent, provideIcons } from '@ng-icons/core';
-import { APP_ICONS } from '../shared/hero-icons';
+import { NgIconComponent } from '@ng-icons/core';
 
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [CommonModule, RouterModule, NgIconComponent],
-  providers: [provideIcons(APP_ICONS)],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })

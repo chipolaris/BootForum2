@@ -3,10 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // Required for ngModel
 
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
-// import { OverlayPanelModule, OverlayPanel } from 'primeng/overlaypanel'; // REMOVE THIS
-import { PopoverModule, Popover } from 'primeng/popover'; // ADD THIS
+import { PopoverModule, Popover } from 'primeng/popover';
 
-import { APP_PICKER_AVAILABLE_ICONS, APP_ICONS, AppIconDefinition } from '../shared/hero-icons';
+import { APP_PICKER_AVAILABLE_ICONS, AppIconDefinition } from '../shared/hero-icons';
 
 export interface IconSelection {
   iconName: string | null;
@@ -16,13 +15,9 @@ export interface IconSelection {
 @Component({
   selector: 'app-icon-picker',
   standalone: true,
-  // imports: [CommonModule, FormsModule, NgIconComponent, OverlayPanelModule], // UPDATE THIS
-  imports: [CommonModule, FormsModule, NgIconComponent, PopoverModule], // UPDATED
+  imports: [CommonModule, FormsModule, NgIconComponent, PopoverModule],
   templateUrl: './icon-picker.component.html',
   styleUrls: ['./icon-picker.component.css'],
-  providers: [
-    provideIcons(APP_ICONS)
-  ],
 })
 export class IconPickerComponent implements OnInit {
   @Input() initialIconName: string | null = null;
@@ -35,8 +30,7 @@ export class IconPickerComponent implements OnInit {
   selectedIconName: string | null = null;
   selectedColor: string = '#333333';
 
-  // @ViewChild('op') overlayPanel!: OverlayPanel; // UPDATE THIS
-  @ViewChild('op') popover!: Popover; // UPDATED
+  @ViewChild('op') popover!: Popover;
 
   ngOnInit(): void {
     this.selectedIconName = this.initialIconName;
@@ -44,13 +38,11 @@ export class IconPickerComponent implements OnInit {
   }
 
   togglePicker(event: Event): void {
-    // this.overlayPanel.toggle(event); // UPDATE THIS
-    this.popover.toggle(event); // UPDATED (event.target will be the button)
+    this.popover.toggle(event);
   }
 
   closePicker(): void {
-	  // this.overlayPanel.hide(); // UPDATE THIS
-	  this.popover.hide(); // UPDATED
+	  this.popover.hide();
   }
 
   selectIcon(iconName: string): void {

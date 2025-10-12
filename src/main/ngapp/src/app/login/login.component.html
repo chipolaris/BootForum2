@@ -1,13 +1,13 @@
 <div class="flex flex-col justify-center items-center h-full">
     <!-- Card: White background, shadow, padding, rounded corners -->
-  <div class="bg-white shadow-md rounded-lg p-8 mx-auto w-64 sm:w-64 md:w-80 lg:w-96 xl:w-[500px]">
+  <div class="bg-white dark:bg-slate-800 shadow-md rounded-lg p-8 mx-auto w-64 sm:w-64 md:w-80 lg:w-96 xl:w-[500px]">
 
       <!-- Header Section -->
       <div>
         <!-- Optional Logo -->
         <!-- <img class="mx-auto h-12 w-auto" src="/path/to/logo.svg" alt="Company Logo"> -->
 
-        <h2 class="mt-6 text-center text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-gray-900 flex items-center justify-center gap-2">
+        <h2 class="mt-6 text-center text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:mt-8 flex items-center justify-center gap-2">
           <ng-icon name="heroLockClosed"></ng-icon>
           Sign in to your account
         </h2>
@@ -32,7 +32,7 @@
         </div>
 
         <!-- Input Fields Container -->
-        <div class="rounded-md space-y-4">
+        <div class="rounded-md space-y-4 bg-white dark:bg-slate-800">
           <!-- Username/Email Field -->
           <div>
             <label for="username" class="sr-only">Username or Email</label>
@@ -41,7 +41,7 @@
               formControlName="username"
               type="text"
               required
-              class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+              class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-300 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               placeholder="Username"
               [ngClass]="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': submitted && f['username'].errors }"
             />
@@ -63,7 +63,7 @@
               formControlName="password"
               type="password"
               required
-              class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+              class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-300 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               placeholder="Password"
               [ngClass]="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': submitted && f['password'].errors }"
             />
@@ -107,8 +107,8 @@
 
       <!-- Link to Registration -->
       <div class="text-sm text-center mt-4">
-        <span class="text-gray-600">Don't have an account?</span>
-        <a routerLink="/app/registration" class="font-medium text-indigo-600 hover:text-indigo-500 ml-1">
+        <span class="text-slate-600 dark:text-slate-300">Don't have an account?</span>
+        <a routerLink="/app/registration" class="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 ml-1">
           Sign up
         </a>
       </div>

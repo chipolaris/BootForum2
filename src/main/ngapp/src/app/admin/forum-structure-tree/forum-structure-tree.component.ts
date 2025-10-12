@@ -23,9 +23,6 @@ import { ForumGroupEditComponent } from '../forum-group-edit/forum-group-edit.co
 // Import NgIconComponent and provideIcons
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 
-// Import the shared icon object map
-import { APP_ICONS } from '../../shared/hero-icons';
-
 // Define a more specific TreeNode type for our use case
 interface CustomTreeNode extends TreeNode {
   data: ForumGroupDTO | ForumDTO;
@@ -51,7 +48,7 @@ interface NodeSelectEvent {
     DynamicDialogModule,
     NgIconComponent
   ],
-  providers: [MessageService, DialogService, provideIcons(APP_ICONS)],
+  providers: [MessageService, DialogService],
   templateUrl: './forum-structure-tree.component.html',
   styleUrls: ['./forum-structure-tree.component.css']
 })

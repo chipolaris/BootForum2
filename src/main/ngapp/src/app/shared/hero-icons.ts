@@ -14,6 +14,8 @@ import {
   heroLockClosed,         // Used by IconPicker, ForumStructureTree, and Login
   heroMapPin,
   heroStar,
+  heroSun,
+  heroMoon,
   heroChevronDown,        // Used by IconPicker internally
   heroArrowRightEndOnRectangle, // Used by Login
   // Add any other globally used HeroIcons here
@@ -66,6 +68,8 @@ import {
   heroLockClosedSolid,         // Used by IconPicker, ForumStructureTree, and Login
   heroMapPinSolid,
   heroStarSolid,
+  heroSunSolid,
+  heroMoonSolid,
   heroChevronDownSolid,        // Used by IconPicker internally
   heroArrowRightEndOnRectangleSolid, // Used by Login
   // Add any other globally used HeroIcons here
@@ -173,6 +177,8 @@ export const APP_ICONS = {
   heroLockClosed,
   heroMapPin,
   heroStar,
+  heroSun,
+  heroMoon,
   heroChevronDown, // For IconPicker's internal chevron
   heroArrowRightEndOnRectangle, // For Login component
   heroGift,
@@ -222,6 +228,8 @@ export const APP_ICONS = {
   heroLockClosedSolid,         // Used by IconPicker, ForumStructureTree, and Login
   heroMapPinSolid,
   heroStarSolid,
+  heroSunSolid,
+  heroMoonSolid,
   heroChevronDownSolid,        // Used by IconPicker internally
   heroArrowRightEndOnRectangleSolid, // Used by Login
   heroGiftSolid,

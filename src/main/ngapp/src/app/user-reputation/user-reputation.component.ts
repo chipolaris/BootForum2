@@ -7,13 +7,11 @@ import { PanelModule } from 'primeng/panel';
 import { TableModule } from 'primeng/table';
 import { CardModule } from 'primeng/card';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { APP_ICONS } from '../shared/hero-icons';
 
 @Component({
   selector: 'app-user-reputation',
   standalone: true,
   imports: [CommonModule, RouterModule, PanelModule, TableModule, CardModule, NgIcon],
-  providers: [provideIcons(APP_ICONS)],
   templateUrl: './user-reputation.component.html',
   styleUrls: ['./user-reputation.component.css']
 })

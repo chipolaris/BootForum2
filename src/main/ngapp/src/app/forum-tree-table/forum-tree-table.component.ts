@@ -9,9 +9,6 @@ import { ToastModule } from 'primeng/toast';
 // Import NgIconComponent and provideIcons
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 
-// Import the shared icon object map
-import { APP_ICONS } from '../shared/hero-icons';
-
 import { ForumGroupService } from '../_services/forum-group.service';
 import { ForumTreeTableDTO, ForumGroupDTO, ForumDTO, ApiResponse } from '../_data/dtos';
 
@@ -45,7 +42,7 @@ interface AppTreeTableNode extends TreeNode {
     ToastModule,
     NgIconComponent
   ],
-  providers: [MessageService, provideIcons(APP_ICONS)], // ForumGroupService is typically providedIn: 'root'
+  providers: [MessageService],
   templateUrl: './forum-tree-table.component.html',
   styleUrls: ['./forum-tree-table.component.css']
 })

@@ -18,11 +18,8 @@ import { VoteService } from '../_services/vote.service';
 import { AuthenticationService } from '../_services/authentication.service';
 import { AvatarService } from '../_services/avatar.service';
 import { DiscussionDTO, CommentDTO, FileInfoDTO, Page, ApiResponse, DiscussionSummaryDTO } from '../_data/dtos';
-// REMOVED: FileListComponent is no longer needed as we are inlining the template for responsiveness.
-// import { FileListComponent } from '../file-list/file-list.component';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { APP_ICONS } from '../shared/hero-icons';
 
 import { MarkdownModule } from 'ngx-markdown';
 
@@ -41,13 +38,9 @@ import { PaginatorComponent } from '../shared/paginator/paginator.component';
     NgIcon,
     DatePipe,
     MarkdownModule,
-    // REMOVED: FileListComponent
     GalleriaModule,
     DialogModule,
     PaginatorComponent
-  ],
-  providers: [
-    provideIcons(APP_ICONS)
   ],
   templateUrl: './discussion-view.component.html',
   styleUrls: ['./discussion-view.component.css']
@@ -85,7 +78,7 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
   similarDiscussionsLoaded = false;
   similarDiscussionsError: string | null = null;
 
-  // NEW: State for participants card
+  // State for participants card
   sortedParticipants: { username: string, count: number }[] = [];
   showAllParticipants = false;
 
@@ -140,7 +133,7 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
     this.isLoadingSimilar = false;
     this.similarDiscussionsLoaded = false;
     this.similarDiscussionsError = null;
-    // NEW: Reset participants state
+    // Reset participants state
     this.sortedParticipants = [];
     this.showAllParticipants = false;
   }
@@ -183,7 +176,7 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * NEW: Converts the participants map into a sorted array for display.
+   * Converts the participants map into a sorted array for display.
    */
   private processParticipants(): void {
     if (this.discussionDetails?.stat?.participants) {
@@ -196,7 +189,7 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * NEW: Toggles the visibility of the full participant list.
+   * Toggles the visibility of the full participant list.
    */
   toggleShowAllParticipants(): void {
     this.showAllParticipants = !this.showAllParticipants;
@@ -260,7 +253,7 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
       usernames.add(this.discussionDetails.createBy);
     }
     this.commentsDataForViewers.forEach(comment => usernames.add(comment.createBy));
-    // NEW: Add participants to the avatar fetch list
+    // Add participants to the avatar fetch list
     this.sortedParticipants.forEach(p => usernames.add(p.username));
 
     if (usernames.size === 0) {
@@ -289,7 +282,7 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
     return '/assets/images/default-avatar.png';
   }
 
-  // ADDED: Helper method for inlined attachment list
+  // Helper method for inlined attachment list
   getDownloadUrl(fileId: number): string {
     return `/api/public/files/${fileId}/download`;
   }
@@ -377,7 +370,7 @@ export class DiscussionViewComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * New method to handle sort changes from the dropdown.
+   * Method to handle sort changes from the dropdown.
    */
   onCommentSortOptionChange(): void {
     if (!this.discussionId) return;
