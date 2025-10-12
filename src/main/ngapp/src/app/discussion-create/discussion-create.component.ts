@@ -8,10 +8,11 @@ import { Editor } from '@toast-ui/editor';
 import { DiscussionService } from '../_services/discussion.service';
 import { ForumService } from '../_services/forum.service';
 import { TagService } from '../_services/tag.service';
-import { ConfigService } from '../_services/config.service'; // Import ConfigService
-import { FileValidationService, FileValidationError } from '../_services/file-validation.service'; // Import new validation service
+import { ConfigService } from '../_services/config.service';
+import { FileValidationService, FileValidationError } from '../_services/file-validation.service';
+import { ThemeService, Theme } from '../_services/theme.service';
 import { DiscussionDTO, TagDTO } from '../_data/dtos';
-import { finalize } from 'rxjs/operators';
+import { finalize, skip } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { MultiSelectModule } from 'primeng/multiselect';
 
@@ -34,9 +35,13 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
 
   contentEditor: InstanceType<typeof Editor> | null = null;
 
-  @ViewChild('contentEditorRef') private set editorContentEl(el: ElementRef | undefined) {
-    if (el && el.nativeElement && !this.contentEditor) {
-      this.initializeEditor(el.nativeElement);
+  // triggers Toast UI Editor initialization ---
+  private editorElRef?: ElementRef<HTMLElement>;
+  @ViewChild('contentEditorRef') private set editorContentEl(el: ElementRef<HTMLElement> | undefined) {
+    if (el && !this.contentEditor) { // Only initialize if the element exists and editor isn't already created
+      this.editorElRef = el;
+      // Now that the element is guaranteed to be in the DOM, we can safely initialize the editor.
+      this.initializeEditor();
     }
   }
 
@@ -49,11 +54,11 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
   contentError: string | null = null;
   generalError: string | null = null;
 
-  // New properties for validation errors
+  // Properties for validation errors
   imageErrors: FileValidationError[] = [];
   attachmentErrors: FileValidationError[] = [];
 
-  // New properties for validation config with defaults
+  // Properties for validation config with defaults
   public validationConfig = {
     content: {
       posts: { minLength: 10, maxLength: 20000 },
@@ -75,6 +80,7 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
   private tagService = inject(TagService);
   private configService = inject(ConfigService);
   private fileValidationService = inject(FileValidationService);
+  private themeService = inject(ThemeService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private subscriptions = new Subscription();
@@ -84,7 +90,7 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * REFACTORED: Use the more efficient getSettings() method to fetch all
+   * Fetch all
    * required configuration in a single network request.
    */
   private loadValidationConfig(): void {
@@ -196,15 +202,46 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
     };
   }
 
-  private initializeEditor(element: HTMLElement): void {
-    if (this.contentEditor) return;
+  private initializeEditor(): void {
+    // Create the initial editor instance
+    const initialTheme = this.themeService.getCurrentTheme();
+    this.createEditorInstance(initialTheme);
+
+    // Subscribe to subsequent theme changes to recreate the editor
+    const themeSub = this.themeService.theme$.pipe(
+      // We skip the first emission because the editor is already created with the initial theme.
+      skip(1)
+    ).subscribe(theme => {
+      this.createEditorInstance(theme);
+    });
+
+    this.subscriptions.add(themeSub);
+  }
+
+  private createEditorInstance(theme: Theme): void {
+    if (!this.editorElRef) {
+      console.error("Editor element reference is not available.");
+      return;
+    }
+
+    // 1. Preserve current content before destroying the editor
+    const currentContent = this.contentEditor?.getMarkdown() ?? '';
+
+    // 2. Destroy the existing editor instance to prevent memory leaks
+    this.contentEditor?.destroy();
+
+    // 3. Create a new editor instance with the new theme and preserved content
     try {
       this.contentEditor = new Editor({
-        el: element,
+        el: this.editorElRef.nativeElement,
         height: '300px',
         initialEditType: 'markdown',
-        previewStyle: 'vertical'
+        previewStyle: 'vertical',
+        theme: theme, // Use the new theme
+        initialValue: currentContent // Restore the content
       });
+
+      // 4. Re-attach event listeners to the new instance
       this.contentEditor.on('change', () => {
         if (this.contentError && this.contentEditor?.getMarkdown().trim()) {
           this.contentError = null;

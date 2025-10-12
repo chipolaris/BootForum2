@@ -1,6 +1,5 @@
 // /home/cmngu/Workspace/BootForum2/src/main/ngapp/tailwind.config.js
 module.exports = {
-  darkMode: 'class',
   content: [
     "./src/**/*.{html,ts}", // This tells Tailwind to scan all .html and .ts files in your src folder
   ],

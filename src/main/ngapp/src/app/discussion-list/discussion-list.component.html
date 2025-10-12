@@ -60,7 +60,8 @@
         <!-- Main content: Title, Tags, Author -->
         <div class="flex-grow">
           <!-- Title -->
-          <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="text-base font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300" [title]="discussion.title">
+          <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="text-base font-medium text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-200"
+             [title]="discussion.title">
             {{ discussion.title }}
           </a>
 
@@ -76,7 +77,7 @@
           </div>
 
           <!-- Meta Info -->
-          <div class="flex items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
+          <div class="flex items-center mt-2 text-xs text-slate-600 dark:text-slate-300">
             <span>by&nbsp;</span>
             <a [routerLink]="['/app/users', discussion.createBy, 'profile']" class="flex items-center hover:underline">
               <img [src]="getAvatarUrl(discussion.createBy)" [alt]="discussion.createBy + '\'s avatar'" class="h-6 w-6 rounded-full mr-1.5 object-cover">
@@ -89,15 +90,15 @@
         <!-- Stats and Last Activity Footer -->
         <div class="mt-4 pt-4 border-t border-gray-200 dark:border-slate-600 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           <div>
-            <div class="text-xs font-medium text-gray-500 dark:text-gray-400">Replies</div>
+            <div class="text-xs font-medium text-slate-600 dark:text-slate-300">Replies</div>
             <div class="font-semibold text-gray-800 dark:text-slate-200">{{ discussion.commentCount | number }}</div>
           </div>
           <div>
-            <div class="text-xs font-medium text-gray-500 dark:text-gray-400">Views</div>
+            <div class="text-xs font-medium text-slate-600 dark:text-slate-300">Views</div>
             <div class="font-semibold text-gray-800 dark:text-slate-200">{{ discussion.viewCount | number }}</div>
           </div>
           <div class="col-span-2">
-            <div class="text-xs font-medium text-gray-500 dark:text-gray-400">Last Activity</div>
+            <div class="text-xs font-medium text-slate-600 dark:text-slate-300">Last Activity</div>
             <div class="text-gray-800 dark:text-slate-200">
               <ng-container *ngIf="discussion.lastCommentDate; else noLastCommentDateCard">
                 {{ discussion.lastCommentDate | date:'mediumDate' }} at {{ discussion.lastCommentDate | date:'shortTime' }}
@@ -139,7 +140,7 @@
             <td class="px-6 py-4 align-top">
               <!-- Title -->
               <div>
-                <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 truncate" [title]="discussion.title">
+                <a [routerLink]="['/app/discussions', discussion.id, 'view']" class="text-sm font-medium text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-200 truncate" [title]="discussion.title">
                   {{ discussion.title }}
                 </a>
               </div>
@@ -161,7 +162,7 @@
               <!-- END Tags Section -->
 
               <!-- Meta Info: Author, Date, Forum -->
-              <div class="flex items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
+              <div class="flex items-center mt-2 text-xs text-slate-600 dark:text-slate-300">
                 <span>by&nbsp;</span>
                 <a [routerLink]="['/app/users', discussion.createBy, 'profile']" class="flex items-center hover:underline">
                   <img [src]="getAvatarUrl(discussion.createBy)" [alt]="discussion.createBy + '\'s avatar'" class="h-6 w-6 rounded-full mr-1.5 object-cover">
@@ -170,7 +171,7 @@
                 <span class="mx-1.5">on {{ discussion.createDate | date:'mediumDate' }}</span>
                 <span class="mr-1.5">in forum</span>
                 <a [routerLink]="['/app/forums', discussion.forumId, 'view']"
-                   class="font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                   class="font-medium text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-200">
                   {{ discussion.forumTitle }}
                 </a>
               </div>

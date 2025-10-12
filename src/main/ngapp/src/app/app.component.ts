@@ -5,11 +5,12 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DynamicDialogModule } from 'primeng/dynamicdialog';
 import { Observable } from 'rxjs';
 import { map, filter, startWith } from 'rxjs/operators';
-import { NgIf, CommonModule } from '@angular/common';
+import { NgIf, CommonModule, AsyncPipe } from '@angular/common';
 
 import { AuthenticationService } from './_services/authentication.service';
 import { ConfigService } from './_services/config.service';
 import { SystemStatisticService } from './_services/system-statistic.service';
+import { ThemeService } from './_services/theme.service';
 import { UserDTO as User, SystemStatisticDTO, errorMessageFromApiResponse } from './_data/dtos';
 import { NgIconComponent } from '@ng-icons/core';
 
@@ -25,7 +26,8 @@ import { NgIconComponent } from '@ng-icons/core';
     DynamicDialogModule,
     NgIf,
     CommonModule,
-    NgIconComponent
+    NgIconComponent,
+    AsyncPipe
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
@@ -38,17 +40,18 @@ export class AppComponent implements OnInit {
   private router = inject(Router);
   private configService = inject(ConfigService);
   private systemStatisticService = inject(SystemStatisticService);
-  private activatedRoute = inject(ActivatedRoute); // ADDED
+  private activatedRoute = inject(ActivatedRoute);
+  public themeService = inject(ThemeService); // MODIFIED: Made public
 
   // --- Public properties for the template ---
   isLoggedIn$: Observable<boolean>;
   isAdmin$: Observable<boolean>;
+  isDarkMode$: Observable<boolean>; // ADDED
   systemStats: SystemStatisticDTO | null = null;
   statsError: string | null = null;
   isLoadingStats = true;
   isMobileMenuOpen = false; // For mobile navigation
-  isDarkMode = false; // For theme toggling
-  showStats$!: Observable<boolean>; // ADDED
+  showStats$!: Observable<boolean>;
 
   constructor() {
     // The constructor is now clean, handling only observable setup.
@@ -56,6 +59,8 @@ export class AppComponent implements OnInit {
     this.isAdmin$ = this.authService.currentUser.pipe(
       map(user => !!(user?.userRoles?.includes('ADMIN')))
     );
+    // Derive dark mode state from the service
+    this.isDarkMode$ = this.themeService.theme$.pipe(map(theme => theme === 'dark'));
   }
 
   ngOnInit(): void {
@@ -63,9 +68,8 @@ export class AppComponent implements OnInit {
     console.log('AppComponent initialized. User authenticated:', this.authService.isAuthenticated());
     this.loadSystemStatistics();
     this.loadConfigSetting();
-    this.initializeTheme(); // Initialize the theme on startup
 
-    // ADDED: Logic to determine if the stats panel should be shown
+    // Logic to determine if the stats panel should be shown
     this.showStats$ = this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
       startWith(null), // Trigger on initial load
@@ -80,32 +84,8 @@ export class AppComponent implements OnInit {
     );
   }
 
-  private initializeTheme(): void {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      this.isDarkMode = true;
-    } else if (savedTheme === 'light') {
-      this.isDarkMode = false;
-    } else {
-      // If no theme is saved, check the user's system preference
-      this.isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
-    this.applyTheme();
-  }
-
-  private applyTheme(): void {
-    if (this.isDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }
-
   toggleDarkMode(): void {
-    this.isDarkMode = !this.isDarkMode;
-    this.applyTheme();
+    this.themeService.toggleTheme();
   }
 
   loadSystemStatistics(): void {

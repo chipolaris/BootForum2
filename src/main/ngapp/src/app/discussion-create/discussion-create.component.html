@@ -24,12 +24,8 @@
 
       <!-- Title -->
       <div>
-        <label for="title" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Title</label>
-        <input
-          type="text"
-          id="title"
-          formControlName="title"
-          required
+        <label for="title" class="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1">Title</label>
+        <input type="text" id="title" formControlName="title" required
           class="block w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200"
           [ngClass]="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': submitted && f['title'].invalid }"
           placeholder="Enter discussion title"
@@ -42,10 +38,10 @@
 
       <!-- Content using Toast UI Editor -->
       <div>
-        <label for="content-editor" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Content</label>
-        <div class="mt-1 border border-gray-300 dark:border-slate-600 rounded-md"
+        <label for="content-editor" class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Content</label>
+        <div class="mt-1 border border-slate-600 dark:border-slate-300 rounded-md"
              [ngClass]="{ 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500': submitted && contentError }">
-          <div #contentEditorRef></div>
+          <div #contentEditorRef id="content-editor"></div>
         </div>
         <div *ngIf="submitted && contentError" class="mt-1 text-xs text-red-600">
           <span>{{ contentError }}</span>
@@ -54,13 +50,8 @@
 
       <!-- Image Upload -->
       <div>
-        <label for="images" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Images (Optional)</label>
-        <input
-          type="file"
-          id="images"
-          multiple
-          accept="image/*"
-          (change)="onImageChange($event)"
+        <label for="images" class="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1">Images (Optional)</label>
+        <input type="file" id="images" multiple accept="image/*" (change)="onImageChange($event)"
           class="block w-full text-sm text-gray-500 dark:text-slate-400 border border-gray-300 dark:border-slate-600 rounded-md cursor-pointer bg-gray-50 dark:bg-slate-700 focus:outline-none file:bg-gray-100 dark:file:bg-slate-600 file:border-0 file:px-3 file:py-2 file:mr-3 file:text-sm file:font-medium file:text-gray-700 dark:file:text-slate-300 hover:file:bg-gray-200 dark:hover:file:bg-slate-500"
         />
         <div *ngIf="selectedImages && selectedImages.length > 0 && imageErrors.length === 0" class="mt-2 text-xs text-gray-600 dark:text-slate-400">
@@ -75,12 +66,8 @@
 
       <!-- Attachment Upload -->
       <div>
-        <label for="attachments" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Attachments (Optional)</label>
-        <input
-          type="file"
-          id="attachments"
-          multiple
-          (change)="onAttachmentChange($event)"
+        <label for="attachments" class="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1">Attachments (Optional)</label>
+        <input type="file" id="attachments" multiple (change)="onAttachmentChange($event)"
           class="block w-full text-sm text-gray-500 dark:text-slate-400 border border-gray-300 dark:border-slate-600 rounded-md cursor-pointer bg-gray-50 dark:bg-slate-700 focus:outline-none file:bg-gray-100 dark:file:bg-slate-600 file:border-0 file:px-3 file:py-2 file:mr-3 file:text-sm file:font-medium file:text-gray-700 dark:file:text-slate-300 hover:file:bg-gray-200 dark:hover:file:bg-slate-500"
         />
         <div *ngIf="selectedAttachments && selectedAttachments.length > 0 && attachmentErrors.length === 0" class="mt-2 text-xs text-gray-600 dark:text-slate-400">
@@ -95,7 +82,7 @@
 
       <!-- Tag Selection -->
       <div>
-        <label for="tags" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Tags (Optional, max {{ validationConfig.content.tags.maxTagsPerPost }})</label>
+        <label for="tags" class="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-1">Tags (Optional, max {{ validationConfig.content.tags.maxTagsPerPost }})</label>
         <p-multiSelect
           id="tags"
           [options]="availableTags"
