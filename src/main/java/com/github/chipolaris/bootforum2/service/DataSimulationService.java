@@ -19,14 +19,20 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,11 +54,18 @@ public class DataSimulationService {
     private final Faker faker = new Faker();
     private final Random random = new Random();
 
+    // NEW: For programmatic transaction management
+    private final TransactionTemplate transactionTemplate;
+
+    // NEW: Batch size for processing votes
+    private static final int VOTE_BATCH_SIZE = 100;
+
     public DataSimulationService(GenericDAO genericDAO, DynamicDAO dynamicDAO, FileService fileService,
                                  StatService statService, SystemStatistic systemStatistic,
                                  FileInfoMapper fileInfoMapper, ApplicationEventPublisher eventPublisher,
                                  PasswordEncoder passwordEncoder, UserRepository userRepository,
-                                 DiscussionRepository discussionRepository, CommentRepository commentRepository) {
+                                 DiscussionRepository discussionRepository, CommentRepository commentRepository,
+                                 PlatformTransactionManager transactionManager) { // ADDED transactionManager
         this.genericDAO = genericDAO;
         this.dynamicDAO = dynamicDAO;
         this.fileService = fileService;
@@ -64,6 +77,8 @@ public class DataSimulationService {
         this.userRepository = userRepository;
         this.discussionRepository = discussionRepository;
         this.commentRepository = commentRepository;
+        // NEW: Initialize TransactionTemplate
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
     private static final List<String> ICON_CHOICES = List.of(
@@ -202,85 +217,101 @@ public class DataSimulationService {
     /**
      * Generates simulated up/down votes for all existing discussions and comments.
      * This method is designed to be run after other data simulation methods.
+     * This method orchestrates batch processing and is NOT transactional itself.
      */
     @Async
-    @Transactional
     public void generateSimulatedVotes() {
         logger.info("Starting simulated vote generation...");
 
+        // Fetch all users once, as they are needed for every vote check.
+        // This is acceptable as the number of users is likely manageable.
         List<User> allUsers = genericDAO.all(User.class);
-        List<Discussion> allDiscussions = genericDAO.all(Discussion.class);
-        List<Comment> allComments = genericDAO.all(Comment.class);
 
-        if (allUsers.isEmpty() || (allDiscussions.isEmpty() && allComments.isEmpty())) {
+        // Fetch only IDs to save memory.
+        List<Long> allDiscussionIds = genericDAO.all(Discussion.class).stream().map(Discussion::getId).collect(Collectors.toList());
+        List<Long> allCommentIds = genericDAO.all(Comment.class).stream().map(Comment::getId).collect(Collectors.toList());
+
+        if (allUsers.isEmpty() || (allDiscussionIds.isEmpty() && allCommentIds.isEmpty())) {
             logger.warn("Not enough data to generate votes. Need at least one user and one discussion/comment.");
             return;
         }
 
-        logger.info("Generating votes for {} discussions...", allDiscussions.size());
-        for (Discussion discussion : allDiscussions) {
-            // Each user has a chance to vote on this discussion
-            for (User user : allUsers) {
-                // Skip if the user is the author of the discussion
-                if (user.getUsername().equals(discussion.getCreateBy())) {
-                    continue;
-                }
+        // Partition discussion IDs into batches
+        List<List<Long>> discussionIdBatches = partitionList(allDiscussionIds, VOTE_BATCH_SIZE);
+        logger.info("Generating votes for {} discussions in {} batches...", allDiscussionIds.size(), discussionIdBatches.size());
 
-                // 50% chance for a user to vote on any given discussion
-                if (random.nextBoolean()) {
-                    addVoteOnDiscussion(discussion, user.getUsername());
+        for (int i = 0; i < discussionIdBatches.size(); i++) {
+            List<Long> batchIds = discussionIdBatches.get(i);
+            // Use TransactionTemplate to process each batch in a separate transaction
+            transactionTemplate.executeWithoutResult(status -> {
+                QuerySpec discussionBatchQuery = QuerySpec.builder(Discussion.class).filter(FilterSpec.in("id", batchIds)).build();
+                List<Discussion> discussionBatch = dynamicDAO.find(discussionBatchQuery);
+
+                for (Discussion discussion : discussionBatch) {
+                    for (User user : allUsers) {
+                        if (user.getUsername().equals(discussion.getCreateBy())) continue;
+                        if (random.nextBoolean()) { // 50% chance
+                            addVoteOnDiscussion(discussion, user.getUsername());
+                        }
+                    }
                 }
-            }
+            });
+            logger.info("Completed discussion vote batch {}/{}", i + 1, discussionIdBatches.size());
         }
 
-        logger.info("Generating votes for {} comments...", allComments.size());
-        for (Comment comment : allComments) {
-            // Each user has a chance to vote on this comment
-            for (User user : allUsers) {
-                // Skip if the user is the author of the comment
-                if (user.getUsername().equals(comment.getCreateBy())) {
-                    continue;
-                }
+        // Partition comment IDs into batches
+        List<List<Long>> commentIdBatches = partitionList(allCommentIds, VOTE_BATCH_SIZE);
+        logger.info("Generating votes for {} comments in {} batches...", allCommentIds.size(), commentIdBatches.size());
 
-                // 30% chance for a user to vote on any given comment
-                if (random.nextInt(100) < 30) {
-                    addVoteOnComment(comment, user.getUsername());
+        for (int i = 0; i < commentIdBatches.size(); i++) {
+            List<Long> batchIds = commentIdBatches.get(i);
+            transactionTemplate.executeWithoutResult(status -> {
+                QuerySpec commentBatchQuery = QuerySpec.builder(Comment.class).filter(FilterSpec.in("id", batchIds)).build();
+                List<Comment> commentBatch = dynamicDAO.find(commentBatchQuery);
+
+                for (Comment comment : commentBatch) {
+                    for (User user : allUsers) {
+                        if (user.getUsername().equals(comment.getCreateBy())) continue;
+                        if (random.nextInt(100) < 30) { // 30% chance
+                            addVoteOnComment(comment, user.getUsername());
+                        }
+                    }
                 }
-            }
+            });
+            logger.info("Completed comment vote batch {}/{}", i + 1, commentIdBatches.size());
         }
 
         logger.info("Vote generation complete. Starting user reputation synchronization...");
 
-        // Initialize a map with all users to ensure everyone's reputation is reset/calculated.
-        Map<String, Long> reputationMap = allUsers.stream()
-                .collect(Collectors.toMap(User::getUsername, u -> 0L));
+        // Final step: synchronize all user reputations in a single transaction
+        transactionTemplate.executeWithoutResult(status -> {
+            List<User> allUsersForReputation = genericDAO.all(User.class);
+            Map<String, Long> reputationMap = allUsersForReputation.stream()
+                    .collect(Collectors.toMap(User::getUsername, u -> 0L));
 
-        // Aggregate reputation from discussions
-        List<Object[]> discussionReputations = discussionRepository.getReputationFromDiscussions();
-        for (Object[] result : discussionReputations) {
-            String username = (String) result[0];
-            Long reputation = (Long) result[1];
-            if (username != null && reputation != null) {
-                reputationMap.merge(username, reputation, Long::sum);
+            List<Object[]> discussionReputations = discussionRepository.getReputationFromDiscussions();
+            for (Object[] result : discussionReputations) {
+                String username = (String) result[0];
+                Long reputation = (Long) result[1];
+                if (username != null && reputation != null) {
+                    reputationMap.merge(username, reputation, Long::sum);
+                }
             }
-        }
 
-        // Aggregate reputation from comments
-        List<Object[]> commentReputations = commentRepository.getReputationFromComments();
-        for (Object[] result : commentReputations) {
-            String username = (String) result[0];
-            Long reputation = (Long) result[1];
-            if (username != null && reputation != null) {
-                reputationMap.merge(username, reputation, Long::sum);
+            List<Object[]> commentReputations = commentRepository.getReputationFromComments();
+            for (Object[] result : commentReputations) {
+                String username = (String) result[0];
+                Long reputation = (Long) result[1];
+                if (username != null && reputation != null) {
+                    reputationMap.merge(username, reputation, Long::sum);
+                }
             }
-        }
 
-        // Update each user's stat object. Since this method is @Transactional,
-        // changes to the managed 'User' entities will be persisted on commit.
-        for (User user : allUsers) {
-            long finalReputation = reputationMap.getOrDefault(user.getUsername(), 0L);
-            user.getStat().setReputation(finalReputation);
-        }
+            for (User user : allUsersForReputation) {
+                long finalReputation = reputationMap.getOrDefault(user.getUsername(), 0L);
+                user.getStat().setReputation(finalReputation);
+            }
+        });
 
         logger.info("Successfully completed simulated vote generation and user reputation sync.");
     }
@@ -432,7 +463,19 @@ public class DataSimulationService {
     }
 
     private <T> T getRandom(List<T> list) {
+        if (list == null || list.isEmpty()) {
+            return null;
+        }
         return list.get(random.nextInt(list.size()));
+    }
+
+    // NEW: Helper method to partition a list into batches
+    private <T> List<List<T>> partitionList(List<T> list, int batchSize) {
+        List<List<T>> partitions = new ArrayList<>();
+        for (int i = 0; i < list.size(); i += batchSize) {
+            partitions.add(list.subList(i, Math.min(i + batchSize, list.size())));
+        }
+        return partitions;
     }
 
     /**
