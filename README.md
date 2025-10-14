@@ -7,7 +7,7 @@ Code Assist](https://codeassist.google/). In addition, [ChatGPT](https://chatgpt
 \* *Currently in development*
 
 ###  [**View BootForum2 Screenshots**](Screenshots.md "Screenshots")
-###  [**Live Demo**](http://ec2-18-232-107-131.compute-1.amazonaws.com/ "BootForum2 Demo")
+###  [**Live Demo**](http://ec2-3-90-115-102.compute-1.amazonaws.com/ "BootForum2 Demo")
 
 ## Main Stacks
 
