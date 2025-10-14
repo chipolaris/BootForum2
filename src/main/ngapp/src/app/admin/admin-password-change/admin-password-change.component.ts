@@ -12,18 +12,8 @@ import { PasswordModule } from 'primeng/password';
   selector: 'app-admin-password-change',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, ButtonModule, PasswordModule],
-  template: `
-    <form [formGroup]="passwordForm" (ngSubmit)="onSubmit()" class="p-fluid">
-      <div class="field">
-        <label for="newPassword">New Password</label>
-        <p-password id="newPassword" formControlName="newPassword" [toggleMask]="true" [feedback]="true"></p-password>
-      </div>
-      <div class="flex justify-end gap-2 mt-5">
-        <button pButton type="button" label="Cancel" (click)="onCancel()" class="p-button-text"></button>
-        <button pButton type="submit" label="Set Password" [loading]="isSubmitting" [disabled]="passwordForm.invalid"></button>
-      </div>
-    </form>
-  `
+  templateUrl: './admin-password-change.component.html',
+  styleUrls: ['./admin-password-change.component.css']
 })
 export class AdminPasswordChangeComponent implements OnInit {
   private fb = inject(FormBuilder);

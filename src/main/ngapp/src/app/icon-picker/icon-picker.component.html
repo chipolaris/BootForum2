@@ -21,12 +21,11 @@
   </div>
 
   <!-- Picker Dropdown using p-popover -->
-  <!-- <p-overlayPanel #op [appendTo]="'body'" [showCloseIcon]="false" styleClass="p-0"> --> <!-- OLD -->
-  <p-popover #op [appendTo]="'body'" styleClass="p-0"> <!-- NEW, [showCloseIcon] removed -->
+  <!-- <p-overlayPanel #op [appendTo]="'body'" [showCloseIcon]="false" styleClass="p-0"> -->
+  <p-popover #op [appendTo]="'body'" styleClass="p-0">
     <ng-template pTemplate="content">
-      <!-- This is your previous dropdown content - IT REMAINS THE SAME -->
       <div
-        class="w-72 rounded-md bg-white p-4 space-y-4"
+        class="w-72 rounded-md bg-white dark:bg-slate-800 shadow-lg overflow-hidden p-4 space-y-4"
         role="menu"
         aria-orientation="vertical"
         aria-labelledby="menu-button"
@@ -38,12 +37,14 @@
             *ngFor="let icon of availableIcons"
             type="button"
             (click)="selectIcon(icon.name)"
-            class="p-2 rounded-md flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:bg-gray-200 focus:ring-1 focus:ring-indigo-500"
+            class="p-2 rounded-md flex items-center justify-center hover:bg-gray-100 focus:outline-none
+              focus:bg-slate-300 focus:ring-1 focus:ring-indigo-500
+              text-slate-800 dark:text-slate-200 dark:hover:text-white"
             [ngClass]="{'bg-indigo-100 ring-1 ring-indigo-500': icon.name === selectedIconName}"
             [attr.aria-label]="icon.displayName"
             title="{{icon.displayName}}"
           >
-            <ng-icon [name]="icon.name" size="24" class="text-gray-600"></ng-icon>
+            <ng-icon [name]="icon.name" size="24"></ng-icon>
           </button>
         </div>
 

@@ -16,7 +16,7 @@ export class ForumGroupService {
   constructor() { }
 
   createForumGroup(payload: ForumGroupCreateDTO): Observable<ApiResponse<ForumGroupDTO>> {
-    return this.http.post<ApiResponse<ForumGroupDTO>>(`${this.baseAdminApiUrl}/create`, payload)
+    return this.http.post<ApiResponse<ForumGroupDTO>>(`${this.baseAdminApiUrl}`, payload)
       .pipe(
         tap(response => {
           if (response.success) {

@@ -2,12 +2,13 @@
   <div class="field">
     <label for="roles">Roles</label>
     <p-multiSelect id="roles" [options]="availableRoles" formControlName="roles" optionLabel="label" optionValue="value"
-                   placeholder="Select Roles" display="chip"></p-multiSelect>
+                   placeholder="Select Roles" display="chip" styleClass="mt-1 block w-full px-3 py-2"></p-multiSelect>
   </div>
 
-  <div class="field">
+  <div class="field mt-5">
     <label for="status">Account Status</label>
-    <p-dropdown id="status" [options]="accountStatuses" formControlName="accountStatus" placeholder="Select Status"></p-dropdown>
+    <p-dropdown id="status" [options]="accountStatuses" formControlName="accountStatus" placeholder="Select Status"
+                styleClass="mt-1 block w-full px-3 py-2"></p-dropdown>
   </div>
 
   <div class="field mt-5">

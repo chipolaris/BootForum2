@@ -1,8 +1,8 @@
 <form [formGroup]="tagForm" (ngSubmit)="onSubmit()" novalidate class="p-fluid space-y-6">
 
   <!-- Tag Label -->
-  <div>
-    <label for="tagLabel" class="block text-sm font-medium text-gray-700 mb-1">Tag Label</label>
+  <div class="field">
+    <label for="tagLabel" class="block text-sm font-medium text-slate-800 dark:text-slate-200 mb-1">Tag Label</label>
     <input
       id="tagLabel"
       pInputText
@@ -18,8 +18,8 @@
   </div>
 
   <!-- Icon and Color Picker -->
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Icon & Color</label>
+  <div class="field">
+    <label class="block text-sm font-medium text-slate-800 dark:text-slate-200 mb-1">Icon & Color</label>
     <app-icon-picker
       [initialIconName]="f['icon'].value"
       [initialColor]="f['iconColor'].value"
@@ -29,8 +29,9 @@
 
   <!-- Disabled State (only in edit mode) -->
   <div *ngIf="isEditMode" class="flex items-center gap-4">
+    <!-- TODO: migrate to new PrimeNG toggleswitch component (PimeNG 20) -->
     <p-inputSwitch formControlName="disabled"></p-inputSwitch>
-    <label for="disabled" class="text-sm font-medium text-gray-700">Disabled</label>
+    <label for="disabled" class="text-sm font-medium text-slate-800 dark:text-slate-200">Disabled</label>
   </div>
 
   <!-- Actions -->

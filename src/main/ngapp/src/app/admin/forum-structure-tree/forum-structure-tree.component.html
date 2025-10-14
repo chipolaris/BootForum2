@@ -1,5 +1,4 @@
 <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-  <p-toast></p-toast>
 
   <header class="mb-8">
     <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-100">Administrator - Manage Forums</h1>
@@ -16,7 +15,7 @@
     <p>{{ errorMessage }}</p>
   </div>
 
-  <div *ngIf="!isLoading && !errorMessage && treeNodes.length > 0" class="bg-white p-4 rounded-lg shadow-lg">
+  <div *ngIf="!isLoading && !errorMessage && treeNodes.length > 0" class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-lg">
     <p-tree [value]="treeNodes" selectionMode="single" (onNodeSelect)="onNodeSelect($event)" filter="true" filterPlaceholder="Search structure...">
       <ng-template let-node pTemplate="forumGroup">
         <div class="flex items-center justify-between w-full group"> <!-- Added w-full and group for hover effects -->

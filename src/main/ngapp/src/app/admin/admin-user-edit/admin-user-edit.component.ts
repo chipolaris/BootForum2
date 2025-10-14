@@ -68,6 +68,7 @@ export class AdminUserEditComponent implements OnInit {
     this.dialogService.open(AdminPasswordChangeComponent, {
       header: `Change Password for ${this.user.username}`,
       width: 'min(90%, 400px)',
+      modal: true,
       data: { userId: this.user.id }
     });
   }
