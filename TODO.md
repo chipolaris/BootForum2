@@ -1,8 +1,8 @@
 
-* Document how to build / run project in development
+* Document how to build / run project in development environment [DONE]
 * Implement the trending words/keywords for given period (last week/month/custom period, etc) (in Admin area)
 * Implement the dark/light mode on front end
-* Document how to run the project with external database: Postgresql, Oracle, MySql, MS SQL Server, etc.
+* Document how to run the project with external database: Postgresql, Oracle, MySql, MS SQL Server, etc. [DONE]
 * Keep an eye on TailwindCSS and PrimeNG future releases for better integration and get rid of the Angular error
 at ng start up -> (FIXED,  in CSS code, not in the Angular library's version upgrade)
 * Update UI to work better on Mobile / Phone screen. Currently, the following issues are noted: [FIXED]

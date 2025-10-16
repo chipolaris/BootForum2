@@ -4,20 +4,20 @@
 Development is done through [Prompt Engineering](https://en.wikipedia.org/wiki/Prompt_engineering) with [Google's Gemini
 Code Assist](https://codeassist.google/). In addition, [ChatGPT](https://chatgpt.com/) is used for more generic questions
 
-\* *Currently in development*
+\* *This applicatin is currently in active development*
 
 ###  [**View BootForum2 Screenshots**](Screenshots.md "Screenshots")
-###  [**Live Demo**](http://ec2-3-90-115-102.compute-1.amazonaws.com/ "BootForum2 Demo")
+###  [**Live Demo**](http://ec2-18-232-107-131.compute-1.amazonaws.com/ "BootForum2 Demo")
 
 ## Main Stacks
 
 ### Back End
-* Spring: 
+* Spring:
   * Spring Boot
   * Spring Web
   * Spring Security
   * Spring Data (JPA)
-  * JPA/Hibernate/H2 (for development), any JDBC compliant database for deployment
+  * JPA/Hibernate/H2 (for development). Any JDBC compliant database can be used for deployment (Postgresql, Oracle, MySql, MS SQL Server, etc.). [**More details**](ExternalDatabase.md "Details on how to configure external database for deployment")
 
 ### Front End
 * Angular
@@ -29,7 +29,9 @@ Code Assist](https://codeassist.google/). In addition, [ChatGPT](https://chatgpt
 * Maven build tool
 
 ### Development Process
-Front end and back end projects are started seperatedly
+[*More Details*](LocalDevelopment.md "Instructions on setting up the local development")
+
+Front end and back end projects are started separately
 
 #### Start Spring Boot backend
 From project's root folder:
@@ -57,8 +59,8 @@ The runnable jar file can be executed with
 
 ### Database
 For convenient of development, the default database (configured in **application.yml**) is H2.
-On deployment, any JDBC compliant database can be used: Postgresql, Oracle, MySql, MS SQL Server, etc. 
-And as usual in Spring Boot fashion, the database properties can be specified externally through runtime 
+On deployment, any JDBC compliant database can be used: Postgresql, Oracle, MySql, MS SQL Server, etc.
+And as usual in Spring Boot fashion, the database properties can be specified externally through runtime
 properties file or command line arguments. For example:
 
     java -jar BootForum2-0.0.1-SNAPSHOT.jar --spring.datasource.url=jdbc:postgresql://localhost:5432/mydb \
@@ -68,10 +70,10 @@ properties file or command line arguments. For example:
 More references: https://docs.spring.io/spring-boot/reference/features/external-config.html
 
 ### Persistence Storage Configuration
-* The default local H2 datastore is at ${user.home}/BootForum2/h2/data directory. 
+* The default local H2 datastore is at ${user.home}/BootForum2/h2/data directory.
 * The default upload directory where users' attachments and images are uploaded is at ${user.home}/BootForum2/uploads
 * The default Lucene data directory where search data is at ${user.home}/BootForum2/data
 
 And as usual, individual runtime paramters/properties can be overwritten/configured.
-**application.yml** or **application.properties** file can be specified through command line arguments. 
+**application.yml** or **application.properties** file can be specified through command line arguments.
 More references about this https://docs.spring.io/spring-boot/reference/features/external-config.html
