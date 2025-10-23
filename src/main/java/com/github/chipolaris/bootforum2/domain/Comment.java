@@ -40,7 +40,9 @@ public class Comment extends BaseEntity {
 
     @PrePersist
     public void prePersist() {
-        this.setCreateDate(LocalDateTime.now());
+        if (this.getCreateDate() == null) {
+            this.setCreateDate(LocalDateTime.now());
+        }
     }
 
     @PreUpdate

@@ -34,8 +34,12 @@ public class CommentInfo extends BaseEntity {
     public void prePersist() {
         this.abbreviateContent();
         LocalDateTime now = LocalDateTime.now();
-        this.setCreateDate(now);
-        this.setUpdateDate(now);
+        if(this.getCreateDate() == null) {
+            this.setCreateDate(now);
+        }
+        if(this.getUpdateDate() == null) {
+            this.setUpdateDate(now);
+        }
     }
 
     @PreUpdate

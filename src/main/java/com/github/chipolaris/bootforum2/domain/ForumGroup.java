@@ -28,7 +28,13 @@ public class ForumGroup extends BaseEntity {
 
     @PrePersist
     public void prePersist() {
-        this.setCreateDate(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        if(this.getCreateDate() == null) {
+            this.setCreateDate(now);
+        }
+        if(this.getUpdateDate() == null) {
+            this.setUpdateDate(now);
+        }
     }
 
     @PreUpdate

@@ -57,10 +57,13 @@ public class User extends BaseEntity {
 
 	@PrePersist
 	public void prePersist() {
-		this.setCreateDate(LocalDateTime.now());
-		// updateDate will be set by BaseEntity's preUpdate if it exists, or manually here if needed
-		if (this.getUpdateDate() == null) {
-			this.setUpdateDate(LocalDateTime.now());
+
+		LocalDateTime now = LocalDateTime.now();
+		if(this.getCreateDate() == null) {
+			this.setCreateDate(now);
+		}
+		if(this.getUpdateDate() == null) {
+			this.setUpdateDate(now);
 		}
 	}
 

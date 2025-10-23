@@ -72,8 +72,8 @@ public class AdminChartService {
 
     private ChartDataDTO buildContentActivityChart() {
         LocalDateTime twelveMonthsAgo = LocalDate.now().minusMonths(11).withDayOfMonth(1).atStartOfDay();
-        List<CountPerMonthDTO> discussionCounts = discussionRepository.countByMonth(twelveMonthsAgo);
-        List<CountPerMonthDTO> commentCounts = commentRepository.countByMonth(twelveMonthsAgo);
+        List<CountPerMonthDTO> discussionCounts = discussionRepository.countPerMonthSince(twelveMonthsAgo);
+        List<CountPerMonthDTO> commentCounts = commentRepository.countPerMonthSince(twelveMonthsAgo);
 
         Map<YearMonth, Long> discussionMap = discussionCounts.stream()
                 .collect(Collectors.toMap(dto -> YearMonth.of(dto.year(), dto.month()), CountPerMonthDTO::count));

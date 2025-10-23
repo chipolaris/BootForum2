@@ -206,7 +206,7 @@ public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
             GROUP BY YEAR(d.createDate), MONTH(d.createDate)
             ORDER BY YEAR(d.createDate), MONTH(d.createDate)
             """)
-    List<CountPerMonthDTO> countByMonth(@Param("since") LocalDateTime since);
+    List<CountPerMonthDTO> countPerMonthSince(@Param("since") LocalDateTime since);
 
     /**
      * Calculates the total reputation from votes on discussions for each author.

@@ -1,6 +1,5 @@
 package com.github.chipolaris.bootforum2;
 
-import com.github.chipolaris.bootforum2.config.ForumDefaultConfig;
 import com.github.chipolaris.bootforum2.config.SeedDataInitializer;
 import com.github.chipolaris.bootforum2.dao.DynamicDAO;
 import com.github.chipolaris.bootforum2.dao.FilterSpec;
@@ -8,7 +7,6 @@ import com.github.chipolaris.bootforum2.dao.QuerySpec;
 import com.github.chipolaris.bootforum2.domain.Person;
 import com.github.chipolaris.bootforum2.domain.User;
 import com.github.chipolaris.bootforum2.security.JwtAuthenticationFilter;
-import com.github.chipolaris.bootforum2.service.ForumService;
 import com.github.chipolaris.bootforum2.service.ForumSettingService;
 import com.github.chipolaris.bootforum2.service.SystemStatistic;
 import org.slf4j.Logger;
