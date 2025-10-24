@@ -1,47 +1,18 @@
 package com.github.chipolaris.bootforum2.repository;
 
-import com.github.chipolaris.bootforum2.config.SeedDataInitializer;
-import com.github.chipolaris.bootforum2.dao.DynamicDAO;
 import com.github.chipolaris.bootforum2.domain.Avatar;
 import com.github.chipolaris.bootforum2.domain.FileInfo;
-import com.github.chipolaris.bootforum2.security.JwtAuthenticationFilter;
-import com.github.chipolaris.bootforum2.service.ForumSettingService;
-import com.github.chipolaris.bootforum2.service.SystemStatistic;
+import com.github.chipolaris.bootforum2.test.DataJpaTestWithApplicationMocks;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest // Configures an in-memory H2 database and loads only JPA components
+@DataJpaTestWithApplicationMocks// Configures an in-memory H2 database and loads only JPA components
 public class AvatarRepositoryTest {
-
-    // Add a mocked beans so that {@link SpringBootAngularApplication.java} can inject them
-    // during test context loading for this slice test.
-    @MockitoBean
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    @MockitoBean
-    private SeedDataInitializer seedDataInitializer;
-
-    @MockitoBean
-    private DynamicDAO dynamicDAO;
-
-    @MockitoBean
-    private ForumSettingService forumSettingService;
-
-    @MockitoBean
-    private SystemStatistic systemStatistic;
-    // end mocked beans
 
     @Autowired
     private TestEntityManager entityManager;

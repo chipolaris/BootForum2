@@ -1,21 +1,15 @@
 package com.github.chipolaris.bootforum2.repository;
 
-import com.github.chipolaris.bootforum2.config.SeedDataInitializer;
-import com.github.chipolaris.bootforum2.dao.DynamicDAO;
 import com.github.chipolaris.bootforum2.domain.*;
 import com.github.chipolaris.bootforum2.dto.ReplyToMyCommentDTO;
 import com.github.chipolaris.bootforum2.dto.admin.CountPerMonthDTO;
-import com.github.chipolaris.bootforum2.security.JwtAuthenticationFilter;
-import com.github.chipolaris.bootforum2.service.ForumSettingService;
-import com.github.chipolaris.bootforum2.service.SystemStatistic;
+import com.github.chipolaris.bootforum2.test.DataJpaTestWithApplicationMocks;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -26,20 +20,8 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
+@DataJpaTestWithApplicationMocks
 public class CommentRepositoryTest {
-
-    // Mock beans required by SpringBootAngularApplication to allow the test context to load
-    @MockitoBean
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
-    @MockitoBean
-    private SeedDataInitializer seedDataInitializer;
-    @MockitoBean
-    private DynamicDAO dynamicDAO;
-    @MockitoBean
-    private ForumSettingService forumSettingService;
-    @MockitoBean
-    private SystemStatistic systemStatistic;
 
     @Autowired
     private TestEntityManager entityManager;
