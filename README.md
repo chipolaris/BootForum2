@@ -1,5 +1,7 @@
 # README.md
 
+Build and grow your community with BootForum2. 
+
 **BootForum2** is a modern implementation of Web based discussion forum using **Spring Boot 3** and **Angular 19** as main development frameworks.
 Development is done through [Prompt Engineering](https://en.wikipedia.org/wiki/Prompt_engineering) with [Google's Gemini
 Code Assist](https://codeassist.google/). In addition, [ChatGPT](https://chatgpt.com/) is used for more generic questions
