@@ -19,7 +19,7 @@ Code Assist](https://codeassist.google/). In addition, [ChatGPT](https://chatgpt
   * Spring Web
   * Spring Security
   * Spring Data (JPA)
-  * JPA/Hibernate/H2 (for development). Any JDBC compliant database can be used for deployment (Postgresql, Oracle, MySql, MS SQL Server, etc.). [**More details**](ExternalDatabase.md "Details on how to configure external database for deployment")
+  * JPA/Hibernate/H2 (for development). Any JDBC compliant database can be used for deployment (Postgresql, Oracle, MySql, MS SQL Server, etc.). [More details](ExternalDatabase.md "Details on how to configure external database for deployment")
 
 ### Front End
 * Angular
