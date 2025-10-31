@@ -6,7 +6,7 @@ Build and grow your community with BootForum2. The forum application is lightwei
 Development is done through [Prompt Engineering](https://en.wikipedia.org/wiki/Prompt_engineering) with [Google's Gemini
 Code Assist](https://codeassist.google/). In addition, [ChatGPT](https://chatgpt.com/) is used for more generic questions
 
-\* *This applicatin is currently in active development*
+\* *This application is currently in active development*
 
 ###  [**View BootForum2 Screenshots**](Screenshots.md "Screenshots")
 ###  [**Live Demo**](http://ec2-3-90-115-102.compute-1.amazonaws.com/ "BootForum2 Demo")
