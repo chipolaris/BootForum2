@@ -1,6 +1,6 @@
 # README.md
 
-Build and grow your community with BootForum2. The forum application is lightweight and can be run in an EC2 instance with 2GB of memory (with embedded H2 database). But this application can also be run in any JDBC-compliant database.
+Build and grow your community with BootForum2. The forum application is lightweight and can be run in an EC2 instance with 2GB of memory (with embedded H2 database). But this application can also be run in any JDBC-compliant database (Oracle, Postgresql, MySQL, SQL Server, etc).
 
 **BootForum2** is a modern implementation of Web based discussion forum using **Spring Boot 3** and **Angular 19** as main development frameworks.
 Development is done through [Prompt Engineering](https://en.wikipedia.org/wiki/Prompt_engineering) with [Google's Gemini
