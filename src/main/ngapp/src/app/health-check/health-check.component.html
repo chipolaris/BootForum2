@@ -1,0 +1,35 @@
+<div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-8">
+  <p-panel header="Application Health Status">
+
+    <div *ngIf="isLoading" class="flex justify-center items-center p-8">
+      <p-progressSpinner></p-progressSpinner>
+    </div>
+
+    <div *ngIf="error" class="p-4">
+      <p-message severity="error" [text]="error"></p-message>
+    </div>
+
+    <div *ngIf="!isLoading && healthStatus">
+      <div class="mb-6 flex items-center gap-4">
+        <span class="text-lg font-semibold">Overall Status:</span>
+        <p-tag [severity]="getSeverity(healthStatus.overallStatus)" [value]="healthStatus.overallStatus"></p-tag>
+      </div>
+
+      <h3 class="text-xl font-semibold border-b pb-2 mb-4">Component Status</h3>
+
+      <div class="flex flex-col gap-4">
+        <div *ngFor="let component of healthStatus.components"
+             class="p-4 border rounded-lg bg-surface-50 dark:bg-surface-800">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-lg">{{ component.component }}</span>
+            <p-tag [severity]="getSeverity(component.status)" [value]="component.status"></p-tag>
+          </div>
+          <div *ngIf="component.details" class="mt-2 p-2 bg-surface-100 dark:bg-surface-700 rounded">
+            <pre class="text-sm whitespace-pre-wrap">{{ component.details | json }}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </p-panel>
+</div>

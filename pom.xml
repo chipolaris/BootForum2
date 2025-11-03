@@ -130,6 +130,13 @@
 			<artifactId>hibernate-search-backend-lucene</artifactId>
 		</dependency>
 
+		<!-- Spring Actuator support for application's health check -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<!-- Javafaker library for generate data for quick tests -->
 		<dependency>
 			<groupId>com.github.javafaker</groupId>
 			<artifactId>javafaker</artifactId>

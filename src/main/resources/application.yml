@@ -71,6 +71,19 @@ file:
   storage:
     base-path: ${user.home}/BootForum2/uploads
 
+# Spring Actuator Health Check ---
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health # Expose the health endpoint over the web
+  endpoint:
+    health:
+      # Configure when to show details. 'when_authorized' is a secure default.
+      # Our custom controller will decide what to show publicly.
+      show-details: when_authorized
+      show-components: when_authorized
+
 logging:
   level:
     org:

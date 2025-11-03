@@ -486,11 +486,15 @@ export interface ChartDataDTO {
   datasets: ChartDataSetDTO[];
 }
 
-export interface AdminChartDTO {
-  contentActivity: ChartDataDTO;
-  newUsers: ChartDataDTO;
-  forumActivity: ChartDataDTO;
-  topTerms?: ChartDataDTO;
+export interface HealthStatusDTO {
+  component: string;
+  status: 'UP' | 'DOWN' | 'UNKNOWN' | 'OUT_OF_SERVICE';
+  details: { [key: string]: any };
+}
+
+export interface ApplicationHealthDTO {
+  overallStatus: 'UP' | 'DOWN' | 'UNKNOWN' | 'OUT_OF_SERVICE';
+  components: HealthStatusDTO[];
 }
 
 export interface UserSummaryDTO {
@@ -501,6 +505,13 @@ export interface UserSummaryDTO {
   roles: string[];
   accountStatus: string;
   lastLogin: string; // ISO date string
+}
+
+export interface AdminChartDTO {
+  contentActivity: ChartDataDTO;
+  newUsers: ChartDataDTO;
+  forumActivity: ChartDataDTO;
+  topTerms?: ChartDataDTO;
 }
 
 export interface AdminUserUpdateDTO {

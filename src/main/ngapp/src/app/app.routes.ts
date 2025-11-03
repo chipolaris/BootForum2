@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './home/home.component';
+import { HealthCheckComponent } from './health-check/health-check.component';
 import { UnauthorizedComponent } from './unauthorized/unauthorized.component';
 import { ResourceNotFoundComponent } from './resource-not-found/resource-not-found.component';
 import { DiscussionListComponent } from './discussion-list/discussion-list.component';
@@ -38,6 +39,7 @@ import { AdminUserListComponent } from './admin/admin-user-list/admin-user-list.
 export const routes: Routes = [
   { path: 'home', component: HomeComponent },
   { path: '', redirectTo: '/home', pathMatch: 'full' }, // Redirect empty path to home
+  { path: 'app/health-check', component: HealthCheckComponent },
   { path: 'app/unauthorized', component: UnauthorizedComponent },
   { path: 'app/forums/tree-table', component: ForumTreeTableComponent },
   {
