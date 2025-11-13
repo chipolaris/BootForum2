@@ -235,8 +235,8 @@ export class DiscussionCreateComponent implements OnInit, OnDestroy {
       this.contentEditor = new Editor({
         el: this.editorElRef.nativeElement,
         height: '300px',
-        initialEditType: 'markdown',
-        previewStyle: 'vertical',
+        initialEditType: 'markdown', // or 'wysiwyg'
+        previewStyle: 'tab', // or 'vertical' for editor/preview side by side
         theme: theme, // Use the new theme
         initialValue: currentContent // Restore the content
       });
